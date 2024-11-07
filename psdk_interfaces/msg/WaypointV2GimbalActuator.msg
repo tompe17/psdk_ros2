@@ -1,0 +1,6 @@
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_GIMBAL_OPERATION_TYPE_ROTATE_GIMBAL = 1
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_GIMBAL_OPERATION_TYPE_UNKNOWN = 255
+
+uint8 dji_waypoint_v2_action_actuator_gimbal_operation_type 
+uint16 actuator_index # The index of actuator. It is valid when the diagnostics is related
+WaypointV2GimbalActuatorRotationParam waypoint_v2_gimbal_actuator_rotation_param # The operation type of gimbal actuator.

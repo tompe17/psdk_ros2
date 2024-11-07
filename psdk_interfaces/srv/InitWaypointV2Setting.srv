@@ -1,0 +1,7 @@
+WaypointV2InitSetting waypoint_v2_init_settings 
+uint16 polygon_num 
+float32 radius 
+uint16 action_num 
+
+---
+bool result 

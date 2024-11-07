@@ -1,0 +1,31 @@
+
+uint8 DJI_WAYPOINT_V2_ACTION_TRIGGER_TYPE_ACTION_ASSOCIATED = 2
+
+uint8 DJI_WAYPOINT_V2_ACTION_TRIGGER_TYPE_TRAJECTORY = 3
+
+uint8 DJI_WAYPOINT_V2_ACTION_TRIGGER_TYPE_INTERVAL = 4
+uint8 DJI_WAYPOINT_V2_ACTION_TRIGGER_TYPE_SAMPLE_REACH_POINT = 5
+
+uint8 DJI_WAYPOINT_V2_ACTION_TRIGGER_TYPE_UNKNOWN = 255
+
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_TYPE_CAMERA = 1
+
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_TYPE_GIMBAL = 2
+
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_TYPE_AIRCRAFT_CONTROL = 4
+
+uint8 DJI_WAYPOINT_V2_ACTION_ACTUATOR_TYPE_UNKNOWN = 255
+
+uint16 action_id # The ID of Action.
+
+uint8 waypoint_v2_action_trigger_type 
+uint8 waypoint_v2_action_actuator_type 
+
+WaypointV2AssociateTrigger waypoint_v2_associate_trigger 
+WaypointV2IntervalTrigger waypoint_v2_interval_trigger 
+WaypointV2TrajectoryTrigger waypoint_v2_trajectory_trigger 
+WaypointV2SampleReachPointTrigger waypoint_v2_sample_reach_point_trigger 
+
+WaypointV2CameraActuator waypoint_v2_camera_actuator 
+WaypointV2GimbalActuator waypoint_v2_gimbal_actuator 
+WaypointV2AircraftControlActuator waypoint_v2_aircraft_control_actuator 
