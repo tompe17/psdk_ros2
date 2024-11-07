@@ -263,6 +263,8 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
                           telemetry_thread_);
   stop_and_destroy_module(is_flight_control_module_mandatory_,
                           flight_control_module_, flight_control_thread_);
+  stop_and_destroy_module(is_waypoint_flying_module_mandatory_,
+                          waypoint_flying_module_, waypoint_flying_thread_);
   stop_and_destroy_module(is_camera_module_mandatory_, camera_module_,
                           camera_thread_);
   stop_and_destroy_module(is_gimbal_module_mandatory_, gimbal_module_,
@@ -809,6 +811,8 @@ PSDKWrapper::transition_modules_to_state(LifecycleState state)
   transition_if_mandatory(is_telemetry_module_mandatory_, telemetry_module_);
   transition_if_mandatory(is_flight_control_module_mandatory_,
                           flight_control_module_);
+  transition_if_mandatory(is_waypoint_flying_module_mandatory_,
+                          waypoint_flying_module_);
   transition_if_mandatory(is_camera_module_mandatory_, camera_module_);
   transition_if_mandatory(is_liveview_module_mandatory_, liveview_module_);
   transition_if_mandatory(is_gimbal_module_mandatory_, gimbal_module_);
