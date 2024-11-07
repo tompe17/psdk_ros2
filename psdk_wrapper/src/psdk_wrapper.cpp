@@ -101,6 +101,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   get_parameter("mandatory_modules.perception",
                 is_perception_module_mandatory_);
 
+  RCLCPP_ERROR(get_logger(), "is_waypoint_flying_module_mandatory_:", is_waypoint_flying_module_mandatory_);
+  
   create_module(is_telemetry_module_mandatory_, telemetry_module_,
                 telemetry_thread_, "telemetry_node",
                 psdk_ros2::global_telemetry_ptr_);
