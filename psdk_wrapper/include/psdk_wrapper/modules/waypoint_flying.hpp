@@ -37,6 +37,8 @@ namespace psdk_ros2
 
   class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
+private:
+  bool is_module_initialized_{false};
  public:
   using Trigger = std_srvs::srv::Trigger;
   //  using SetHomeFromGPS = psdk_interfaces::srv::SetHomeFromGPS;
@@ -147,7 +149,12 @@ namespace psdk_ros2
    */
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State &state);
 
+  bool init();
+  
+  bool deinit();
+  
   };
+
 
 }
 

@@ -48,6 +48,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                     rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.flight_control",
                     rclcpp::ParameterValue(true));
+  declare_parameter("mandatory_modules.waypoint_flying", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.camera", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.gimbal", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.liveview", rclcpp::ParameterValue(true));
@@ -91,6 +92,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   get_parameter("mandatory_modules.telemetry", is_telemetry_module_mandatory_);
   get_parameter("mandatory_modules.flight_control",
                 is_flight_control_module_mandatory_);
+  get_parameter("mandatory_modules.waypoint_flying",
+                is_waypoint_flying_module_mandatory_);
   get_parameter("mandatory_modules.camera", is_camera_module_mandatory_);
   get_parameter("mandatory_modules.gimbal", is_gimbal_module_mandatory_);
   get_parameter("mandatory_modules.liveview", is_liveview_module_mandatory_);
@@ -103,6 +106,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                 psdk_ros2::global_telemetry_ptr_);
   create_module(is_flight_control_module_mandatory_, flight_control_module_,
                 flight_control_thread_, "flight_control_node");
+  create_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_,
+                waypoint_flying_thread_, "waypoint_flying_node");
   create_module(is_camera_module_mandatory_, camera_module_, camera_thread_,
                 "camera_node", psdk_ros2::global_camera_ptr_);
   create_module(is_gimbal_module_mandatory_, gimbal_module_, gimbal_thread_,
@@ -221,6 +226,8 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
        !telemetry_module_->deinit()) ||
       (is_flight_control_module_mandatory_ && flight_control_module_ &&
        !flight_control_module_->deinit()) ||
+      (is_waypoint_flying_module_mandatory_ && waypoint_flying_module_ &&
+       !waypoint_flying_module_->deinit() ) ||
       (is_camera_module_mandatory_ && camera_module_ &&
        !camera_module_->deinit()) ||
       (is_gimbal_module_mandatory_ && gimbal_module_ &&

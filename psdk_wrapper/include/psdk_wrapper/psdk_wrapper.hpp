@@ -43,6 +43,7 @@
 
 #include "psdk_wrapper/modules/camera.hpp"
 #include "psdk_wrapper/modules/flight_control.hpp"
+#include "psdk_wrapper/modules/waypoint_flying.hpp"
 #include "psdk_wrapper/modules/gimbal.hpp"
 #include "psdk_wrapper/modules/hms.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
@@ -255,11 +256,13 @@ class PSDKWrapper : public rclcpp_lifecycle::LifecycleNode
   bool is_camera_module_mandatory_{true};
   bool is_gimbal_module_mandatory_{true};
   bool is_flight_control_module_mandatory_{true};
+  bool is_waypoint_flying_module_mandatory_{true};
   bool is_liveview_module_mandatory_{true};
   bool is_hms_module_mandatory_{true};
   bool is_perception_module_mandatory_{true};
 
   std::shared_ptr<FlightControlModule> flight_control_module_;
+  std::shared_ptr<WaypointFlyingModule> waypoint_flying_module_;
   std::shared_ptr<TelemetryModule> telemetry_module_;
   std::shared_ptr<CameraModule> camera_module_;
   std::shared_ptr<LiveviewModule> liveview_module_;
@@ -268,6 +271,7 @@ class PSDKWrapper : public rclcpp_lifecycle::LifecycleNode
   std::shared_ptr<PerceptionModule> perception_module_;
 
   std::unique_ptr<utils::NodeThread> flight_control_thread_;
+  std::unique_ptr<utils::NodeThread> waypoint_flying_thread_;
   std::unique_ptr<utils::NodeThread> telemetry_thread_;
   std::unique_ptr<utils::NodeThread> camera_thread_;
   std::unique_ptr<utils::NodeThread> liveview_thread_;

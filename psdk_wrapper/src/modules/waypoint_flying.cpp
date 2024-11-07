@@ -244,6 +244,39 @@ WaypointFlyingModule::on_shutdown(const rclcpp_lifecycle::State &state)
   return CallbackReturn::SUCCESS;
 }
 
+bool
+WaypointFlyingModule::init()
+{
+  if (is_module_initialized_)
+  {
+    RCLCPP_INFO(get_logger(), "HMS already initialized, skipping.");
+    return true;
+  }
+
+  RCLCPP_INFO(get_logger(), "Initiating Waypoint Flying");
+  is_module_initialized_ = true;
+  return true;
+}
+
+bool
+WaypointFlyingModule::deinit()
+{
+  RCLCPP_INFO(get_logger(), "Deinitializing Waypoint Flying");
+#if 0  
+  T_DjiReturnCode return_code = DjiHmsManager_DeInit();
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(),
+                 "Could not deinitialize the HMS module. Error code: %ld",
+                 return_code);
+    return false;
+  }
+#endif  
+  is_module_initialized_ = false;
+  return true;
+}
+
+
 void WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
      const std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Request> req,
      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Response> res) {
