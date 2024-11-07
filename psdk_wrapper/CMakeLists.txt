@@ -156,6 +156,7 @@ add_library(psdk_wrapper_libs SHARED
   src/psdk_wrapper.cpp
   src/modules/telemetry.cpp
   src/modules/flight_control.cpp
+  src/modules/waypoint_flying.cpp
   src/modules/camera.cpp
   src/modules/gimbal.cpp
   src/modules/liveview.cpp
