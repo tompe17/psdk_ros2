@@ -62,6 +62,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WaypointV2AircraftControlActuatorFlying.msg"
   "msg/WaypointV2AircraftControlActuatorRotateHeading.msg"
   "msg/WaypointV2InitSetting.msg"
+  "msg/WaypointV2MissionStatePush.msg"
+  "msg/WaypointV2MissionEventPush.msg"
   "srv/CameraGetType.srv"
   "srv/CameraSetExposureModeEV.srv"
   "srv/CameraGetExposureModeEV.srv"
