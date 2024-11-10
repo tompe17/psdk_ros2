@@ -9,6 +9,7 @@
  *
  */
 
+///#include "dji_waypoint_v2.hpp"
 #include "psdk_wrapper/modules/waypoint_flying.hpp"
 
 namespace psdk_ros2
