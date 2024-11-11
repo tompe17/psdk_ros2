@@ -377,6 +377,12 @@ void WaypointFlyingModule::upload_waypoint_v2_mission_callback(
      std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response> res) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "upload_waypoint_v2_mission_callback");
 
+  T_DjiReturnCode resinit = DjiWaypointV2_Init();
+  std::cerr << "***********************resinit: " << resinit << std::endl;
+  if (resinit > 0) {
+    res->result = false;
+    return;
+  }
 
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   std::cerr << "uploadres: " << uploadres << std::endl;
