@@ -475,9 +475,9 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
   T_DjiWaypointV2 wp;
 
-  T_DjiWaypointV2GlobalCruiseSpeed cruise_speed = 5.0;
-  T_DjiReturnCode speedres = DjiWaypointV2_SetGlobalCruiseSpeed(cruise_speed);
-  std::cerr << "speedres: " << speedres << std::endl;
+  //  T_DjiWaypointV2GlobalCruiseSpeed cruise_speed = 5.0;
+  //  T_DjiReturnCode speedres = DjiWaypointV2_SetGlobalCruiseSpeed(cruise_speed);
+  //  std::cerr << "speedres: " << speedres << std::endl;
   
   response->result = true;
   if (speedres > 0) {
