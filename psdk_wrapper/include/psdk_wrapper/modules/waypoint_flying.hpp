@@ -15,6 +15,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <string>
+#include <stddef.h>
 
 #include "std_srvs/srv/trigger.hpp"
 
@@ -30,6 +31,9 @@
 #include "psdk_interfaces/srv/upload_waypoint_v2_action.hpp"
 #include "psdk_interfaces/srv/upload_waypoint_v2_mission.hpp"
 
+#include "psdk_interfaces/msg/waypoint_v2_mission_state_push.hpp"
+#include "psdk_interfaces/msg/waypoint_v2_mission_event_push.hpp"
+
 #include "dji_waypoint_v2.h"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
@@ -42,7 +46,6 @@ namespace psdk_ros2
 private:
   T_DjiWayPointV2MissionSettings * ms;
   bool is_module_initialized_{false};
-
   
  public:
 
@@ -55,6 +58,9 @@ private:
   //  using GetGoHomeAltitude = psdk_interfaces::srv::GetGoHomeAltitude;
   //  using SetObstacleAvoidance = psdk_interfaces::srv::SetObstacleAvoidance;
   //  using GetObstacleAvoidance = psdk_interfaces::srv::GetObstacleAvoidance;
+
+  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionStatePush>::SharedPtr state_push_publisher;
+  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionEventPush>::SharedPtr event_push_publisher;
 
   rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2Event>::SharedPtr subscribe_waypoint_v2_event_service;
   rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2State>::SharedPtr subscribe_waypoint_v2_state_service;

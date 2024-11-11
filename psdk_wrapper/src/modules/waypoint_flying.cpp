@@ -41,6 +41,9 @@ WaypointFlyingModule::on_configure(const rclcpp_lifecycle::State &state)
   (void)state;
   RCLCPP_INFO(get_logger(), "Configuring WaypointFlyingModule");
 
+  state_push_publisher = this->create_publisher<psdk_interfaces::msg::WaypointV2MissionStatePush>("psdk_ros2/waypointV2_mission_state", 10);
+  event_push_publisher = this->create_publisher<psdk_interfaces::msg::WaypointV2MissionEventPush>("psdk_ros2/waypointV2_mission_event", 10);
+
   subscribe_waypoint_v2_event_service = this->create_service<psdk_interfaces::srv::SubscribeWaypointV2Event>("psdk_ros2/waypointV2_subscribeMissionEvent", std::bind(&WaypointFlyingModule::subscribe_waypoint_v2_event_callback, this, std::placeholders::_1, std::placeholders::_2));
   subscribe_waypoint_v2_state_service = this->create_service<psdk_interfaces::srv::SubscribeWaypointV2State>("psdk_ros2/waypointV2_subscribeMissionState", std::bind(&WaypointFlyingModule::subscribe_waypoint_v2_state_callback, this, std::placeholders::_1, std::placeholders::_2));
   pause_waypoint_v2_mission_service = this->create_service<psdk_interfaces::srv::PauseWaypointV2Mission>("psdk_ros2/waypointV2_pauseMission", std::bind(&WaypointFlyingModule::pause_waypoint_v2_mission_callback, this, std::placeholders::_1, std::placeholders::_2));
@@ -307,8 +310,18 @@ T_DjiReturnCode WaypointFlyingModule::state_callback(T_DjiWaypointV2MissionState
 }
     
 T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData) {
-  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
-  //              stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
+              stateData.curWaypointIndex, stateData.state, stateData.velocity);
+
+  psdk_interfaces::msg::WaypointV2MissionStatePush msg;
+  msg.common_data_version = 0;
+  msg.common_data_len = 0;
+  msg.cur_waypoint_index = stateData.curWaypointIndex;
+  msg.state = stateData.state; // 0x1 mission prepared; 0x2 enter mission
+  msg.velocity = stateData.velocity;
+
+  wfm_pointer->state_push_publisher->publish(msg);
+  
   return 0;
 }
     
@@ -470,12 +483,10 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
   
     
 #if 0
-    waypointV2Vector.pointOfInterest.positionX = request->waypoint_v2_init_settings.mission[i].position_x;
-    waypointV2Vector.pointOfInterest.positionY = request->waypoint_v2_init_settings.mission[i].position_y;
-    waypointV2Vector.pointOfInterest.positionZ = request->waypoint_v2_init_settings.mission[i].position_z;
+  waypointV2Vector.pointOfInterest.positionX = request->waypoint_v2_init_settings.mission[i].position_x;
+  waypointV2Vector.pointOfInterest.positionY = request->waypoint_v2_init_settings.mission[i].position_y;
+  waypointV2Vector.pointOfInterest.positionZ = request->waypoint_v2_init_settings.mission[i].position_z;
 #endif    
-
-  T_DjiWaypointV2 wp;
 
   //  T_DjiWaypointV2GlobalCruiseSpeed cruise_speed = 5.0;
   //  T_DjiReturnCode speedres = DjiWaypointV2_SetGlobalCruiseSpeed(cruise_speed);
