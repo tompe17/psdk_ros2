@@ -260,6 +260,16 @@ WaypointFlyingModule::init()
 
   RCLCPP_INFO(get_logger(), "Initiating Waypoint Flying");
   wfm_pointer = this;
+
+  T_DjiReturnCode resinit = DjiWaypointV2_Init();
+
+  std::cerr << "resinit: " << resinit << std::endl;
+
+  if (resinit > 0) {
+    is_module_initialized_ = false;
+    return false;
+  }
+  
   is_module_initialized_ = true;
   return true;
 }
@@ -393,14 +403,6 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "init_waypoint_v2_setting_callback");
 
-  T_DjiReturnCode resinit = DjiWaypointV2_Init();
-
-  std::cerr << "resinit: " << resinit << std::endl;
-
-  if (resinit > 0) {
-    response->result = false;
-    return;
-  }
 
   uint16_t polygonNum = request->polygon_num;
   float radius = request->radius;
