@@ -712,6 +712,7 @@ PSDKWrapper::initialize_psdk_modules()
       !initialize_module(is_gimbal_module_mandatory_, gimbal_module_) ||
       !initialize_module(is_liveview_module_mandatory_, liveview_module_) ||
       !initialize_module(is_hms_module_mandatory_, hms_module_) ||
+      !initialize_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_) ||
       !initialize_module(is_perception_module_mandatory_, perception_module_))
   {
     return false;
