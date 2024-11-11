@@ -317,6 +317,8 @@ void WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response> res) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "subscribe_waypoint_v2_state_callback");
 
+  wfm_pointer = this;
+
   res->result = true;
   /// T_DjiReturnCode regres = DjiWaypointV2_RegisterMissionStateCallback(std::bind(&WaypointFlyingModule::state_callback, this, std::placeholders::_1));
   // T_DjiReturnCode regres = DjiWaypointV2_RegisterMissionStateCallback([&this](T_DjiWaypointV2MissionStatePush stateData){this->state_callback(stateData)});
