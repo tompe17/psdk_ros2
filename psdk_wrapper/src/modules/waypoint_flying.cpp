@@ -310,8 +310,8 @@ T_DjiReturnCode WaypointFlyingModule::state_callback(T_DjiWaypointV2MissionState
 }
     
 T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData) {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
-              stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
+  // stateData.curWaypointIndex, stateData.state, stateData.velocity);
 
   psdk_interfaces::msg::WaypointV2MissionStatePush msg;
   msg.common_data_version = 0;
