@@ -12,6 +12,9 @@
 #include "dji_waypoint_v2.h"
 #include "psdk_wrapper/modules/waypoint_flying.hpp"
 #include <unistd.h>
+#include <functional>
+
+psdk_ros2::WaypointFlyingModule * wfm_pointer;
 
 namespace psdk_ros2
 {
@@ -256,6 +259,7 @@ WaypointFlyingModule::init()
   }
 
   RCLCPP_INFO(get_logger(), "Initiating Waypoint Flying");
+  wfm_pointer = this;
   is_module_initialized_ = true;
   return true;
 }
@@ -286,12 +290,30 @@ void WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
   
   res->result = true;
 }
+
+T_DjiReturnCode WaypointFlyingModule::state_callback(T_DjiWaypointV2MissionStatePush stateData) {
+
+  return 0;
+}
+    
+T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData) {
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
+              stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  return 0;
+}
     
 void WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
      const std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Request> req,
      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response> res) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "subscribe_waypoint_v2_state_callback");
+
   res->result = true;
+  /// T_DjiReturnCode regres = DjiWaypointV2_RegisterMissionStateCallback(std::bind(&WaypointFlyingModule::state_callback, this, std::placeholders::_1));
+  // T_DjiReturnCode regres = DjiWaypointV2_RegisterMissionStateCallback([&this](T_DjiWaypointV2MissionStatePush stateData){this->state_callback(stateData)});
+  T_DjiReturnCode regres = DjiWaypointV2_RegisterMissionStateCallback(&state_callback2);
+  if (regres > 0) {
+    res->result = false;
+  }
 }
     
 void WaypointFlyingModule::pause_waypoint_v2_mission_callback(

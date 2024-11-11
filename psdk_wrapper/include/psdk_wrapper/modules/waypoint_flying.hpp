@@ -35,13 +35,20 @@
 
 namespace psdk_ros2
 {
-
+  T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
+  
   class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
 private:
   T_DjiWayPointV2MissionSettings * ms;
   bool is_module_initialized_{false};
+
+  
  public:
+
+  T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
+
+  
   using Trigger = std_srvs::srv::Trigger;
   //  using SetHomeFromGPS = psdk_interfaces::srv::SetHomeFromGPS;
   //  using SetGoHomeAltitude = psdk_interfaces::srv::SetGoHomeAltitude;
