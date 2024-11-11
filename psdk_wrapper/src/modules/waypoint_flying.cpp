@@ -480,9 +480,9 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
   //  std::cerr << "speedres: " << speedres << std::endl;
   
   response->result = true;
-  if (speedres > 0) {
-    response->result = false;
-  }
+  //if (speedres > 0) {
+  //    response->result = false;
+  //  }
 }
 
 void WaypointFlyingModule::upload_waypoint_v2_action_callback(
