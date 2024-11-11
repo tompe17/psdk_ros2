@@ -411,10 +411,10 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
   std::cerr << "***********************resinit: " << resinit << std::endl;
-  if (resinit > 0) {
-    response->result = false;
-    return;
-  }
+  //if (resinit > 0) {
+  //    response->result = false;
+  //    return;
+  //  }
 
   uint16_t polygonNum = request->polygon_num;
   float radius = request->radius;
