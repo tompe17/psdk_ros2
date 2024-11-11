@@ -263,12 +263,12 @@ WaypointFlyingModule::init()
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
 
-  std::cerr << "***********************resinit: " << resinit << std::endl;
+  std::cerr << "INIT***********************resinit: " << resinit << std::endl;
 
-  if (resinit > 0) {
-    is_module_initialized_ = false;
-    return false;
-  }
+  //  if (resinit > 0) {
+  //    is_module_initialized_ = false;
+  //    return false;
+  //  }
   
   is_module_initialized_ = true;
   return true;
@@ -379,10 +379,10 @@ void WaypointFlyingModule::upload_waypoint_v2_mission_callback(
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
   std::cerr << "***********************resinit: " << resinit << std::endl;
-  if (resinit > 0) {
-    res->result = false;
-    return;
-  }
+  //  if (resinit > 0) {
+  //    res->result = false;
+  //    return;
+  //  }
 
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   std::cerr << "uploadres: " << uploadres << std::endl;
