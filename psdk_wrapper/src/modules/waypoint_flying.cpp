@@ -263,7 +263,7 @@ WaypointFlyingModule::init()
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
 
-  std::cerr << "resinit: " << resinit << std::endl;
+  std::cerr << "***********************resinit: " << resinit << std::endl;
 
   if (resinit > 0) {
     is_module_initialized_ = false;
