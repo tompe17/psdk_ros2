@@ -409,6 +409,15 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "init_waypoint_v2_setting_callback");
 
+  T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
+  std::cerr << "uploadres: " << uploadres << std::endl;
+
+  res->result = true;
+  
+  if (uploadres > 0) {
+    res->result = false;
+  }
+  
 
   uint16_t polygonNum = request->polygon_num;
   float radius = request->radius;
