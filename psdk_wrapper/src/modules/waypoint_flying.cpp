@@ -266,12 +266,12 @@ WaypointFlyingModule::init()
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
 
-  std::cerr << "INIT***********************resinit: " << resinit << std::endl;
+  // std::cerr << "INIT***********************resinit: " << resinit << std::endl;
 
-  //  if (resinit > 0) {
-  //    is_module_initialized_ = false;
-  //    return false;
-  //  }
+  if (resinit > 0) {
+      is_module_initialized_ = false;
+      return false;
+  }
   
   is_module_initialized_ = true;
   return true;
@@ -392,13 +392,6 @@ void WaypointFlyingModule::upload_waypoint_v2_mission_callback(
      std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response> res) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "upload_waypoint_v2_mission_callback");
 
-  T_DjiReturnCode resinit = DjiWaypointV2_Init();
-  std::cerr << "***********************resinit: " << resinit << std::endl;
-  //  if (resinit > 0) {
-  //    res->result = false;
-  //    return;
-  //  }
-
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   std::cerr << "uploadres: " << uploadres << std::endl;
 
@@ -424,12 +417,6 @@ void WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "init_waypoint_v2_setting_callback");
 
-  T_DjiReturnCode resinit = DjiWaypointV2_Init();
-  std::cerr << "***********************resinit: " << resinit << std::endl;
-  //if (resinit > 0) {
-  //    response->result = false;
-  //    return;
-  //  }
 
   uint16_t polygonNum = request->polygon_num;
   float radius = request->radius;
