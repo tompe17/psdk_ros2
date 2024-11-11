@@ -11,6 +11,7 @@
 
 #include "dji_waypoint_v2.h"
 #include "psdk_wrapper/modules/waypoint_flying.hpp"
+#include <unistd.h>
 
 namespace psdk_ros2
 {
@@ -341,45 +342,6 @@ void WaypointFlyingModule::upload_waypoint_v2_mission_callback(
 
   std::cerr << "resinit: " << resinit << std::endl;
 
-  T_DjiWayPointV2MissionSettings * ms = new T_DjiWayPointV2MissionSettings();
-
-  ms->missionID = 17; // uint32:t
-  ms->repeatTimes = 0; // No repeat, 1 = execute to times
-  ms->finishedAction = DJI_WAYPOINT_V2_FINISHED_NO_ACTION;
-  ms->maxFlightSpeed = 10.0;
-  ms->autoFlightSpeed = 7.0;
-  ms->actionWhenRcLost = DJI_WAYPOINT_V2_MISSION_STOP_WAYPOINT_V2_AND_EXECUTE_RC_LOST_ACTION;
-  ms->gotoFirstWaypointMode = DJI_WAYPOINT_V2_MISSION_GO_TO_FIRST_WAYPOINT_MODE_SAFELY;
-  // DJI_WAYPOINT_V2_MISSION_GO_TO_FIRST_WAYPOINT_MODE_POINT_TO_POINT
-
-
-  T_DjiWaypointV2 wp;
-  wp.longitude = 0.0;
-  wp.latitude = 0.0;
-  wp.relativeHeight = 0.0; // dji_f32_t relativeHeight; /*! relative to takeoff height*/
-  wp.waypointType = DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_STRAIGHT_AND_STOP;
-  wp.headingMode = DJI_WAYPOINT_V2_HEADING_MODE_AUTO;
-  wp.config.useLocalCruiseVel = 0;
-  wp.config.useLocalMaxVel = 0;
-  wp.dampingDistance = 2.0;
-  wp.heading = 0.0;
-  wp.turnMode = DJI_WAYPOINT_V2_TURN_MODE_UNKNOWN;
-  wp.maxFlightSpeed = 10.0;
-  wp.autoFlightSpeed = 7.0;
-
-  
-  ///ms->mission =  // T_DjiWaypointV2 *mission;
-  ms->missTotalLen = 2;
-
-  T_DJIWaypointV2ActionList alist;
-  alist.actions = 0;
-  alist.actionNum = 0;
-  ms->actionList = alist;
-  
-
-  T_DjiWaypointV2GlobalCruiseSpeed cruise_speed = 5.0;
-  T_DjiReturnCode speedres = DjiWaypointV2_SetGlobalCruiseSpeed(cruise_speed);
-  std::cerr << "speedres: " << speedres << std::endl;
 
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   std::cerr << "uploadres: " << uploadres << std::endl;
@@ -399,11 +361,86 @@ void WaypointFlyingModule::generate_waypoint_v2_action_callback(
 }
 
 void WaypointFlyingModule::init_waypoint_v2_setting_callback(
-     const std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response> res) {
+     const std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Request> request,
+     std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response> response) {
+
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "init_waypoint_v2_setting_callback");
 
-  res->result = true;
+
+  uint16_t polygonNum = request->polygon_num;
+  float radius = request->radius;
+
+  uint16_t actionNum = request->action_num;
+  srand(int(time(0)));
+  
+  ms = new T_DjiWayPointV2MissionSettings();
+
+  ms->missionID = rand(); // uint32_t
+  ms->repeatTimes = request->waypoint_v2_init_settings.repeat_times; // No repeat, 1 = execute to times
+  /// ms->finishedAction = DJI_WAYPOINT_V2_FINISHED_NO_ACTION;
+  ms->finishedAction = static_cast<E_DJIWaypointV2MissionFinishedAction>(request->waypoint_v2_init_settings.finished_action);
+  ms->maxFlightSpeed = request->waypoint_v2_init_settings.max_flight_speed;
+  ms->autoFlightSpeed = request->waypoint_v2_init_settings.auto_flight_speed;
+  ms->actionWhenRcLost = DJI_WAYPOINT_V2_MISSION_STOP_WAYPOINT_V2_AND_EXECUTE_RC_LOST_ACTION;
+  // ms->gotoFirstWaypointMode = DJI_WAYPOINT_V2_MISSION_GO_TO_FIRST_WAYPOINT_MODE_SAFELY;
+  // DJI_WAYPOINT_V2_MISSION_GO_TO_FIRST_WAYPOINT_MODE_POINT_TO_POINT
+  ms->gotoFirstWaypointMode = static_cast<E_DJIWaypointV2MissionGotoFirstWaypointMode>(request->waypoint_v2_init_settings.goto_first_waypoint_mode);
+  ms->missTotalLen = request->waypoint_v2_init_settings.mission.size();
+
+  ms->mission = (T_DjiWaypointV2 *) malloc(ms->missTotalLen*sizeof(T_DjiWaypointV2));
+
+  for (uint16_t i = 0; i < request->waypoint_v2_init_settings.mission.size(); i++) {
+    T_DjiWaypointV2 wp;
+#if 0
+    waypointV2Vector.longitude                 = request->waypoint_v2_init_settings.mission[i].longitude;
+    waypointV2Vector.latitude                  = request->waypoint_v2_init_settings.mission[i].latitude;
+    waypointV2Vector.relativeHeight            = request->waypoint_v2_init_settings.mission[i].relative_height;
+    waypointV2Vector.waypointType              = static_cast<DJI::OSDK::DJIWaypointV2FlightPathMode>(request->waypoint_v2_init_settings.mission[i].waypoint_type);
+    waypointV2Vector.headingMode               = static_cast<DJI::OSDK::DJIWaypointV2HeadingMode>(request->waypoint_v2_init_settings.mission[i].heading_mode);
+    waypointV2Vector.config.useLocalCruiseVel  = request->waypoint_v2_init_settings.mission[i].config.use_local_cruise_vel;
+    waypointV2Vector.config.useLocalMaxVel     = request->waypoint_v2_init_settings.mission[i].config.use_local_max_vel;
+    waypointV2Vector.dampingDistance           = request->waypoint_v2_init_settings.mission[i].damping_distance;
+    waypointV2Vector.heading                   = request->waypoint_v2_init_settings.mission[i].heading;
+    waypointV2Vector.turnMode                  = static_cast<DJI::OSDK::DJIWaypointV2TurnMode>(request->waypoint_v2_init_settings.mission[i].turn_mode);
+    waypointV2Vector.pointOfInterest.positionX = request->waypoint_v2_init_settings.mission[i].position_x;
+    waypointV2Vector.pointOfInterest.positionY = request->waypoint_v2_init_settings.mission[i].position_y;
+    waypointV2Vector.pointOfInterest.positionZ = request->waypoint_v2_init_settings.mission[i].position_z;
+    waypointV2Vector.maxFlightSpeed            = request->waypoint_v2_init_settings.mission[i].max_flight_speed;
+    waypointV2Vector.autoFlightSpeed           = request->waypoint_v2_init_settings.mission[i].auto_flight_speed;
+#endif    
+
+    ms->mission[i] = wp;
+  }
+  
+
+  T_DjiWaypointV2 wp;
+  wp.longitude = 0.0;
+  wp.latitude = 0.0;
+  wp.relativeHeight = 0.0; // dji_f32_t relativeHeight; /*! relative to takeoff height*/
+  wp.waypointType = DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_STRAIGHT_AND_STOP;
+  wp.headingMode = DJI_WAYPOINT_V2_HEADING_MODE_AUTO;
+  wp.config.useLocalCruiseVel = 0;
+  wp.config.useLocalMaxVel = 0;
+  wp.dampingDistance = 2.0;
+  wp.heading = 0.0;
+  wp.turnMode = DJI_WAYPOINT_V2_TURN_MODE_UNKNOWN;
+  wp.maxFlightSpeed = 10.0;
+  wp.autoFlightSpeed = 7.0;
+
+  
+  ///ms->mission =  // T_DjiWaypointV2 *mission;
+
+  T_DJIWaypointV2ActionList alist;
+  alist.actions = 0;
+  alist.actionNum = 0;
+  ms->actionList = alist;
+  
+
+  T_DjiWaypointV2GlobalCruiseSpeed cruise_speed = 5.0;
+  T_DjiReturnCode speedres = DjiWaypointV2_SetGlobalCruiseSpeed(cruise_speed);
+  std::cerr << "speedres: " << speedres << std::endl;
+  
+  response->result = true;
 }
 
 void WaypointFlyingModule::upload_waypoint_v2_action_callback(

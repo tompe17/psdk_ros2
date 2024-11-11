@@ -30,6 +30,7 @@
 #include "psdk_interfaces/srv/upload_waypoint_v2_action.hpp"
 #include "psdk_interfaces/srv/upload_waypoint_v2_mission.hpp"
 
+#include "dji_waypoint_v2.h"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
 namespace psdk_ros2
@@ -38,6 +39,7 @@ namespace psdk_ros2
   class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
 private:
+  T_DjiWayPointV2MissionSettings * ms;
   bool is_module_initialized_{false};
  public:
   using Trigger = std_srvs::srv::Trigger;
