@@ -330,8 +330,8 @@ T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData) {
   // stateData.curWaypointIndex, stateData.state, stateData.velocity);
 
   psdk_interfaces::msg::WaypointV2MissionEventPush msg;
-  msg.event = 0;
-  msg.f_c_timestamp = 0;
+  msg.event = eventData.event;
+  msg.f_c_timestamp = eventData.FCTimestamp;
   msg.interrupt_reason = 0;
   msg.recover_process = 0;
   msg.finish_reason= 0;
