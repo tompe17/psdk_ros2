@@ -146,7 +146,6 @@ c_LiveviewConvertH264ToRgbCallback(E_DjiLiveViewCameraPosition position,
                                    const uint8_t *buffer,
                                    uint32_t buffer_length)
 {
-  RCLCPP_INFO(rclcpp::get_logger("liveview"), "c_LiveviewConvertH264ToRgbCallback");
   std::unique_lock<std::shared_mutex> lock(
       global_liveview_ptr_->global_ptr_mutex_);
 
@@ -170,7 +169,6 @@ LiveviewModule::LiveviewConvertH264ToRgbCallback(
     E_DjiLiveViewCameraPosition position, const uint8_t *buffer,
     uint32_t buffer_length)
 {
-  RCLCPP_INFO(rclcpp::get_logger("liveview"), "LiveviewModule::c_LiveviewConvertH264ToRgbCallback");  
   auto decoder = stream_decoder_.find(position);
   if ((decoder != stream_decoder_.end()) && decoder->second)
   {
