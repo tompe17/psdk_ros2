@@ -146,6 +146,7 @@ c_LiveviewConvertH264ToRgbCallback(E_DjiLiveViewCameraPosition position,
                                    const uint8_t *buffer,
                                    uint32_t buffer_length)
 {
+  RCLCPP_INFO(get_logger(), "c_LiveviewConvertH264ToRgbCallback");
   std::unique_lock<std::shared_mutex> lock(
       global_liveview_ptr_->global_ptr_mutex_);
 
@@ -214,6 +215,7 @@ LiveviewModule::camera_setup_streaming_cb(
     bool streaming_result;
     if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
     {
+      RCLCPP_INFO(get_logger(), "MAIN_CAMERA...");      
       char main_camera_name[] = "MAIN_CAMERA";
       streaming_result = start_camera_stream(&c_publish_main_streaming_callback,
                                              &main_camera_name, payload_index_,
@@ -221,6 +223,7 @@ LiveviewModule::camera_setup_streaming_cb(
     }
     else if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
     {
+      RCLCPP_INFO(get_logger(), "FPV_CAMERA...");      
       char fpv_camera_name[] = "FPV_CAMERA";
       streaming_result = start_camera_stream(&c_publish_fpv_streaming_callback,
                                              &fpv_camera_name, payload_index_,

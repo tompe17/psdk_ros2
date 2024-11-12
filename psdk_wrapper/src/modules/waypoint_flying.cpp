@@ -325,6 +325,22 @@ T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData) {
   return 0;
 }
     
+T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData) {
+  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
+  // stateData.curWaypointIndex, stateData.state, stateData.velocity);
+
+  psdk_interfaces::msg::WaypointV2MissionEventPush msg;
+  msg.common_data_version = 0;
+  msg.common_data_len = 0;
+  msg.cur_waypoint_index = stateData.curWaypointIndex;
+  msg.state = stateData.state; // 0x1 mission prepared; 0x2 enter mission
+  msg.velocity = stateData.velocity;
+
+  wfm_pointer->state_push_publisher->publish(msg);
+  
+  return 0;
+}
+    
 void WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
      const std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Request> req,
      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response> res) {

@@ -40,6 +40,7 @@
 namespace psdk_ros2
 {
   T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
+  T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData);
   
   class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
@@ -50,6 +51,7 @@ private:
  public:
 
   T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
+  T_DjiReturnCode event_callback(T_DjiWaypointV2MissionEventPush eventData);
 
   
   using Trigger = std_srvs::srv::Trigger;
