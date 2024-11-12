@@ -330,13 +330,16 @@ T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData) {
   // stateData.curWaypointIndex, stateData.state, stateData.velocity);
 
   psdk_interfaces::msg::WaypointV2MissionEventPush msg;
-  msg.common_data_version = 0;
-  msg.common_data_len = 0;
-  msg.cur_waypoint_index = stateData.curWaypointIndex;
-  msg.state = stateData.state; // 0x1 mission prepared; 0x2 enter mission
-  msg.velocity = stateData.velocity;
+  msg.event = 0;
+  msg.f_c_timestamp = 0;
+  msg.interrupt_reason = 0;
+  msg.recover_process = 0;
+  msg.finish_reason= 0;
+  msg.waypoint_index = 0;
+  msg.current_mission_exec_num = 0;
+  msg.finished_all_exec_num = 0;
 
-  wfm_pointer->state_push_publisher->publish(msg);
+  wfm_pointer->event_push_publisher->publish(msg);
   
   return 0;
 }
