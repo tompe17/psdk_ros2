@@ -212,7 +212,7 @@ LiveviewModule::camera_setup_streaming_cb(
 
   if (request->start_stop)
   {
-    RCLCPP_INFO(get_logger(), "Starting streaming...");
+    RCLCPP_INFO(get_logger(), "Starting streaming... fpvvam: %d", DJI_LIVEVIEW_CAMERA_POSITION_FPV);
     bool streaming_result;
     if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
     {
