@@ -170,6 +170,7 @@ LiveviewModule::LiveviewConvertH264ToRgbCallback(
     E_DjiLiveViewCameraPosition position, const uint8_t *buffer,
     uint32_t buffer_length)
 {
+  RCLCPP_INFO(rclcpp::get_logger("liveview"), "LiveviewModule::c_LiveviewConvertH264ToRgbCallback");  
   auto decoder = stream_decoder_.find(position);
   if ((decoder != stream_decoder_.end()) && decoder->second)
   {
@@ -263,8 +264,10 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
                                     E_DjiLiveViewCameraPosition payload_index,
                                     E_DjiLiveViewCameraSource camera_source)
 {
+  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream");
   if (decode_stream_)
   {
+    RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: decode_stream_");
     auto decoder = stream_decoder_.find(payload_index);
     if ((decoder != stream_decoder_.end()) && decoder->second)
     {
@@ -277,7 +280,7 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
       return false;
     }
   }
-
+  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d", payload_index, camera_source);
   T_DjiReturnCode return_code = DjiLiveview_StartH264Stream(
       payload_index, camera_source, c_LiveviewConvertH264ToRgbCallback);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
