@@ -314,6 +314,7 @@ bool
 CameraModule::get_camera_type(std::string *camera_type,
                               const E_DjiMountPosition index)
 {
+  RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
   T_DjiReturnCode return_code =
       DjiCameraManager_GetCameraType(index, &attached_camera_type_);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -345,6 +346,7 @@ CameraModule::camera_get_type_cb(
     const std::shared_ptr<CameraGetType::Request> request,
     const std::shared_ptr<CameraGetType::Response> response)
 {
+  RCLCPP_ERROR(get_logger(), "get_camera_type_cb: %d", request->payload_index);
   std::string camera_type;
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
