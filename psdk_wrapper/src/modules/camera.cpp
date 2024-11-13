@@ -286,7 +286,7 @@ CameraModule::init()
   RCLCPP_INFO(get_logger(), "Checking connected payloads...");
   std::string camera_type;
   E_DjiMountPosition main_payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
-  if (get_camera_type(&camera_type, main_payload_index))
+  if (get_camera_type(camera_type, main_payload_index))
   {
     RCLCPP_INFO(get_logger(), "Camera type %s detected", camera_type.c_str());
   }
@@ -311,7 +311,7 @@ CameraModule::deinit()
 }
 
 bool
-CameraModule::get_camera_type(std::string *camera_type,
+CameraModule::get_camera_type(std::string & camera_type,
                               const E_DjiMountPosition index)
 {
   RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
@@ -334,8 +334,8 @@ CameraModule::get_camera_type(std::string *camera_type,
       if (it.first == attached_camera_type_)
       {
         std::string camera_type_copy = it.second;
-        camera_type = &camera_type_copy;
-        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s", camera_type->c_str());
+        camera_type = camera_type_copy;
+        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s", camera_type.c_str());
 
         return true;
       }
@@ -355,7 +355,7 @@ CameraModule::camera_get_type_cb(
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
 
-  if (get_camera_type(&camera_type, index))
+  if (get_camera_type(camera_type, index))
   {
     RCLCPP_ERROR(get_logger(), "get_camera_type_cb returned: %s", camera_type.c_str());    
     response->camera_type = camera_type;

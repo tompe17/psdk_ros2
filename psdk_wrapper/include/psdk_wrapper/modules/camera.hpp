@@ -175,7 +175,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
    * @param index payload index to be checked
    * @return true - if camera has been found, false - otherwise
    */
-  bool get_camera_type(std::string* camera_type,
+  bool get_camera_type(std::string & camera_type,
                        const E_DjiMountPosition index);
 
   /* ROS 2 Service callbacks */
