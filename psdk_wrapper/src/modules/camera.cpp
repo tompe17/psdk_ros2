@@ -357,6 +357,7 @@ CameraModule::camera_get_type_cb(
 
   if (get_camera_type(&camera_type, index))
   {
+    RCLCPP_ERROR(get_logger(), "get_camera_type_cb returned: %s", camera_type.c_str());    
     response->camera_type = camera_type;
     response->success = true;
   }
