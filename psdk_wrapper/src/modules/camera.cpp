@@ -327,13 +327,16 @@ CameraModule::get_camera_type(std::string *camera_type,
   }
   else
   {  // TODO(@lidiadltv): Remove this map
-    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s", camera_type->c_str());
+    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d", attached_camera_type_);
+
     for (auto &it : psdk_utils::camera_type_str)
     {
       if (it.first == attached_camera_type_)
       {
         std::string camera_type_copy = it.second;
         camera_type = &camera_type_copy;
+        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s", camera_type->c_str());
+
         return true;
       }
     }
