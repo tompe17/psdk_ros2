@@ -375,7 +375,7 @@ void
 LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img_in,
                                            void *user_data) {
 
-  rgb_img = scaleDownByHalf(rgb_img_in);
+  auto rgb_img = scaleDownByHalf(rgb_img_in);
   
   (void)user_data;
   auto img = std::make_unique<sensor_msgs::msg::Image>();
