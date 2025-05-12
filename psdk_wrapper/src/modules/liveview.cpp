@@ -348,16 +348,18 @@ LiveviewModule::publish_fpv_camera_images(const uint8_t *buffer,
 CameraRGBImage LiveviewModule::scaleDownByHalf(const CameraRGBImage& input) {
     CameraRGBImage output;
 
+    int scale_factor = 4;
+
     // New dimensions
-    output.width = input.width / 2;
-    output.height = input.height / 2;
+    output.width = input.width / scale_factor;
+    output.height = input.height / scale_factor;
     output.rawData.resize(output.width * output.height * 3);
 
     for (int y = 0; y < output.height; ++y) {
         for (int x = 0; x < output.width; ++x) {
             // Corresponding pixel in the input image (nearest neighbor)
-            int srcX = x * 2;
-            int srcY = y * 2;
+            int srcX = x * scale_factor;
+            int srcY = y * scale_factor;
 
             int inputIndex = (srcY * input.width + srcX) * 3;
             int outputIndex = (y * output.width + x) * 3;
