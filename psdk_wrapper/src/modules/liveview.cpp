@@ -348,7 +348,7 @@ LiveviewModule::publish_fpv_camera_images(const uint8_t *buffer,
 CameraRGBImage LiveviewModule::scaleDownByHalf(const CameraRGBImage& input) {
     CameraRGBImage output;
 
-    int scale_factor = 4;
+    double scale_factor = 2.5;
 
     // New dimensions
     output.width = input.width / scale_factor;
