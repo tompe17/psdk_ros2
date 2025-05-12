@@ -363,9 +363,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img2->step = rgb_img.width/2.0 * 3;
   img2->encoding = "rgb8";
   for (int i=0; i<img2->height*img2->width; i++) {
-    img2->data.push_back(rgb_img.rawData[i*2];
-    img2->data.push_back(rgb_img.rawData[i*2+1];
-    img2->data.push_back(rgb_img.rawData[i*2+2];
+    img2->data.push_back(rgb_img.rawData[i*2]);
+    img2->data.push_back(rgb_img.rawData[i*2+1]);
+    img2->data.push_back(rgb_img.rawData[i*2+2]);
   }
 
   img->header.stamp = this->get_clock()->now();
