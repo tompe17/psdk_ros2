@@ -362,9 +362,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img2->width = rgb_img.width/2.0;
   img2->step = rgb_img.width/2.0 * 3;
   img2->encoding = "rgb8";
-  for (int i=0; i<img2->height*img2->width*3; i++) {
-    img2->data = 0;
-  }
+  //for (int i=0; i<img2->height*img2->width*3; i++) {
+  //img2->data = 0;
+  //}
 
   img->header.stamp = this->get_clock()->now();
   img->header.frame_id = get_optical_frame_id();
