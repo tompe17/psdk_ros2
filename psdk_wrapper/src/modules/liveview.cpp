@@ -357,6 +357,15 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img->encoding = "rgb8";
   img->data = rgb_img.rawData;
 
+  auto img2 = std::make_unique<sensor_msgs::msg::Image>();
+  img2->height = rgb_img.height/2.0;
+  img2->width = rgb_img.width/2.0;
+  img2->step = rgb_img.width/2.0 * 3;
+  img2->encoding = "rgb8";
+  for (int i=0; i<img2->height*img2->width*3; i++) {
+    img2->data = rgb_img.rawData[i];
+  }
+
   img->header.stamp = this->get_clock()->now();
   img->header.frame_id = get_optical_frame_id();
   main_camera_stream_pub_->publish(std::move(img));
