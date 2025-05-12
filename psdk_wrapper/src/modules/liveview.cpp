@@ -368,7 +368,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   img->header.stamp = this->get_clock()->now();
   img->header.frame_id = get_optical_frame_id();
-  main_camera_stream_pub_->publish(std::move(img));
+  img2->header.stamp = this->get_clock()->now();
+  img2->header.frame_id = get_optical_frame_id();
+  main_camera_stream_pub_->publish(std::move(img2));
 }
 
 void
