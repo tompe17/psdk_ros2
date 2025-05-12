@@ -345,10 +345,38 @@ LiveviewModule::publish_fpv_camera_images(const uint8_t *buffer,
   fpv_camera_stream_pub_->publish(std::move(img));
 }
 
+CameraRGBImage LiveviewModule::scaleDownByHalf(const CameraRGBImage& input) {
+    CameraRGBImage output;
+
+    // New dimensions
+    output.width = input.width / 2;
+    output.height = input.height / 2;
+    output.rawData.resize(output.width * output.height * 3);
+
+    for (int y = 0; y < output.height; ++y) {
+        for (int x = 0; x < output.width; ++x) {
+            // Corresponding pixel in the input image (nearest neighbor)
+            int srcX = x * 2;
+            int srcY = y * 2;
+
+            int inputIndex = (srcY * input.width + srcX) * 3;
+            int outputIndex = (y * output.width + x) * 3;
+
+            output.rawData[outputIndex + 0] = input.rawData[inputIndex + 0]; // R
+            output.rawData[outputIndex + 1] = input.rawData[inputIndex + 1]; // G
+            output.rawData[outputIndex + 2] = input.rawData[inputIndex + 2]; // B
+        }
+    }
+
+    return output;
+}
+
 void
-LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
-                                           void *user_data)
-{
+LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img_in,
+                                           void *user_data) {
+
+  rgb_img = scaleDownByHalf(rgb_img_in);
+  
   (void)user_data;
   auto img = std::make_unique<sensor_msgs::msg::Image>();
   img->height = rgb_img.height;
@@ -357,22 +385,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img->encoding = "rgb8";
   img->data = rgb_img.rawData;
 
-  auto img2 = std::make_unique<sensor_msgs::msg::Image>();
-  img2->height = rgb_img.height/2.0;
-  img2->width = rgb_img.width/2.0;
-  img2->step = rgb_img.width/2.0 * 3;
-  img2->encoding = "rgb8";
-  for (int i=0; i<img2->height*img2->width; i++) {
-    img2->data.push_back(rgb_img.rawData[i*2]);
-    img2->data.push_back(rgb_img.rawData[i*2+1]);
-    img2->data.push_back(rgb_img.rawData[i*2+2]);
-  }
-
   img->header.stamp = this->get_clock()->now();
   img->header.frame_id = get_optical_frame_id();
-  img2->header.stamp = this->get_clock()->now();
-  img2->header.frame_id = get_optical_frame_id();
-  main_camera_stream_pub_->publish(std::move(img2));
+  main_camera_stream_pub_->publish(std::move(img));
 }
 
 void

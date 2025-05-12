@@ -161,6 +161,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
    * @param buffer  raw buffer retrieved from the camera
    * @param buffer_length length of the buffer
    */
+  CameraRGBImage scaleDownByHalf(const CameraRGBImage& input);
   void publish_main_camera_images(const uint8_t* buffer,
                                   uint32_t buffer_length);
 
