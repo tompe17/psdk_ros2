@@ -391,19 +391,25 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img.encoding = "rgb8";
   img.data = rgb_img.rawData;
 
-  cv_bridge::CvImagePtr cv_ptr;
-  try {
+  cv_bridge::CvImagePtr cv_ptr;  
+  cv::Mat outimg;
+  try {    
     cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
+    cv::Mat img = cv_ptr->image;
+    cv::resize(img, outimg, cv::Size(img.cols/2, img.rows/2), 0, 0, CV_INTER_LINEAR);
   }
   catch (cv_bridge::Exception& e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
   }  
 
+  cv_bridge::CvImage cv_image(cv_ptr->header, cv_ptr->encoding, outimg);
+  
   img.header.stamp = this->get_clock()->now();
   img.header.frame_id = get_optical_frame_id();
   //main_camera_stream_pub_->publish(std::move(img));
-  main_camera_stream_pub_->publish(*(cv_ptr->toCompressedImageMsg()));
+  // main_camera_stream_pub_->publish(*(cv_ptr->toCompressedImageMsg()));
+  main_camera_stream_pub_->publish(*cv_image.toCompressedImageMsg());  
 }
 
 void
