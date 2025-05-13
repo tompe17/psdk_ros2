@@ -25,6 +25,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 #include <shared_mutex>
 #include <string>
 
@@ -187,7 +188,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
   rclcpp::Service<CameraSetupStreaming>::SharedPtr
       camera_setup_streaming_service_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::CompressedImage>::SharedPtr
       main_camera_stream_pub_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr
       fpv_camera_stream_pub_;

@@ -32,6 +32,8 @@ find_package(tf2_ros REQUIRED)
 find_package(psdk_interfaces REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # FetchContent module
 include(FetchContent)
@@ -133,7 +135,7 @@ include_directories(${DJI_HAL_PATH})
 include_directories(${DJI_STREAMING_PATH})
 include_directories(${DJI_UTILS_PATH})
 include_directories(${PSDK_PATH}/psdk_lib/include)
-include_directories(include)
+include_directories(include  ${OpenCV_INCLUDE_DIRS})
 
 set(dependencies
   rclcpp
@@ -146,6 +148,7 @@ set(dependencies
   nav_msgs
   psdk_interfaces
   std_srvs
+  cv_bridge
 )
 
 add_executable(psdk_wrapper_node

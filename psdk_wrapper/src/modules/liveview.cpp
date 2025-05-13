@@ -17,6 +17,9 @@
  */
 
 #include "psdk_wrapper/modules/liveview.hpp"
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui.hpp>
+//#include "image_transport/image_transport.h"
 
 namespace psdk_ros2
 {
@@ -41,7 +44,7 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
 {
   (void)state;
   RCLCPP_INFO(get_logger(), "Configuring LiveviewModule");
-  main_camera_stream_pub_ = create_publisher<sensor_msgs::msg::Image>(
+  main_camera_stream_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>(
       "psdk_ros2/main_camera_stream", rclcpp::SensorDataQoS());
   fpv_camera_stream_pub_ = create_publisher<sensor_msgs::msg::Image>(
       "psdk_ros2/fpv_camera_stream", rclcpp::SensorDataQoS());
@@ -330,7 +333,7 @@ LiveviewModule::publish_main_camera_images(const uint8_t *buffer,
   img->data = std::vector<uint8_t>(buffer, buffer + buffer_length);
   img->header.stamp = this->get_clock()->now();
   img->header.frame_id = get_optical_frame_id();
-  main_camera_stream_pub_->publish(std::move(img));
+  //  main_camera_stream_pub_->publish(std::move(img));
 }
 
 void
@@ -374,22 +377,33 @@ CameraRGBImage LiveviewModule::scaleDownByHalf(const CameraRGBImage& input) {
 }
 
 void
-LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img_in,
+LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
                                            void *user_data) {
 
-  auto rgb_img = scaleDownByHalf(rgb_img_in);
+  //  auto rgb_img = scaleDownByHalf(rgb_img_in);
   
   (void)user_data;
-  auto img = std::make_unique<sensor_msgs::msg::Image>();
-  img->height = rgb_img.height;
-  img->width = rgb_img.width;
-  img->step = rgb_img.width * 3;
-  img->encoding = "rgb8";
-  img->data = rgb_img.rawData;
+  // auto img = std::make_unique<sensor_msgs::msg::Image>();
+  auto img = sensor_msgs::msg::Image();
+  img.height = rgb_img.height;
+  img.width = rgb_img.width;
+  img.step = rgb_img.width * 3;
+  img.encoding = "rgb8";
+  img.data = rgb_img.rawData;
 
-  img->header.stamp = this->get_clock()->now();
-  img->header.frame_id = get_optical_frame_id();
-  main_camera_stream_pub_->publish(std::move(img));
+  cv_bridge::CvImagePtr cv_ptr;
+  try {
+    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
+  }
+  catch (cv_bridge::Exception& e) {
+    RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
+    return;
+  }  
+
+  img.header.stamp = this->get_clock()->now();
+  img.header.frame_id = get_optical_frame_id();
+  //main_camera_stream_pub_->publish(std::move(img));
+  main_camera_stream_pub_->publish(*(cv_ptr->toCompressedImageMsg()));
 }
 
 void
