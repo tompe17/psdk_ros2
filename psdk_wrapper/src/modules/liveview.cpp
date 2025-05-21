@@ -106,6 +106,12 @@ LiveviewModule::init()
                 "Liveview module is already initialized, skipping.");
     return true;
   }
+
+  declare_parameter<int>("main_camera_width", -1);  
+  get_parameter("main_camera_width", main_camera_width);
+  declare_parameter<int>("main_camera_height", -1);  
+  get_parameter("main_camera_height", main_camera_height);
+  
   RCLCPP_INFO(get_logger(), "Initiating liveview module");
   T_DjiReturnCode return_code = DjiLiveview_Init();
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -396,7 +402,15 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   try {    
     cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::RGB8);
     cv::Mat img = cv_ptr->image;
-    cv::resize(img, outimg, cv::Size(img.cols/2, img.rows/2), 0, 0, CV_INTER_LINEAR);
+    int cols = img.cols/2;
+    int rows = img.rows/2;
+    get_parameter("main_camera_width", main_camera_width);
+    get_parameter("main_camera_height", main_camera_height);
+    if ((main_camera_width > 0) && (main_camera_height > 0)) {
+      cols = main_camera_width;
+      rows = main_camera_height;
+    }
+    cv::resize(img, outimg, cv::Size(cols, rows), 0, 0, CV_INTER_LINEAR);
   }
   catch (cv_bridge::Exception& e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());

@@ -201,6 +201,9 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool is_module_initialized_{false};
   E_DjiLiveViewCameraPosition payload_index_;
 
+  int main_camera_width;
+  int main_camera_height;
+  
   mutable std::shared_mutex global_ptr_mutex_;
 };
 
