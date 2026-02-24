@@ -228,7 +228,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
             ////DSTATUS_PRIVATE("Got Frame, but no picture\n");
             continue;
           } else {
-            while (ret >= 0) {            
+            if (ret >= 0) {            
               int ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
               if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 // fprintf(stderr, "Error during decoding: EAGAIN - not fatal\n");    
