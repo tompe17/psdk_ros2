@@ -811,7 +811,7 @@ CameraModule::camera_get_optical_zoom_cb(
     const std::shared_ptr<CameraGetOpticalZoom::Request> request,
     const std::shared_ptr<CameraGetOpticalZoom::Response> response)
 {
-  RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb payload_index: %d", request->payload_index);  
+  /// RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb payload_index: %d", request->payload_index);  
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
