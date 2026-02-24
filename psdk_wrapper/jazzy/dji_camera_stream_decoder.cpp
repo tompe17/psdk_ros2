@@ -27,6 +27,10 @@
 #include "unistd.h"
 #include "pthread.h"
 #include "dji_logger.h"
+extern "C" {
+#include "libavutil/avutil.h"
+#include "libavutil/imgutils.h"
+}
 
 /* Private constants ---------------------------------------------------------*/
 
