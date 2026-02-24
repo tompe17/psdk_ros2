@@ -206,15 +206,25 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
         pData += processedLen;
 
         if (pkt.size > 0) {
-            int gotPicture = 0;
-            ///avcodec_decode_video2(pCodecCtx, pFrameYUV, &gotPicture, &pkt);
-            gotPicture = 1;
 
-            if (!gotPicture) {
-                ////DSTATUS_PRIVATE("Got Frame, but no picture\n");
-                continue;
-            } else {
+          int ret = avcodec_send_packet(pCodecCtx, &pkt);
+          if (ret == AVERROR(EAGAIN)) {
+            ;
+          } else if (ret < 0) {
+            fprintf(stderr, "Error sending a packet for decoding: %d - %d\n", pkt.size, ret);
+          } else {
+            // ret == 0
+          }
 
+          int gotPicture = 0;
+          ///avcodec_decode_video2(pCodecCtx, pFrameYUV, &gotPicture, &pkt);
+          gotPicture = 1;
+
+          if (!gotPicture) {
+            ////DSTATUS_PRIVATE("Got Frame, but no picture\n");
+            continue;
+          } else {
+            while (ret >= 0) {            
               int ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
               if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 // fprintf(stderr, "Error during decoding: EAGAIN - not fatal\n");    
@@ -229,33 +239,36 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
               }
               // Have frame   
               
-                int w = pFrameYUV->width;
-                int h = pFrameYUV->height;
-                ////DSTATUS_PRIVATE("Got picture! size=%dx%d\n", w, h);
+              int w = pFrameYUV->width;
+              int h = pFrameYUV->height;
+              ////DSTATUS_PRIVATE("Got picture! size=%dx%d\n", w, h);
+              fprintf(stderr, "Got picture! size=%dx%d\n", w, h);
+              if (nullptr == pSwsCtx) {
+                pSwsCtx = sws_getContext(w, h, pCodecCtx->pix_fmt,
+                                         w, h, AV_PIX_FMT_RGB24,
+                                         4, nullptr, nullptr, nullptr);
+              }
 
-                if (nullptr == pSwsCtx) {
-                    pSwsCtx = sws_getContext(w, h, pCodecCtx->pix_fmt,
-                                             w, h, AV_PIX_FMT_RGB24,
-                                             4, nullptr, nullptr, nullptr);
-                }
+              if (nullptr == rgbBuf) {
+                //bufSize = avpicture_get_size(AV_PIX_FMT_RGB24, w, h);
+                bufSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24, w, h);
+                rgbBuf = (uint8_t *) av_malloc(bufSize);
+                // avpicture_fill((AVPicture *) pFrameRGB, rgbBuf, AV_PIX_FMT_RGB24, w, h);
+                av_image_fill_arrays(pFrameRGB->data,pFrameRGB->linesize,(uint8_t*)rgbBuf,AV_PIX_FMT_RGB24, w, h, 1);                
+              }
 
-                ///if (nullptr == rgbBuf) {
-                ///    bufSize = avpicture_get_size(AV_PIX_FMT_RGB24, w, h);
-                ///    rgbBuf = (uint8_t *) av_malloc(bufSize);
-                ///    avpicture_fill((AVPicture *) pFrameRGB, rgbBuf, AV_PIX_FMT_RGB24, w, h);
-                ///}
+              if (nullptr != pSwsCtx && nullptr != rgbBuf) {
+                sws_scale(pSwsCtx,
+                          (uint8_t const *const *) pFrameYUV->data, pFrameYUV->linesize, 0, pFrameYUV->height,
+                          pFrameRGB->data, pFrameRGB->linesize);
 
-                if (nullptr != pSwsCtx && nullptr != rgbBuf) {
-                    sws_scale(pSwsCtx,
-                              (uint8_t const *const *) pFrameYUV->data, pFrameYUV->linesize, 0, pFrameYUV->height,
-                              pFrameRGB->data, pFrameRGB->linesize);
+                pFrameRGB->height = h;
+                pFrameRGB->width = w;
 
-                    pFrameRGB->height = h;
-                    pFrameRGB->width = w;
-
-                    decodedImageHandler.writeNewImageWithLock(pFrameRGB->data[0], bufSize, w, h);
-                }
+                decodedImageHandler.writeNewImageWithLock(pFrameRGB->data[0], bufSize, w, h);
+              }
             }
+          }
         }
     }
     pthread_mutex_unlock(&decodemutex);
