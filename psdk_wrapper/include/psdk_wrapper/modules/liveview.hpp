@@ -196,7 +196,8 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   std::map<::E_DjiLiveViewCameraPosition, DJICameraStreamDecoder*>
       stream_decoder_;
   E_DjiLiveViewCameraSource selected_camera_source_;
-  const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
+  /// const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
+  rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};  
   bool decode_stream_{true};
   bool is_module_initialized_{false};
   E_DjiLiveViewCameraPosition payload_index_;
