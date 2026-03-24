@@ -34,6 +34,7 @@ find_package(std_srvs REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(image_transport REQUIRED)
 
 # FetchContent module
 include(FetchContent)
@@ -149,6 +150,7 @@ set(dependencies
   psdk_interfaces
   std_srvs
   cv_bridge
+  image_transport
 )
 
 add_executable(psdk_wrapper_node
