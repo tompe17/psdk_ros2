@@ -410,7 +410,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
       cols = main_camera_width;
       rows = main_camera_height;
     }
-    cv::resize(img, outimg, cv::Size(cols, rows), 0, 0, CV_INTER_LINEAR);
+    RCLCPP_ERROR(get_logger(), "cv_bridge resize: %d - %d", cols, rows);    
+    //cv::resize(img, outimg, cv::Size(cols, rows), 0, 0, CV_INTER_LINEAR);
+    cv::resize(img, outimg, cv::Size(cols, rows));
   }
   catch (cv_bridge::Exception& e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
