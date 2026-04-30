@@ -246,7 +246,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
               int w = pFrameYUV->width;
               int h = pFrameYUV->height;
               ////DSTATUS_PRIVATE("Got picture! size=%dx%d\n", w, h);
-              fprintf(stderr, "Got picture! size=%dx%d\n", w, h);
+              ///fprintf(stderr, "Got picture! size=%dx%d\n", w, h);
               if (nullptr == pSwsCtx) {
                 pSwsCtx = sws_getContext(w, h, pCodecCtx->pix_fmt,
                                          w, h, AV_PIX_FMT_RGB24,
@@ -273,7 +273,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
               }
             }
           }
-        }
+f        }
     }
     pthread_mutex_unlock(&decodemutex);
     /// av_free_packet(&pkt);

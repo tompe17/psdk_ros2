@@ -410,7 +410,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
       cols = main_camera_width;
       rows = main_camera_height;
     }
-    RCLCPP_ERROR(get_logger(), "cv_bridge resize: %d - %d", cols, rows);    
+    // RCLCPP_ERROR(get_logger(), "cv_bridge resize: %d - %d", cols, rows);    
     //cv::resize(img, outimg, cv::Size(cols, rows), 0, 0, CV_INTER_LINEAR);
     cv::resize(img, outimg, cv::Size(cols, rows));
   }
