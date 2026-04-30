@@ -425,7 +425,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   
   cimg->header.stamp = this->get_clock()->now();
   // cimg->header.frame_id = get_optical_frame_id();
-  cimg->header.frame_id = "dji5/camera0/image_frame";
+  std::string ns = get_namespace();
+  std::string unit = ns.substr(1);  
+  cimg->header.frame_id = unit + "/camera0/image_frame";
   //img.header.stamp = this->get_clock()->now();
   //img.header.frame_id = get_optical_frame_id();
   //main_camera_stream_pub_->publish(std::move(img));
