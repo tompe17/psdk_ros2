@@ -18,6 +18,8 @@
       camera_frame: "psdk_camera_link"
       perception_camera_frame: "psdk_perception_camera_link"
       publish_transforms: true
+      main_camera_width: 1080
+      main_camera_height: 600
 
       file_path: "/logs/media/"
 
