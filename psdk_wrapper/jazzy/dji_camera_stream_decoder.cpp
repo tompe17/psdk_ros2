@@ -273,7 +273,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
               }
             }
           }
-f        }
+        }
     }
     pthread_mutex_unlock(&decodemutex);
     /// av_free_packet(&pkt);
