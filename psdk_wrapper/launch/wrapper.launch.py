@@ -18,7 +18,11 @@ import lifecycle_msgs.msg
 import launch
 
 # this is to fix too quick activation
+# from launch_ros.event_handlers import OnStateTransition
+from launch.actions import RegisterEventHandler
 from launch_ros.event_handlers import OnStateTransition
+from lifecycle_msgs.msg import Transition
+
 #from lifecycle_msgs.msg import State
 
 def generate_launch_description():
@@ -103,18 +107,20 @@ def generate_launch_description():
         )
     )
 
-    wrapper_activate_handler = OnStateTransition(
-        target_lifecycle_node=wrapper_node,
-        start_state='configuring',
-        goal_state='inactive',
-        entities=[
-            EmitEvent(
-                event=ChangeState(
-                    lifecycle_node_matcher=launch.events.matches_action(wrapper_node),
-                    transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE,
+
+    wrapper_activate_handler = RegisterEventHandler(
+        OnStateTransition(
+            target_lifecycle_node=wrapper_node,
+            goal_state='inactive',
+            entities=[
+                EmitEvent(
+                    event=ChangeState(
+                        lifecycle_node_matcher=launch.events.matches_action(wrapper_node),
+                        transition_id=Transition.TRANSITION_ACTIVATE,
+                    )
                 )
-            )
-        ],
+            ],
+        )
     )
 
     # Create LaunchDescription and populate
