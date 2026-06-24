@@ -207,7 +207,10 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   int main_camera_jpeg_quality;
   
   mutable std::shared_mutex global_ptr_mutex_;
-
+  double updateFrequency(std::deque<rclcpp::Time> &timestamps,
+                         const rclcpp::Time &now,
+                         double window_sec);
+  std::deque<rclcpp::Time> timestamps_;
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;

@@ -533,13 +533,44 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   RCLCPP_INFO_STREAM(get_logger(), "publish " << t_diff);
 
 #endif
+
+  double freq = updateFrequency(timestamps_, this->get_clock()->now(), 5.0);
+
+
   //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(),
                        10000,  // 2000 ms = 2 seconds
-                       "Publishing main camera image");
+                       "Publishing main camera image in: (%d,%d) out: (%d,%d) freq (5s): %f", rgb_img.width, rgb_img.height, rows, cols, freq);
 
-  auto t_diff = (this->now() - now).seconds() * 1000.0;
-  RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
+//  auto t_diff = (this->now() - now).seconds() * 1000.0;
+//  RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
+}
+
+double LiveviewModule::updateFrequency(
+    std::deque<rclcpp::Time> &timestamps,
+    const rclcpp::Time &now,
+    double window_sec)
+{
+  // Add new timestamp
+  timestamps.push_back(now);
+
+  // Remove old ones
+  while (!timestamps.empty() &&
+         (now - timestamps.front()).seconds() > window_sec)
+  {
+    timestamps.pop_front();
+  }
+
+  // Compute frequency
+  if (timestamps.size() < 2)
+    return 0.0;
+
+  double duration = (timestamps.back() - timestamps.front()).seconds();
+
+  if (duration <= 0.0)
+    return 0.0;
+
+  return (timestamps.size() - 1) / duration;
 }
 
 void
