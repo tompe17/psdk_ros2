@@ -7,7 +7,7 @@
       developer_account: "YourDeveloperAccount"
       baudrate: "921600"
 
-      num_of_initialization_retries: 3
+      num_of_initialization_retries: 10
 
       tf_frame_prefix: ""
       imu_frame: "psdk_imu_link"

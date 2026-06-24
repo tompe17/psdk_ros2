@@ -418,6 +418,8 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img.encoding = "rgb8";
   img.data = rgb_img.rawData;
 
+  RCLCPP_INFO_STREAM(get_logger(), "publish_main_camera_images " <<rgb_img.width << " " << rgb_img.height);
+
   cv_bridge::CvImagePtr cv_ptr;  
   cv::Mat outimg;
   try {    
