@@ -497,7 +497,8 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
       10000,  // 2000 ms = 2 seconds
       "Publishing main camera image");
 
-
+  t_diff = (this->now() - now).seconds()*1000.0;
+  RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
 }
 
 void
