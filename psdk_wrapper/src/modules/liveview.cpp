@@ -408,7 +408,20 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
                                            void *user_data) {
 
   //  auto rgb_img = scaleDownByHalf(rgb_img_in);
-  
+
+  auto now = this->now();
+  double elapsed = (now - last_time_).seconds();
+
+  if (elapsed >= 1.0)  // every 1 second
+  {
+    double freq = count_ / elapsed;
+    RCLCPP_INFO(this->get_logger(), "Callback frequency: %.2f Hz", freq);
+
+    count_ = 0;
+    last_time_ = now;
+  }
+
+
   (void)user_data;
   // auto img = std::make_unique<sensor_msgs::msg::Image>();
   auto img = sensor_msgs::msg::Image();
