@@ -422,7 +422,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
     last_time_ = now;
   }
 
-
+  auto t1 = this->now();
   (void)user_data;
   // auto img = std::make_unique<sensor_msgs::msg::Image>();
   auto img = sensor_msgs::msg::Image();
@@ -433,7 +433,6 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   img.data = rgb_img.rawData;
 
 //  RCLCPP_INFO_STREAM(get_logger(), "publish_main_camera_images " <<rgb_img.width << " " << rgb_img.height);
-  return;
   cv_bridge::CvImagePtr cv_ptr;  
   cv::Mat outimg;
   try {    
@@ -451,15 +450,27 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
     //cv::resize(img, outimg, cv::Size(cols, rows), 0, 0, CV_INTER_LINEAR);
     cv::resize(img, outimg, cv::Size(cols, rows));
   }
+
   catch (cv_bridge::Exception& e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
-  }  
+  }
+
+  double t_diff = (this->now() - t1).seconds()*1000.0;
+  RCLCPP_INFO_STREAM(get_logger(), "make img dt " << t_diff);
+
+  t1 = this->now();
 
   cv_bridge::CvImage cv_image(cv_ptr->header, cv_ptr->encoding, outimg);
 
+  t_diff = (this->now() - t1).seconds()*1000.0;
+  RCLCPP_INFO_STREAM(get_logger(), "cv img " << t_diff);
+
+  t1 = this->now();
   auto cimg = cv_image.toCompressedImageMsg();
-  
+  t_diff = (this->now() - t1).seconds()*1000.0;
+  RCLCPP_INFO_STREAM(get_logger(), "compress " << t_diff);
+
   cimg->header.stamp = this->get_clock()->now();
   // cimg->header.frame_id = get_optical_frame_id();
   std::string ns = get_namespace();
@@ -469,7 +480,16 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   //img.header.frame_id = get_optical_frame_id();
   //main_camera_stream_pub_->publish(std::move(img));
   // main_camera_stream_pub_->publish(*(cv_ptr->toCompressedImageMsg()));
+
+
+  t1 = this->now();
   main_camera_stream_pub_->publish(*cimg);
+
+
+  t_diff = (this->now() - t1).seconds()*1000.0;
+  RCLCPP_INFO_STREAM(get_logger(), "publish " << t_diff);
+
+
 //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   RCLCPP_INFO_THROTTLE(
       get_logger(),
