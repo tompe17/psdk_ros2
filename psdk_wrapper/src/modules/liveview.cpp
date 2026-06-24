@@ -421,7 +421,47 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
     count_ = 0;
     last_time_ = now;
   }
+  // ---- Create cv::Mat directly (avoid extra copies from cv_bridge) ----
+  cv::Mat img(rgb_img.height, rgb_img.width, CV_8UC3,
+              rgb_img.rawData.data());  // assumes std::vector<uint8_t>
 
+  // ---- Resize ----
+  int cols = img.cols ;
+  int rows = img.rows ;
+
+//  get_parameter("main_camera_width", main_camera_width);
+//  get_parameter("main_camera_height", main_camera_height);
+//
+//  if ((main_camera_width > 0) && (main_camera_height > 0)) {
+//    cols = main_camera_width;
+//    rows = main_camera_height;
+//  }
+
+  cv::Mat outimg;
+  cv::resize(img, outimg, cv::Size(cols, rows));
+
+  // ---- Compress with lower JPEG quality ----
+  std::vector<uchar> buffer;
+  std::vector<int> params = {
+      cv::IMWRITE_JPEG_QUALITY, 70   // 🔥 change this (50–80 is good range)
+  };
+
+  cv::imencode(".jpg", outimg, buffer, params);
+
+  // ---- Build CompressedImage संदेश ----
+  sensor_msgs::msg::CompressedImage msg;
+  msg.header.stamp = this->get_clock()->now();
+
+  std::string ns = get_namespace();
+  std::string unit = ns.substr(1);
+  msg.header.frame_id = unit + "/camera0/image_frame";
+
+  msg.format = "jpeg";
+  msg.data = std::move(buffer);
+
+  // ---- Publish ----
+  main_camera_stream_pub_->publish(msg);
+#if 0
   auto t1 = this->now();
   (void)user_data;
   // auto img = std::make_unique<sensor_msgs::msg::Image>();
@@ -467,6 +507,9 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   RCLCPP_INFO_STREAM(get_logger(), "cv img " << t_diff);
 
   t1 = this->now();
+
+
+
   auto cimg = cv_image.toCompressedImageMsg();
   t_diff = (this->now() - t1).seconds()*1000.0;
   RCLCPP_INFO_STREAM(get_logger(), "compress " << t_diff);
@@ -489,7 +532,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   t_diff = (this->now() - t1).seconds()*1000.0;
   RCLCPP_INFO_STREAM(get_logger(), "publish " << t_diff);
 
-
+#endif
 //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   RCLCPP_INFO_THROTTLE(
       get_logger(),
@@ -497,7 +540,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
       10000,  // 2000 ms = 2 seconds
       "Publishing main camera image");
 
-  t_diff = (this->now() - now).seconds()*1000.0;
+  auto t_diff = (this->now() - now).seconds()*1000.0;
   RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
 }
 
