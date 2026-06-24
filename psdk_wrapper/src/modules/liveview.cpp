@@ -106,7 +106,8 @@ LiveviewModule::init()
 {
 
   // suppress warnings like: SEI type 1 size 131 truncated at 106
-  av_log_set_level(AV_LOG_ERROR);
+  av_log_set_level(AV_LOG_QUIET);
+//  av_log_set_level(AV_LOG_ERROR);
 
 
   if (is_module_initialized_)
