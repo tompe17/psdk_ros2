@@ -21,6 +21,10 @@
 #include <opencv2/highgui.hpp>
 //#include "image_transport/image_transport.h"
 
+extern "C" {
+#include <libavutil/log.h>
+}
+
 namespace psdk_ros2
 {
 LiveviewModule::LiveviewModule(const std::string &name)
@@ -100,12 +104,18 @@ LiveviewModule::on_shutdown(const rclcpp_lifecycle::State &state)
 bool
 LiveviewModule::init()
 {
+
+  // suppress warnings like: SEI type 1 size 131 truncated at 106
+  av_log_set_level(AV_LOG_ERROR);
+
+
   if (is_module_initialized_)
   {
     RCLCPP_WARN(get_logger(),
                 "Liveview module is already initialized, skipping.");
     return true;
   }
+
 
   declare_parameter<int>("main_camera_width", -1);  
   get_parameter("main_camera_width", main_camera_width);
