@@ -412,7 +412,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   auto now = this->now();
   double elapsed = (now - last_time_).seconds();
-
+  count_++;
   if (elapsed >= 1.0)  // every 1 second
   {
     double freq = count_ / elapsed;
