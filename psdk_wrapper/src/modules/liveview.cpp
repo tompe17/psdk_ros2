@@ -448,7 +448,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   RCLCPP_INFO_THROTTLE(
       get_logger(),
       *get_clock(),
-      5000,  // 2000 ms = 2 seconds
+      10000,  // 2000 ms = 2 seconds
       "Publishing main camera image");
 
 
