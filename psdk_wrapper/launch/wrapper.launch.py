@@ -140,7 +140,7 @@ def generate_launch_description():
         # The above fire almost simultaneously, so:
         # ACTIVATE sometimes runs before CONFIGURE finishes - leads to an error
     else:
-        # instead this wrapper is used
+        # instead this handler is used
         ld.add_action(wrapper_activate_handler)
 
     return ld
