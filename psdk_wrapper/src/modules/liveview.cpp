@@ -443,7 +443,15 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   //img.header.frame_id = get_optical_frame_id();
   //main_camera_stream_pub_->publish(std::move(img));
   // main_camera_stream_pub_->publish(*(cv_ptr->toCompressedImageMsg()));
-  main_camera_stream_pub_->publish(*cimg);  
+  main_camera_stream_pub_->publish(*cimg);
+//  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
+  RCLCPP_INFO_THROTTLE(
+      get_logger(),
+      *get_clock(),
+      5000,  // 2000 ms = 2 seconds
+      "Publishing main camera image");
+
+
 }
 
 void
