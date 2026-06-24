@@ -36,6 +36,7 @@ LiveviewModule::LiveviewModule(const std::string &name)
 
 {
   RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
+  last_time_ = this->now();
 }
 
 LiveviewModule::~LiveviewModule()
