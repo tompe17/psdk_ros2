@@ -101,13 +101,23 @@ LiveviewModule::on_shutdown(const rclcpp_lifecycle::State &state)
   return CallbackReturn::SUCCESS;
 }
 
+
+// void custom_log_callback(void *ptr, int level, const char *fmt, va_list vl) {
+//    if (strstr(fmt, "SEI type 1 size") != NULL)
+//        return; // skip this message
+//
+//    vfprintf(stderr, fmt, vl);
+//}
+//
+// av_log_set_callback(custom_log_callback);
+
 bool
 LiveviewModule::init()
 {
 
   // suppress warnings like: SEI type 1 size 131 truncated at 106
+  // see above for a different solution
   av_log_set_level(AV_LOG_QUIET);
-//  av_log_set_level(AV_LOG_ERROR);
 
 
   if (is_module_initialized_)
