@@ -437,8 +437,11 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 //    rows = main_camera_height;
 //  }
 
+  cv::Mat img_bgr;
+  cv::cvtColor(img, img_bgr, cv::COLOR_RGB2BGR);
+
   cv::Mat outimg;
-  cv::resize(img, outimg, cv::Size(cols, rows));
+  cv::resize(img_bgr, outimg, cv::Size(cols, rows));
 
   // ---- Compress with lower JPEG quality ----
   std::vector<uchar> buffer;
@@ -476,7 +479,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   cv_bridge::CvImagePtr cv_ptr;  
   cv::Mat outimg;
   try {    
-    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
+    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::RGB8);
     cv::Mat img = cv_ptr->image;
     int cols = img.cols/2;
     int rows = img.rows/2;
