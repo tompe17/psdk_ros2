@@ -416,7 +416,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   if (elapsed >= 1.0)  // every 1 second
   {
     double freq = count_ / elapsed;
-    RCLCPP_INFO(this->get_logger(), "Callback frequency: %.2f Hz", freq);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Callback frequency: " << freq " Hz "<<rgb_img.width << " " << rgb_img.height) ;
 
     count_ = 0;
     last_time_ = now;
