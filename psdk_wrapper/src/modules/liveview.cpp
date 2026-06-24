@@ -540,7 +540,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(),
                        10000,  // 2000 ms = 2 seconds
-                       "Publishing main camera image in: (%d,%d) out: (%d,%d) freq (5s): %f", rgb_img.width, rgb_img.height, cols, rows, freq);
+                       "Publishing main camera image in: (%d,%d) out: (%d,%d) freq (5s): %.2f", rgb_img.width, rgb_img.height, cols, rows, freq);
 
 //  auto t_diff = (this->now() - now).seconds() * 1000.0;
 //  RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
