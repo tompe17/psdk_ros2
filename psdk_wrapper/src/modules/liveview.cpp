@@ -476,7 +476,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   cv_bridge::CvImagePtr cv_ptr;  
   cv::Mat outimg;
   try {    
-    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::RGB8);
+    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
     cv::Mat img = cv_ptr->image;
     int cols = img.cols/2;
     int rows = img.rows/2;
