@@ -429,13 +429,13 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   get_parameter("main_camera_height", main_camera_height);
   get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
 
-  RCLCPP_INFO_STREAM(get_logger(),
-                     "main_camera_jpeg_quality " << main_camera_jpeg_quality);
+//  RCLCPP_INFO_STREAM(get_logger(),
+//                     "main_camera_jpeg_quality " << main_camera_jpeg_quality);
   //
-  //  if ((main_camera_width > 0) && (main_camera_height > 0)) {
-  //    cols = main_camera_width;
-  //    rows = main_camera_height;
-  //  }
+    if ((main_camera_width > 0) && (main_camera_height > 0)) {
+      cols = main_camera_width;
+      rows = main_camera_height;
+    }
 
   cv::Mat img_bgr;
   cv::cvtColor(img, img_bgr, cv::COLOR_RGB2BGR);
