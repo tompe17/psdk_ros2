@@ -204,6 +204,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
   int main_camera_width;
   int main_camera_height;
+  int main_camera_jpeg_quality;
   
   mutable std::shared_mutex global_ptr_mutex_;
 

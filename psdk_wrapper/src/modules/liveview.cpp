@@ -17,11 +17,13 @@
  */
 
 #include "psdk_wrapper/modules/liveview.hpp"
+
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/highgui.hpp>
-//#include "image_transport/image_transport.h"
+// #include "image_transport/image_transport.h"
 
-extern "C" {
+extern "C"
+{
 #include <libavutil/log.h>
 }
 
@@ -101,7 +103,6 @@ LiveviewModule::on_shutdown(const rclcpp_lifecycle::State &state)
   return CallbackReturn::SUCCESS;
 }
 
-
 // void custom_log_callback(void *ptr, int level, const char *fmt, va_list vl) {
 //    if (strstr(fmt, "SEI type 1 size") != NULL)
 //        return; // skip this message
@@ -114,11 +115,9 @@ LiveviewModule::on_shutdown(const rclcpp_lifecycle::State &state)
 bool
 LiveviewModule::init()
 {
-
   // suppress warnings like: SEI type 1 size 131 truncated at 106
   // see above for a different solution
   av_log_set_level(AV_LOG_QUIET);
-
 
   if (is_module_initialized_)
   {
@@ -127,12 +126,13 @@ LiveviewModule::init()
     return true;
   }
 
-
-  declare_parameter<int>("main_camera_width", -1);  
+  declare_parameter<int>("main_camera_width", -1);
   get_parameter("main_camera_width", main_camera_width);
-  declare_parameter<int>("main_camera_height", -1);  
+  declare_parameter<int>("main_camera_height", -1);
   get_parameter("main_camera_height", main_camera_height);
-  
+  declare_parameter<int>("main_camera_jpeg_quality", 80);
+  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
+
   RCLCPP_INFO(get_logger(), "Initiating liveview module");
   T_DjiReturnCode return_code = DjiLiveview_Init();
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -240,11 +240,12 @@ LiveviewModule::camera_setup_streaming_cb(
 
   if (request->start_stop)
   {
-    RCLCPP_INFO(get_logger(), "Starting streaming... fpvvam: %d", DJI_LIVEVIEW_CAMERA_POSITION_FPV);
+    RCLCPP_INFO(get_logger(), "Starting streaming... fpvvam: %d",
+                DJI_LIVEVIEW_CAMERA_POSITION_FPV);
     bool streaming_result;
     if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
     {
-      RCLCPP_INFO(get_logger(), "MAIN_CAMERA...");      
+      RCLCPP_INFO(get_logger(), "MAIN_CAMERA...");
       char main_camera_name[] = "MAIN_CAMERA";
       streaming_result = start_camera_stream(&c_publish_main_streaming_callback,
                                              &main_camera_name, payload_index_,
@@ -252,7 +253,7 @@ LiveviewModule::camera_setup_streaming_cb(
     }
     else if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
     {
-      RCLCPP_INFO(get_logger(), "FPV_CAMERA...");      
+      RCLCPP_INFO(get_logger(), "FPV_CAMERA...");
       char fpv_camera_name[] = "FPV_CAMERA";
       streaming_result = start_camera_stream(&c_publish_fpv_streaming_callback,
                                              &fpv_camera_name, payload_index_,
@@ -295,7 +296,8 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
   RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream");
   if (decode_stream_)
   {
-    RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: decode_stream_");
+    RCLCPP_INFO(rclcpp::get_logger("liveview"),
+                "start_camera_stream: decode_stream_");
     auto decoder = stream_decoder_.find(payload_index);
     if ((decoder != stream_decoder_.end()) && decoder->second)
     {
@@ -308,7 +310,8 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
       return false;
     }
   }
-  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d", payload_index, camera_source);
+  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
+              payload_index, camera_source);
   T_DjiReturnCode return_code = DjiLiveview_StartH264Stream(
       payload_index, camera_source, c_LiveviewConvertH264ToRgbCallback);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -375,59 +378,64 @@ LiveviewModule::publish_fpv_camera_images(const uint8_t *buffer,
   fpv_camera_stream_pub_->publish(std::move(img));
 }
 
-CameraRGBImage LiveviewModule::scaleDownByHalf(const CameraRGBImage& input) {
-    CameraRGBImage output;
+CameraRGBImage
+LiveviewModule::scaleDownByHalf(const CameraRGBImage &input)
+{
+  CameraRGBImage output;
 
-    double scale_factor = 2.0;
+  double scale_factor = 2.0;
 
-    // New dimensions
-    output.width = input.width / scale_factor;
-    output.height = input.height / scale_factor;
-    output.rawData.resize(output.width * output.height * 3);
+  // New dimensions
+  output.width = input.width / scale_factor;
+  output.height = input.height / scale_factor;
+  output.rawData.resize(output.width * output.height * 3);
 
-    for (int y = 0; y < output.height; ++y) {
-        for (int x = 0; x < output.width; ++x) {
-            // Corresponding pixel in the input image (nearest neighbor)
-            int srcX = x * scale_factor;
-            int srcY = y * scale_factor;
+  for (int y = 0; y < output.height; ++y)
+  {
+    for (int x = 0; x < output.width; ++x)
+    {
+      // Corresponding pixel in the input image (nearest neighbor)
+      int srcX = x * scale_factor;
+      int srcY = y * scale_factor;
 
-            int inputIndex = (srcY * input.width + srcX) * 3;
-            int outputIndex = (y * output.width + x) * 3;
+      int inputIndex = (srcY * input.width + srcX) * 3;
+      int outputIndex = (y * output.width + x) * 3;
 
-            output.rawData[outputIndex + 0] = input.rawData[inputIndex + 0]; // R
-            output.rawData[outputIndex + 1] = input.rawData[inputIndex + 1]; // G
-            output.rawData[outputIndex + 2] = input.rawData[inputIndex + 2]; // B
-        }
+      output.rawData[outputIndex + 0] = input.rawData[inputIndex + 0];  // R
+      output.rawData[outputIndex + 1] = input.rawData[inputIndex + 1];  // G
+      output.rawData[outputIndex + 2] = input.rawData[inputIndex + 2];  // B
     }
+  }
 
-    return output;
+  return output;
 }
 
 void
 LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
-                                           void *user_data) {
-
+                                           void *user_data)
+{
   //  auto rgb_img = scaleDownByHalf(rgb_img_in);
 
   auto now = this->now();
 
-  // ---- Create cv::Mat directly (avoid extra copies from cv_bridge) ----
-  cv::Mat img(rgb_img.height, rgb_img.width, CV_8UC3,
-              rgb_img.rawData.data());  // assumes std::vector<uint8_t>
+  // ---- Create cv::Mat directly (avoid extra copies from cv_bridge)
+  cv::Mat img(rgb_img.height, rgb_img.width, CV_8UC3, rgb_img.rawData.data());
 
   // ---- Resize ----
-  int cols = img.cols ;
-  int rows = img.rows ;
+  int cols = img.cols;
+  int rows = img.rows;
 
   get_parameter("main_camera_width", main_camera_width);
   get_parameter("main_camera_height", main_camera_height);
+  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
 
-  RCLCPP_INFO_STREAM(get_logger(), "main_camera_height " <<main_camera_height);
-//
-//  if ((main_camera_width > 0) && (main_camera_height > 0)) {
-//    cols = main_camera_width;
-//    rows = main_camera_height;
-//  }
+  RCLCPP_INFO_STREAM(get_logger(),
+                     "main_camera_jpeg_quality " << main_camera_jpeg_quality);
+  //
+  //  if ((main_camera_width > 0) && (main_camera_height > 0)) {
+  //    cols = main_camera_width;
+  //    rows = main_camera_height;
+  //  }
 
   cv::Mat img_bgr;
   cv::cvtColor(img, img_bgr, cv::COLOR_RGB2BGR);
@@ -437,20 +445,17 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   // ---- Compress with lower JPEG quality ----
   std::vector<uchar> buffer;
-  std::vector<int> params = {
-      cv::IMWRITE_JPEG_QUALITY, 70   // 🔥 change this (50–80 is good range)
-  };
+  std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY,
+                             main_camera_jpeg_quality};
 
   cv::imencode(".jpg", outimg, buffer, params);
 
-  // ---- Build CompressedImage संदेश ----
+  // ---- Build CompressedImage
   sensor_msgs::msg::CompressedImage msg;
   msg.header.stamp = this->get_clock()->now();
-
   std::string ns = get_namespace();
   std::string unit = ns.substr(1);
   msg.header.frame_id = unit + "/camera0/image_frame";
-
   msg.format = "jpeg";
   msg.data = std::move(buffer);
 
@@ -528,14 +533,12 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   RCLCPP_INFO_STREAM(get_logger(), "publish " << t_diff);
 
 #endif
-//  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
-  RCLCPP_INFO_THROTTLE(
-      get_logger(),
-      *get_clock(),
-      10000,  // 2000 ms = 2 seconds
-      "Publishing main camera image");
+  //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(),
+                       10000,  // 2000 ms = 2 seconds
+                       "Publishing main camera image");
 
-  auto t_diff = (this->now() - now).seconds()*1000.0;
+  auto t_diff = (this->now() - now).seconds() * 1000.0;
   RCLCPP_INFO_STREAM(get_logger(), "total " << t_diff);
 }
 
