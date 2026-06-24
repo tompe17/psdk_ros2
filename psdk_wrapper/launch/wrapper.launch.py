@@ -17,6 +17,9 @@ from launch_ros.events.lifecycle import ChangeState
 import lifecycle_msgs.msg
 import launch
 
+# this is to fix too quick activation
+from launch_ros.event_handlers import OnStateTransition
+#from lifecycle_msgs.msg import State
 
 def generate_launch_description():
     """Launch the psdk_wrapper_node."""
@@ -100,6 +103,20 @@ def generate_launch_description():
         )
     )
 
+    wrapper_activate_handler = OnStateTransition(
+        target_lifecycle_node=wrapper_node,
+        start_state='configuring',
+        goal_state='inactive',
+        entities=[
+            EmitEvent(
+                event=ChangeState(
+                    lifecycle_node_matcher=launch.events.matches_action(wrapper_node),
+                    transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE,
+                )
+            )
+        ],
+    )
+
     # Create LaunchDescription and populate
     ld = LaunchDescription()
 
@@ -108,8 +125,16 @@ def generate_launch_description():
     ld.add_action(declare_psdk_params_cmd)
     ld.add_action(declare_link_config_cmd)
     ld.add_action(declare_hms_codes_cmd)
+
     ld.add_action(wrapper_node)
     ld.add_action(wrapper_configure_trans_event)
-    ld.add_action(wrapper_activate_trans_event)
+
+    if False:
+        ld.add_action(wrapper_activate_trans_event)
+        # The above fire almost simultaneously, so:
+        # ACTIVATE sometimes runs before CONFIGURE finishes - leads to an error
+    else:
+        # instead this wrapper is used
+        ld.add_action(wrapper_activate_handler)
 
     return ld
