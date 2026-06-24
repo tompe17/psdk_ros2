@@ -36,7 +36,6 @@ LiveviewModule::LiveviewModule(const std::string &name)
 
 {
   RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
-  last_time_ = this->now();
 }
 
 LiveviewModule::~LiveviewModule()
@@ -411,16 +410,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   //  auto rgb_img = scaleDownByHalf(rgb_img_in);
 
   auto now = this->now();
-  double elapsed = (now - last_time_).seconds();
-  count_++;
-  if (elapsed >= 1.0)  // every 1 second
-  {
-    double freq = count_ / elapsed;
-    RCLCPP_INFO_STREAM(this->get_logger(), "Callback frequency: " << freq <<" Hz "<<rgb_img.width << " " << rgb_img.height) ;
 
-    count_ = 0;
-    last_time_ = now;
-  }
   // ---- Create cv::Mat directly (avoid extra copies from cv_bridge) ----
   cv::Mat img(rgb_img.height, rgb_img.width, CV_8UC3,
               rgb_img.rawData.data());  // assumes std::vector<uint8_t>
@@ -429,8 +419,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   int cols = img.cols ;
   int rows = img.rows ;
 
-//  get_parameter("main_camera_width", main_camera_width);
-//  get_parameter("main_camera_height", main_camera_height);
+  get_parameter("main_camera_width", main_camera_width);
+  get_parameter("main_camera_height", main_camera_height);
+
+  RCLCPP_INFO_STREAM(get_logger(), "main_camera_height " <<main_camera_height);
 //
 //  if ((main_camera_width > 0) && (main_camera_height > 0)) {
 //    cols = main_camera_width;

@@ -207,9 +207,6 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   
   mutable std::shared_mutex global_ptr_mutex_;
 
-  size_t count_ = 0;
-  rclcpp::Time last_time_;
-
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;
