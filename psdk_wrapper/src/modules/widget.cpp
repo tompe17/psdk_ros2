@@ -21,12 +21,16 @@ namespace psdk_ros2
 /* Static widget callback declarations                                       */
 /*****************************************************************************/
 
-T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
-    {0, DJI_WIDGET_TYPE_BUTTON, WidgetModule::camera_lens_set_value,
-     WidgetModule::camera_lens_get_value, nullptr},
-    {1, DJI_WIDGET_TYPE_BUTTON, WidgetModule::camera_lens_set_value,
-     WidgetModule::camera_lens_get_value, nullptr}};
-
+T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] =
+    {
+        {
+            0,
+            DJI_WIDGET_TYPE_LIST,
+            WidgetModule::camera_lens_set_value,
+            WidgetModule::camera_lens_get_value,
+            nullptr
+        }
+};
 /*****************************************************************************/
 /* Constructor / Destructor                                                  */
 /*****************************************************************************/

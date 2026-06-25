@@ -14,28 +14,34 @@
     "widget_list": [
       {
         "widget_index": 0,
-        "widget_type": "button",
-        "widget_name": "Wide",
-        "icon_file_set": {
-          "icon_file_name_selected": "icon_button1.png",
-          "icon_file_name_unselected": "icon_button1.png"
-        },
+        "widget_type": "list",
+        "widget_name": "Camera Lens",
+        "list_item": [
+          {
+            "item_name": "Wide",
+            "icon_file_set": {
+              "icon_file_name_selected": "icon_wide.png",
+              "icon_file_name_unselected": "icon_wide.png"
+            }
+          },
+          {
+            "item_name": "Zoom",
+            "icon_file_set": {
+              "icon_file_name_selected": "icon_zoom.png",
+              "icon_file_name_unselected": "icon_zoom.png"
+            }
+          },
+          {
+            "item_name": "Thermal",
+            "icon_file_set": {
+              "icon_file_name_selected": "icon_thermal.png",
+              "icon_file_name_unselected": "icon_thermal.png"
+            }
+          }
+        ],
         "customize_rc_buttons_config": {
           "is_enable": true,
           "mapping_config_display_order": 0
-        }
-      },
-      {
-        "widget_index": 1,
-        "widget_type": "button",
-        "widget_name": "Zoom",
-        "icon_file_set": {
-          "icon_file_name_selected": "icon_button2.png",
-          "icon_file_name_unselected": "icon_button2.png"
-        },
-        "customize_rc_buttons_config": {
-          "is_enable": true,
-          "mapping_config_display_order": 1
         }
       }
     ]
