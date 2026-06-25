@@ -5,9 +5,10 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
-#include <ament_index_cpp/get_package_share_directory.hpp>
+
 #include <dji_logger.h>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <iostream>
 
 using namespace std::placeholders;
@@ -15,22 +16,13 @@ using namespace std::placeholders;
 namespace psdk_ros2
 {
 
-// std::shared_ptr<WidgetModule> global_widget_ptr_;
-
 /*****************************************************************************/
 /* Static widget callback declarations                                       */
 /*****************************************************************************/
 
-T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] =
-    {
-        {
-            0,
-            DJI_WIDGET_TYPE_LIST,
-            WidgetModule::camera_lens_set_value,
-            WidgetModule::camera_lens_get_value,
-            nullptr
-        }
-};
+T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
+    {0, DJI_WIDGET_TYPE_LIST, WidgetModule::camera_lens_set_value,
+     WidgetModule::camera_lens_get_value, nullptr}};
 /*****************************************************************************/
 /* Constructor / Destructor                                                  */
 /*****************************************************************************/
@@ -107,8 +99,9 @@ WidgetModule::init()
 {
   T_DjiReturnCode rc;
 
-  rc = DjiWidget_Init();
+  std::cout << "INIT" << std::endl;
 
+  rc = DjiWidget_Init();
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
     RCLCPP_ERROR(get_logger(), "DjiWidget_Init failed (%ld)", rc);
@@ -124,8 +117,8 @@ WidgetModule::init()
 
   rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
 
-//  rc = DjiWidget_RegDefaultUiConfigByDirPath(
-//      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
+  //  rc = DjiWidget_RegDefaultUiConfigByDirPath(
+  //      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -133,7 +126,7 @@ WidgetModule::init()
 
     return false;
   }
-//  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
+  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
 
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));
@@ -168,30 +161,29 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   (void)widgetType;
   (void)widgetIndex;
 
-
-
   auto *self = static_cast<WidgetModule *>(userData);
 
   if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
 
   self->current_lens_ = static_cast<LensSelection>(widgetValue);
 
-//  std::cout << "camera_lens_set_value: index=" << widgetIndex
-//            << " value=" << widgetValue << " current_lens_" << (int)self->current_lens_ << std::endl;
+  //  std::cout << "camera_lens_set_value: index=" << widgetIndex
+  //            << " value=" << widgetValue << " current_lens_" <<
+  //            (int)self->current_lens_ << std::endl;
 
   switch (self->current_lens_)
   {
     case LensSelection::WIDE:
-//      self->handleWidePressed();
+      //      self->handleWidePressed();
       std::cout << "wide" << std::endl;
       break;
 
     case LensSelection::ZOOM:
-//      self->handleZoomPressed();
+      //      self->handleZoomPressed();
       std::cout << "zoom" << std::endl;
       break;
     case LensSelection::THERMAL:
-//      self->handleZoomPressed();
+      //      self->handleZoomPressed();
       std::cout << "thermal" << std::endl;
       break;
 
