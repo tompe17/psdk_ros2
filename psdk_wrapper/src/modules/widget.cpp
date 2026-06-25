@@ -248,7 +248,7 @@ WidgetModule::handleZoomPressed()
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
   if (camera_ != nullptr)
   {
-    auto res = camera_->camera_set_optical_zoom(2, 1);
+    auto res = true; //camera_->camera_set_optical_zoom(2, 1);
     if (!res)
     {
       RCLCPP_ERROR(get_logger(), "Zoom not selected");
