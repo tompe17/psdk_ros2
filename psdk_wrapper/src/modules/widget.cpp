@@ -116,6 +116,8 @@ WidgetModule::init()
     return false;
   }
 
+  widget_handlers_[0].userData = this;
+
   rc = DjiWidget_RegDefaultUiConfigByDirPath(
       "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
 
@@ -160,14 +162,16 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   (void)widgetType;
   (void)widgetIndex;
 
-  std::cout << "camera_lens_set_value: index=" << widgetIndex
-            << " value=" << widgetValue << std::endl;
+
 
   auto *self = static_cast<WidgetModule *>(userData);
 
   if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
 
   self->current_lens_ = static_cast<LensSelection>(widgetValue);
+
+  std::cout << "camera_lens_set_value: index=" << widgetIndex
+            << " value=" << widgetValue << " current_lens_" << (int)self->current_lens_ << std::endl;
 
   switch (self->current_lens_)
   {
