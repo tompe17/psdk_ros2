@@ -248,7 +248,9 @@ WidgetModule::handleZoomPressed()
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
   if (camera_ != nullptr)
   {
-    auto res = camera_->camera_set_optical_zoom(1, 5.0);
+    auto res = psdk_ros2::global_camera_ptr_->camera_set_optical_zoom(1, 5.0);
+
+//    auto res = camera_->camera_set_optical_zoom(1, 5.0);
     if (!res)
     {
       RCLCPP_ERROR(get_logger(), "Zoom not selected");
