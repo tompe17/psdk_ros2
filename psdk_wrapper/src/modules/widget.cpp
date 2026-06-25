@@ -5,8 +5,10 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
-#include <iostream>
+
 #include <dji_logger.h>
+
+#include <iostream>
 
 using namespace std::placeholders;
 
@@ -20,9 +22,10 @@ namespace psdk_ros2
 /*****************************************************************************/
 
 T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
-    {CAMERA_LENS_WIDGET_INDEX, DJI_WIDGET_TYPE_LIST,
-     WidgetModule::camera_lens_set_value, WidgetModule::camera_lens_get_value,
-     nullptr}};
+    {0, DJI_WIDGET_TYPE_BUTTON, WidgetModule::camera_lens_set_value,
+     WidgetModule::camera_lens_get_value, nullptr},
+    {1, DJI_WIDGET_TYPE_BUTTON, WidgetModule::camera_lens_set_value,
+     WidgetModule::camera_lens_get_value, nullptr}};
 
 /*****************************************************************************/
 /* Constructor / Destructor                                                  */
@@ -154,8 +157,7 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   (void)widgetIndex;
 
   std::cout << "camera_lens_set_value: index=" << widgetIndex
-            << " value=" << widgetValue
-            << std::endl;
+            << " value=" << widgetValue << std::endl;
 
   auto *self = static_cast<WidgetModule *>(userData);
 
