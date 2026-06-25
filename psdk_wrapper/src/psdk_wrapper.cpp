@@ -24,6 +24,7 @@ std::shared_ptr<psdk_ros2::CameraModule> psdk_ros2::global_camera_ptr_;
 std::shared_ptr<psdk_ros2::LiveviewModule> psdk_ros2::global_liveview_ptr_;
 std::shared_ptr<psdk_ros2::HmsModule> psdk_ros2::global_hms_ptr_;
 std::shared_ptr<psdk_ros2::PerceptionModule> psdk_ros2::global_perception_ptr_;
+std::shared_ptr<psdk_ros2::WidgetModule> psdk_ros2::global_widget_ptr_;
 
 using namespace std::placeholders;  // NOLINT
 
@@ -55,6 +56,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("mandatory_modules.hms", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.perception",
                     rclcpp::ParameterValue(true));
+  declare_parameter("mandatory_modules.widget",
+                    rclcpp::ParameterValue(false));
   declare_parameter("tf_frame_prefix", rclcpp::ParameterValue(""));
   declare_parameter("imu_frame", rclcpp::ParameterValue("psdk_imu_link"));
   declare_parameter("body_frame", rclcpp::ParameterValue("psdk_base_link"));
@@ -100,6 +103,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   get_parameter("mandatory_modules.hms", is_hms_module_mandatory_);
   get_parameter("mandatory_modules.perception",
                 is_perception_module_mandatory_);
+  get_parameter("mandatory_modules.widget",
+                is_widget_module_mandatory_);
 
 
   create_module(is_telemetry_module_mandatory_, telemetry_module_,
@@ -121,6 +126,9 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_perception_module_mandatory_, perception_module_,
                 perception_thread_, "perception_node",
                 psdk_ros2::global_perception_ptr_);
+  create_module(is_widget_module_mandatory_, widget_module_,
+                widget_thread_, "widget_node",
+                psdk_ros2::global_widget_ptr_);
 }
 
 PSDKWrapper::~PSDKWrapper()

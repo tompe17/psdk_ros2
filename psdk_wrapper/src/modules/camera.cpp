@@ -325,7 +325,7 @@ CameraModule::deinit()
 bool CameraModule::query_zoom()
 {
   float zoom = 1.0f;
-  int payload_index = 1;
+  int payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
 
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =

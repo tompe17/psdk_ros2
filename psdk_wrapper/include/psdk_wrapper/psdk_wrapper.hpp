@@ -49,6 +49,7 @@
 #include "psdk_wrapper/modules/liveview.hpp"
 #include "psdk_wrapper/modules/perception.hpp"
 #include "psdk_wrapper/modules/telemetry.hpp"
+#include "psdk_wrapper/modules/widget.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
 namespace psdk_ros2
@@ -260,6 +261,7 @@ class PSDKWrapper : public rclcpp_lifecycle::LifecycleNode
   bool is_liveview_module_mandatory_{true};
   bool is_hms_module_mandatory_{true};
   bool is_perception_module_mandatory_{true};
+  bool is_widget_module_mandatory_{true};
 
   std::shared_ptr<FlightControlModule> flight_control_module_;
   std::shared_ptr<WaypointFlyingModule> waypoint_flying_module_;
@@ -269,6 +271,7 @@ class PSDKWrapper : public rclcpp_lifecycle::LifecycleNode
   std::shared_ptr<GimbalModule> gimbal_module_;
   std::shared_ptr<HmsModule> hms_module_;
   std::shared_ptr<PerceptionModule> perception_module_;
+  std::shared_ptr<WidgetModule> widget_module_;
 
   std::unique_ptr<utils::NodeThread> flight_control_thread_;
   std::unique_ptr<utils::NodeThread> waypoint_flying_thread_;
@@ -278,6 +281,7 @@ class PSDKWrapper : public rclcpp_lifecycle::LifecycleNode
   std::unique_ptr<utils::NodeThread> gimbal_thread_;
   std::unique_ptr<utils::NodeThread> hms_thread_;
   std::unique_ptr<utils::NodeThread> perception_thread_;
+  std::unique_ptr<utils::NodeThread> widget_thread_;
 
   bool is_core_initialized_{false};
 };

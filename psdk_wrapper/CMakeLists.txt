@@ -167,6 +167,7 @@ add_library(psdk_wrapper_libs SHARED
   src/modules/liveview.cpp
   src/modules/hms.cpp
   src/modules/perception.cpp
+  src/modules/widget.cpp
   src/utils/node_thread.cpp
   ${DJI_OSAL_PATH}/osal_fs.c
   ${DJI_OSAL_PATH}/osal_socket.c
@@ -226,6 +227,11 @@ install(DIRECTORY
   cfg
   launch
   DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+        DIRECTORY cfg/widget_file/
+        DESTINATION share/${PROJECT_NAME}/widget_file
 )
 
 install(DIRECTORY
