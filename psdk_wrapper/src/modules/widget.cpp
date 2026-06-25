@@ -5,6 +5,7 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
+#include <iostream>
 #include <dji_logger.h>
 
 using namespace std::placeholders;
@@ -17,7 +18,6 @@ namespace psdk_ros2
 /*****************************************************************************/
 /* Static widget callback declarations                                       */
 /*****************************************************************************/
-
 
 T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {CAMERA_LENS_WIDGET_INDEX, DJI_WIDGET_TYPE_LIST,
@@ -109,8 +109,8 @@ WidgetModule::init()
     return false;
   }
 
-
-  rc = DjiWidget_RegDefaultUiConfigByDirPath("/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
+  rc = DjiWidget_RegDefaultUiConfigByDirPath(
+      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -153,8 +153,9 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   (void)widgetType;
   (void)widgetIndex;
 
-  RCLCPP_INFO(get_logger(), "camera_lens_set_value: index: %d", widgetIndex);
-
+  std::cout << "camera_lens_set_value: index=" << widgetIndex
+            << " value=" << widgetValue
+            << std::endl;
 
   auto *self = static_cast<WidgetModule *>(userData);
 
@@ -211,10 +212,9 @@ WidgetModule::handleZoomPressed()
   publishCommand("zoom");
 }
 
-void WidgetModule::publishCommand(const std::string &command)
+void
+WidgetModule::publishCommand(const std::string &command)
 {
-
 }
-
 
 }  // namespace psdk_ros2
