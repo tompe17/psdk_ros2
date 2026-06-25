@@ -880,6 +880,12 @@ CameraModule::camera_set_optical_zoom_cb(
 
 bool CameraModule::camera_set_optical_zoom(int payload_index,  float zoom_factor)
 {
+  RCLCPP_ERROR(
+      get_logger(),
+      "camera_set_optical_zoom: payload_index: %d, zoom_factor: %f",
+      payload_index,
+      zoom_factor);
+
   const E_DjiCameraZoomDirection zoom_direction =
       DJI_CAMERA_ZOOM_DIRECTION_OUT;
 

@@ -261,6 +261,7 @@ WidgetModule::handleZoomPressed()
   else {
     RCLCPP_ERROR(get_logger(), "camera_ not set");
   }
+  RCLCPP_ERROR(get_logger(), "finished");
 }
 
 void
