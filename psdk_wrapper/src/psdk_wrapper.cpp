@@ -734,7 +734,7 @@ PSDKWrapper::initialize_psdk_modules()
     return false;
   }
 
-  widget_module_.setCameraModule(camera_module_);
+  widget_module_->setCameraModule(camera_module_);
 
   return true;
 }
