@@ -260,9 +260,9 @@ WidgetModule::handleZoomPressed()
       RCLCPP_ERROR(get_logger(), "Zoom selected");
     }
   }
-  else {
-    RCLCPP_ERROR(get_logger(), "camera_ not set");
-  }
+//  else {
+//    RCLCPP_ERROR(get_logger(), "camera_ not set");
+//  }
   RCLCPP_ERROR(get_logger(), "finished");
 }
 
