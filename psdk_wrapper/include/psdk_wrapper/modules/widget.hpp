@@ -23,6 +23,8 @@
 
 #include <std_msgs/msg/string.hpp>
 
+#include "camera.hpp"
+
 namespace psdk_ros2
 {
 
@@ -54,8 +56,13 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   bool init();
   bool deinit();
 
+  void setCameraModule(std::shared_ptr<CameraModule> camera);
+
  private:
   static constexpr uint32_t CAMERA_LENS_WIDGET_INDEX = 0;
+
+ private:
+  std::shared_ptr<CameraModule> camera_;
 
   enum class LensSelection
   {

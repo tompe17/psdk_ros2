@@ -167,6 +167,9 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
 
   std::string default_path_to_download_media_{"/logs/media"};
 
+
+  bool camera_set_optical_zoom(int payload_index,  float zoom_factor);
+
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
       T_DjiDownloadFilePacketInfo packetInfo, const uint8_t* data,
@@ -589,7 +592,6 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
 
   std::string camera_name_;
 
-  bool camera_set_optical_zoom(E_DjiMountPosition index,  float zoom_factor);
 
 
 };

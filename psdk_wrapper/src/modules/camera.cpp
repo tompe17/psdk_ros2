@@ -838,7 +838,7 @@ CameraModule::camera_set_optical_zoom_cb(
 {
   response->success =
       camera_set_optical_zoom(
-          static_cast<E_DjiMountPosition>(request->payload_index),
+          request->payload_index,
           request->zoom_factor);
 }
 
@@ -878,10 +878,13 @@ CameraModule::camera_set_optical_zoom_cb(
 
 #endif
 
-bool CameraModule::camera_set_optical_zoom(E_DjiMountPosition index,  float zoom_factor)
+bool CameraModule::camera_set_optical_zoom(int payload_index,  float zoom_factor)
 {
   const E_DjiCameraZoomDirection zoom_direction =
       DJI_CAMERA_ZOOM_DIRECTION_OUT;
+
+  E_DjiMountPosition index =
+      static_cast<E_DjiMountPosition>(payload_index);
 
   T_DjiReturnCode return_code =
       DjiCameraManager_SetOpticalZoomParam(
