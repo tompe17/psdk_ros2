@@ -538,10 +538,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   double freq = updateFrequency(timestamps_, this->get_clock()->now(), 5.0);
 
-  auto time_s = 10;
+  float time_s = 10;
   //  RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), time_s * 1000,
-                       "Publishing main camera image (%.0f)s,  in: (%d,%d) "
+                       "Publishing main camera image (%.0fs),  in: (%d,%d) "
                        "out: (%d,%d) freq (5s): %.2f",
                        time_s, rgb_img.width, rgb_img.height, cols, rows, freq);
 
