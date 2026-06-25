@@ -245,7 +245,9 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
        !liveview_module_->deinit()) ||
       (is_hms_module_mandatory_ && hms_module_ && !hms_module_->deinit()) ||
       (is_perception_module_mandatory_ && perception_module_ &&
-       !perception_module_->deinit()))
+       !perception_module_->deinit())||
+      (is_widget_module_mandatory_ && widget_module_ &&
+       !widget_module_->deinit()))
   {
     RCLCPP_ERROR(get_logger(), "Failed to deinitialize one or more modules.");
     return CallbackReturn::FAILURE;
@@ -281,6 +283,8 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
   stop_and_destroy_module(is_hms_module_mandatory_, hms_module_, hms_thread_);
   stop_and_destroy_module(is_perception_module_mandatory_, perception_module_,
                           perception_thread_);
+  stop_and_destroy_module(is_widget_module_mandatory_, widget_module_,
+                          widget_thread_);
 
   rclcpp::shutdown();
   return CallbackReturn::SUCCESS;
@@ -524,6 +528,10 @@ PSDKWrapper::load_parameters()
         "perception_camera_frame",
         perception_module_->params_.perception_camera_frame);
   }
+  if (is_widget_module_mandatory_)
+  {
+
+  }
   if (is_hms_module_mandatory_)
   {
     get_non_mandatory_param("hms_return_codes_path",
@@ -721,6 +729,7 @@ PSDKWrapper::initialize_psdk_modules()
       !initialize_module(is_hms_module_mandatory_, hms_module_) ||
       !initialize_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_) ||
       !initialize_module(is_perception_module_mandatory_, perception_module_))
+      !initialize_module(is_widget_module_mandatory_, widget_module_))
   {
     return false;
   }
@@ -826,6 +835,7 @@ PSDKWrapper::transition_modules_to_state(LifecycleState state)
   transition_if_mandatory(is_gimbal_module_mandatory_, gimbal_module_);
   transition_if_mandatory(is_hms_module_mandatory_, hms_module_);
   transition_if_mandatory(is_perception_module_mandatory_, perception_module_);
+  transition_if_mandatory(is_widget_module_mandatory_, widget_module_);
 
   return all_transitions_successful;
 }
