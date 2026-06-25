@@ -18,6 +18,7 @@ namespace psdk_ros2
 /* Static widget callback declarations                                       */
 /*****************************************************************************/
 
+
 T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {CAMERA_LENS_WIDGET_INDEX, DJI_WIDGET_TYPE_LIST,
      WidgetModule::camera_lens_set_value, WidgetModule::camera_lens_get_value,
@@ -117,7 +118,8 @@ WidgetModule::init()
 
     return false;
   }
-
+  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
+  
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));
 
