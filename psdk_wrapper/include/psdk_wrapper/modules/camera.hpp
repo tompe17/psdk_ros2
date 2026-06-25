@@ -589,6 +589,9 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
 
   std::string camera_name_;
 
+  bool camera_set_optical_zoom(E_DjiMountPosition index,  float zoom_factor);
+
+
 };
 
 extern std::shared_ptr<CameraModule> global_camera_ptr_;

@@ -830,6 +830,20 @@ CameraModule::camera_get_focus_mode_cb(
   }
 }
 
+
+void
+CameraModule::camera_set_optical_zoom_cb(
+    const std::shared_ptr<CameraSetOpticalZoom::Request> request,
+    const std::shared_ptr<CameraSetOpticalZoom::Response> response)
+{
+  response->success =
+      camera_set_optical_zoom(
+          static_cast<E_DjiMountPosition>(request->payload_index),
+          request->zoom_factor);
+}
+
+#if 0
+
 void
 CameraModule::camera_set_optical_zoom_cb(
     const std::shared_ptr<CameraSetOpticalZoom::Request> request,
@@ -860,6 +874,40 @@ CameraModule::camera_set_optical_zoom_cb(
     response->success = true;
     return;
   }
+}
+
+#endif
+
+bool CameraModule::camera_set_optical_zoom(E_DjiMountPosition index,  float zoom_factor)
+{
+  const E_DjiCameraZoomDirection zoom_direction =
+      DJI_CAMERA_ZOOM_DIRECTION_OUT;
+
+  T_DjiReturnCode return_code =
+      DjiCameraManager_SetOpticalZoomParam(
+          index,
+          zoom_direction,
+          zoom_factor);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(
+        get_logger(),
+        "Failed to set optical zoom %.1f on payload %d (error %ld)",
+        zoom_factor,
+        index,
+        return_code);
+
+    return false;
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Set optical zoom %.1f on payload %d",
+      zoom_factor,
+      index);
+
+  return true;
 }
 
 void
