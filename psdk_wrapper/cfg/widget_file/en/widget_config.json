@@ -50,7 +50,7 @@
     "text_input_box": {
       "widget_name":"TextInputBox",
       "placeholder_text":"Please input message",
-      "is_enable":false
+      "is_enable":true
     },
     "widget_list": [
       {
