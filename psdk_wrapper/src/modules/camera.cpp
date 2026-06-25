@@ -190,6 +190,15 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
           get_node_logging_interface(), get_node_waitables_interface(),
           "psdk_ros2/camera_delete_file_by_index",
           std::bind(&CameraModule::execute_delete_file_by_index, this));
+
+
+  camera_info_pub_ = create_publisher<std_msgs::msg::String>(
+      "psdk_ros2/camera_information", 10);
+
+  camera_info_timer_ = create_wall_timer(
+      std::chrono::milliseconds(33),
+      std::bind(&CameraModule::publish_camera_information, this));
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -290,6 +299,9 @@ CameraModule::init()
   {
     RCLCPP_INFO(get_logger(), "Camera type %s detected", camera_type.c_str());
   }
+
+  camera_name_ = camera_type;
+
   is_module_initialized_ = true;
   return true;
 }
@@ -308,6 +320,50 @@ CameraModule::deinit()
   }
   is_module_initialized_ = false;
   return true;
+}
+
+bool CameraModule::query_zoom()
+{
+  float zoom = 1.0f;
+  int payload_index = 1;
+
+  T_DjiReturnCode return_code;
+  E_DjiMountPosition index =
+      static_cast<E_DjiMountPosition>(payload_index);
+
+  T_DjiCameraManagerOpticalZoomParam zoom_factor;
+  return_code = DjiCameraManager_GetOpticalZoomParam(index, &zoom_factor);
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(),
+                 "Get mounted position %d camera's zoom param failed, error "
+                 "code :%ld",
+                 index, return_code);
+    zoom_factor_.store(-1, std::memory_order_relaxed);
+    return false;
+  }
+
+  zoom_factor_.store(zoom_factor.currentOpticalZoomFactor, std::memory_order_relaxed);
+  max_zoom_factor_.store(zoom_factor.maxOpticalZoomFactor, std::memory_order_relaxed);
+  return true;
+}
+
+void CameraModule::publish_camera_information()
+{
+  query_zoom();
+
+  std_msgs::msg::String msg;
+
+  std::ostringstream oss;
+  oss << "{"
+      << "\"camera\":\"" << camera_name_ << "\","
+      << "\"zoom_factor\":" << zoom_factor_.load() << ","
+      << "\"max_zoom_factor\":" << max_zoom_factor_.load() << ","
+      << "}";
+
+  msg.data = oss.str();
+
+  camera_info_pub_->publish(msg);
 }
 
 bool

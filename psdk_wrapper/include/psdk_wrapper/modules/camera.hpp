@@ -21,6 +21,8 @@
 #include <dji_camera_manager.h>  //NOLINT
 #include <osal.h>                //NOLINT
 
+#include <std_msgs/msg/string.hpp>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -574,6 +576,19 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   FILE* s_downloadMediaFile_ = NULL;
 
   mutable std::shared_mutex global_ptr_mutex_;
+
+  // pioru: camera information topic
+  void publish_camera_information();
+  bool query_zoom();
+
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr camera_info_pub_;
+  rclcpp::TimerBase::SharedPtr camera_info_timer_;
+
+  std::atomic<float> zoom_factor_{1.0f};
+  std::atomic<float> max_zoom_factor_{1.0f};
+
+  std::string camera_name_;
+
 };
 
 extern std::shared_ptr<CameraModule> global_camera_ptr_;
