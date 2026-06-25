@@ -172,11 +172,17 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   switch (self->current_lens_)
   {
     case LensSelection::WIDE:
-      self->handleWidePressed();
+//      self->handleWidePressed();
+      std::cout << "wide" << std::endl;
       break;
 
     case LensSelection::ZOOM:
-      self->handleZoomPressed();
+//      self->handleZoomPressed();
+      std::cout << "wide" << std::endl;
+      break;
+    case LensSelection::THERMAL:
+//      self->handleZoomPressed();
+      std::cout << "thermal" << std::endl;
       break;
 
     default:

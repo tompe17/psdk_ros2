@@ -60,7 +60,8 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   enum class LensSelection
   {
     WIDE = 0,
-    ZOOM = 1
+    ZOOM = 1,
+    THERMAL = 2
   };
 
   /*
