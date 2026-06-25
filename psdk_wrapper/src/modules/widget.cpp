@@ -5,7 +5,7 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
-
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <dji_logger.h>
 
 #include <iostream>
@@ -118,8 +118,14 @@ WidgetModule::init()
 
   widget_handlers_[0].userData = this;
 
-  rc = DjiWidget_RegDefaultUiConfigByDirPath(
-      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
+  std::string widget_path =
+      ament_index_cpp::get_package_share_directory("psdk_wrapper") +
+      "/cfg/widget_file/en";
+
+  rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
+
+//  rc = DjiWidget_RegDefaultUiConfigByDirPath(
+//      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -127,7 +133,7 @@ WidgetModule::init()
 
     return false;
   }
-  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
+//  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
 
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));

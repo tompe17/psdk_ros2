@@ -28,6 +28,7 @@
   <depend>image_transport</depend>
   <depend>std_srvs</depend>
   <depend>nlohmann-json-dev</depend>
+  <depend>ament_index_cpp</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

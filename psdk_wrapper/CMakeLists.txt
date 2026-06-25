@@ -21,6 +21,7 @@ endif()
 # find dependencies
 add_definitions(-DSYSTEM_ARCH_LINUX)
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -185,6 +186,8 @@ add_library(psdk_wrapper_libs SHARED
 
 ament_target_dependencies(psdk_wrapper_libs
   ${dependencies}
+  ament_index_cpp
+
 )
 
 target_link_libraries(
