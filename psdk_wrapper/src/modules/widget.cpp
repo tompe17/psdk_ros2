@@ -119,7 +119,7 @@ WidgetModule::init()
     return false;
   }
   RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
-  
+
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));
 
