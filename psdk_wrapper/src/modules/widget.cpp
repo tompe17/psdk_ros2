@@ -5,6 +5,7 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
+#include "psdk_wrapper/modules/camera.hpp"
 
 #include <dji_logger.h>
 

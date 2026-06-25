@@ -23,11 +23,11 @@
 
 #include <std_msgs/msg/string.hpp>
 
-#include "camera.hpp"
+#include "psdk_wrapper/modules/camera.hpp"
 
 namespace psdk_ros2
 {
-
+class CameraModule;
 class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
