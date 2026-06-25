@@ -153,6 +153,9 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   (void)widgetType;
   (void)widgetIndex;
 
+  RCLCPP_INFO(get_logger(), "camera_lens_set_value: index: %d", widgetIndex);
+
+
   auto *self = static_cast<WidgetModule *>(userData);
 
   if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
