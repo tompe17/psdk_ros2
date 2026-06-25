@@ -126,6 +126,7 @@ WidgetModule::init()
 
     return false;
   }
+  RCLCPP_INFO(get_logger(), "Widget path: %s", widget_path.c_str());
   RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
 
   rc = DjiWidget_RegHandlerList(
