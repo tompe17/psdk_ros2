@@ -182,7 +182,7 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
 
     case LensSelection::ZOOM:
 //      self->handleZoomPressed();
-      std::cout << "wide" << std::endl;
+      std::cout << "zoom" << std::endl;
       break;
     case LensSelection::THERMAL:
 //      self->handleZoomPressed();
