@@ -182,13 +182,13 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
   switch (self->current_lens_)
   {
     case LensSelection::WIDE:
-      self->handleWidePressed();
       std::cout << "wide" << std::endl;
+      self->handleWidePressed();
       break;
 
     case LensSelection::ZOOM:
-      self->handleZoomPressed();
       std::cout << "zoom" << std::endl;
+      self->handleZoomPressed();
       break;
     case LensSelection::THERMAL:
       //      self->handleZoomPressed();
@@ -223,7 +223,7 @@ WidgetModule::camera_lens_get_value(E_DjiWidgetType widgetType,
 void
 WidgetModule::handleWidePressed()
 {
-  RCLCPP_INFO(get_logger(), "Wide selected");
+  RCLCPP_INFO(get_logger(), "handleWidePressed");
   if (camera_ != nullptr)
   {
     auto res = camera_->camera_set_optical_zoom(1, 1);
@@ -231,22 +231,35 @@ WidgetModule::handleWidePressed()
     {
       RCLCPP_ERROR(get_logger(), "Wide not selected");
     }
+    else
+    {
+      RCLCPP_ERROR(get_logger(), "Wide selected");
+    }
   }
-
+  else {
+    RCLCPP_ERROR(get_logger(), "camera_ not set");
+  }
 
 }
 
 void
 WidgetModule::handleZoomPressed()
 {
-  RCLCPP_INFO(get_logger(), "Zoom selected");
+  RCLCPP_INFO(get_logger(), "handleZoomPressed");
   if (camera_ != nullptr)
   {
-    auto res = camera_->camera_set_optical_zoom(1, 1);
+    auto res = camera_->camera_set_optical_zoom(2, 1);
     if (!res)
     {
-      RCLCPP_ERROR(get_logger(), "Wide not selected");
+      RCLCPP_ERROR(get_logger(), "Zoom not selected");
     }
+    else
+    {
+      RCLCPP_ERROR(get_logger(), "Zoom selected");
+    }
+  }
+  else {
+    RCLCPP_ERROR(get_logger(), "camera_ not set");
   }
 }
 
