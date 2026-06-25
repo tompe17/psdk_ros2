@@ -4,37 +4,20 @@
     "minor": 0
   },
   "main_interface": {
-    "floating_window": {
-      "is_enable": false
-    },
-    "speaker": {
-      "is_enable_tts": false,
-      "is_enable_voice": false
-    },
     "widget_list": [
       {
         "widget_index": 0,
-        "widget_type": "list",
-        "widget_name": "Camera Lens",
-        "list_item": [
-          {
-            "item_name": "Wide"
-          },
-          {
-            "item_name": "Zoom"
-          }
-        ],
-        "customize_rc_buttons_config": {
-          "is_enable": true,
-          "mapping_config_display_order": 0
-        }
+        "widget_type": "button",
+        "widget_name": "Wide"
+      },
+      {
+        "widget_index": 1,
+        "widget_type": "button",
+        "widget_name": "Zoom"
       }
     ]
   },
   "config_interface": {
-    "text_input_box": {
-      "is_enable": false
-    },
     "widget_list": []
   }
 }
