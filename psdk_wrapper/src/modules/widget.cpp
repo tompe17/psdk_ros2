@@ -5,7 +5,6 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
-
 #include <dji_logger.h>
 
 using namespace std::placeholders;
@@ -109,7 +108,8 @@ WidgetModule::init()
     return false;
   }
 
-  rc = DjiWidget_RegDefaultUiConfigByDirPath("cfg/widget_file/en");
+
+  rc = DjiWidget_RegDefaultUiConfigByDirPath("/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
