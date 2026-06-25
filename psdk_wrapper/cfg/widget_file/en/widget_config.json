@@ -5,7 +5,7 @@
   },
   "main_interface": {
     "floating_window": {
-      "is_enable": false
+      "is_enable": true
     },
     "speaker": {
       "is_enable_tts": false,

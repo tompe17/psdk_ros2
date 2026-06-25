@@ -170,8 +170,8 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
 
   self->current_lens_ = static_cast<LensSelection>(widgetValue);
 
-  std::cout << "camera_lens_set_value: index=" << widgetIndex
-            << " value=" << widgetValue << " current_lens_" << (int)self->current_lens_ << std::endl;
+//  std::cout << "camera_lens_set_value: index=" << widgetIndex
+//            << " value=" << widgetValue << " current_lens_" << (int)self->current_lens_ << std::endl;
 
   switch (self->current_lens_)
   {
