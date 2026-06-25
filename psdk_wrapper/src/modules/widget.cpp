@@ -226,7 +226,7 @@ WidgetModule::handleWidePressed()
   RCLCPP_INFO(get_logger(), "handleWidePressed");
   if (camera_ != nullptr)
   {
-    auto res = camera_->camera_set_optical_zoom(1, 1);
+    auto res = true; //camera_->camera_set_optical_zoom(1, 1);
     if (!res)
     {
       RCLCPP_ERROR(get_logger(), "Wide not selected");
