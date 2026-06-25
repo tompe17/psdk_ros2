@@ -109,7 +109,7 @@ WidgetModule::init()
     return false;
   }
 
-  rc = DjiWidget_RegDefaultUiConfigByDirPath("widget_file/en");
+  rc = DjiWidget_RegDefaultUiConfigByDirPath("cfg/widget_file/en");
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {

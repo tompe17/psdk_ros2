@@ -229,11 +229,6 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
-install(
-        DIRECTORY cfg/widget_file/
-        DESTINATION share/${PROJECT_NAME}/widget_file
-)
-
 install(DIRECTORY
   ${DJI_HMS_RETURN_CODES_PATH}/
   DESTINATION share/${PROJECT_NAME}/cfg
