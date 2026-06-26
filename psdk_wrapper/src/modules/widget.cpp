@@ -249,7 +249,7 @@ WidgetModule::handleZoomPressed()
 {
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
 
-  std::thread([camera = camera_] { camera->camera_set_optical_zoom(1, 5.0); })
+  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
       .detach();
   RCLCPP_ERROR(get_logger(), "Zoom selected");
 
