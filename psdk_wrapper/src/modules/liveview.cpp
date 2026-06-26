@@ -222,6 +222,73 @@ c_publish_fpv_streaming_callback(CameraRGBImage img, void *user_data)
   return global_liveview_ptr_->publish_fpv_camera_images(img, user_data);
 }
 
+bool LiveviewModule::camera_setup_streaming(
+    bool start,
+    E_DjiLiveViewCameraPosition payload_index,
+    E_DjiLiveViewCameraSource camera_source,
+    bool decoded_output)
+{
+  selected_camera_source_ = camera_source;
+  decode_stream_ = decoded_output;
+  payload_index_ = payload_index;
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Setting up camera streaming for payload index %d, camera source %d, decoded %d",
+      payload_index_,
+      selected_camera_source_,
+      decode_stream_);
+
+  if (start)
+  {
+    RCLCPP_INFO(get_logger(), "Starting streaming...");
+
+    if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
+    {
+      static char main_camera_name[] = "MAIN_CAMERA";
+
+      return start_camera_stream(
+          &c_publish_main_streaming_callback,
+          main_camera_name,
+          payload_index_,
+          selected_camera_source_);
+    }
+
+    if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
+    {
+      static char fpv_camera_name[] = "FPV_CAMERA";
+
+      return start_camera_stream(
+          &c_publish_fpv_streaming_callback,
+          fpv_camera_name,
+          payload_index_,
+          selected_camera_source_);
+    }
+
+    RCLCPP_ERROR(get_logger(), "Unsupported payload index %d", payload_index_);
+    return false;
+  }
+
+  RCLCPP_INFO(get_logger(), "Stopping streaming...");
+
+  return stop_main_camera_stream(
+      payload_index_,
+      selected_camera_source_);
+}
+
+void LiveviewModule::camera_setup_streaming_cb(
+    const std::shared_ptr<CameraSetupStreaming::Request> request,
+    const std::shared_ptr<CameraSetupStreaming::Response> response)
+{
+  response->success = camera_setup_streaming(
+      request->start_stop,
+      static_cast<E_DjiLiveViewCameraPosition>(request->payload_index),
+      static_cast<E_DjiLiveViewCameraSource>(request->camera_source),
+      request->decoded_output);
+}
+
+#if 0
+
 void
 LiveviewModule::camera_setup_streaming_cb(
     const std::shared_ptr<CameraSetupStreaming::Request> request,
@@ -286,6 +353,8 @@ LiveviewModule::camera_setup_streaming_cb(
     }
   }
 }
+
+#endif
 
 bool
 LiveviewModule::start_camera_stream(CameraImageCallback callback,

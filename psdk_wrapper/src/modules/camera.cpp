@@ -196,7 +196,7 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
       "psdk_ros2/camera_information", 10);
 
   camera_info_timer_ = create_wall_timer(
-      std::chrono::milliseconds(33),
+      std::chrono::milliseconds(100),
       std::bind(&CameraModule::publish_camera_information, this));
 
   return CallbackReturn::SUCCESS;

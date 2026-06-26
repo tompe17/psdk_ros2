@@ -24,8 +24,8 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
+#include <sensor_msgs/msg/image.hpp>
 #include <shared_mutex>
 #include <string>
 
@@ -122,6 +122,11 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
       const std::shared_ptr<CameraSetupStreaming::Request> request,
       const std::shared_ptr<CameraSetupStreaming::Response> response);
 
+  bool camera_setup_streaming(
+      bool start, E_DjiLiveViewCameraPosition payload_index,
+      E_DjiLiveViewCameraSource camera_source, bool decoded_output);
+
+
   /**
    * @brief Starts the camera streaming.
    * @param callback  function to be executed when a frame is received
@@ -186,10 +191,11 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
    */
   std::string get_optical_frame_id();
 
+
   rclcpp::Service<CameraSetupStreaming>::SharedPtr
       camera_setup_streaming_service_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::CompressedImage>::SharedPtr
-      main_camera_stream_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<
+      sensor_msgs::msg::CompressedImage>::SharedPtr main_camera_stream_pub_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr
       fpv_camera_stream_pub_;
 
@@ -197,7 +203,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
       stream_decoder_;
   E_DjiLiveViewCameraSource selected_camera_source_;
   /// const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
-  rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};  
+  rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};
   bool decode_stream_{true};
   bool is_module_initialized_{false};
   E_DjiLiveViewCameraPosition payload_index_;
@@ -205,11 +211,10 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   int main_camera_width;
   int main_camera_height;
   int main_camera_jpeg_quality;
-  
+
   mutable std::shared_mutex global_ptr_mutex_;
-  double updateFrequency(std::deque<rclcpp::Time> &timestamps,
-                         const rclcpp::Time &now,
-                         double window_sec);
+  double updateFrequency(std::deque<rclcpp::Time>& timestamps,
+                         const rclcpp::Time& now, double window_sec);
   std::deque<rclcpp::Time> timestamps_;
 };
 
