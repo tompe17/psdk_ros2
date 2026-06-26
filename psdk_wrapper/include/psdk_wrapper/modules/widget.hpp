@@ -91,6 +91,8 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
    */
   void handleWidePressed();
   void handleZoomPressed();
+  void handleThermalPressed();
+
 
   void publishCommand(const std::string &command);
 

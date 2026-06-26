@@ -194,7 +194,7 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
       self->handleZoomPressed();
       break;
     case LensSelection::THERMAL:
-      //      self->handleZoomPressed();
+      self->handleThermalPressed();
       std::cout << "thermal" << std::endl;
       break;
 
@@ -238,16 +238,24 @@ WidgetModule::handleWidePressed()
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 1, true); })
       .detach();
 
-
 }
 
 void
 WidgetModule::handleZoomPressed()
 {
+
+
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
 
-  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
+  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, 1, 1, true); })
       .detach();
+
+  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 2, true); })
+      .detach();
+
+
+//  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
+//      .detach();
   RCLCPP_ERROR(get_logger(), "Finished");
 
 #if 0
@@ -270,6 +278,25 @@ WidgetModule::handleZoomPressed()
 //  }
   RCLCPP_ERROR(get_logger(), "finished");
 #endif
+}
+
+
+void
+WidgetModule::handleThermalPressed()
+{
+  RCLCPP_INFO(get_logger(), "handleThermalPressed");
+
+  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+              { liveview->camera_setup_streaming(false, -1, -1, true); })
+      .detach();
+
+  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+              { liveview->camera_setup_streaming(true, 1, 3, true); })
+      .detach();
+
+  //  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
+  //      .detach();
+  RCLCPP_ERROR(get_logger(), "Finished");
 }
 
 void

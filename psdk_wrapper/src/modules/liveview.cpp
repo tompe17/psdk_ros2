@@ -222,25 +222,29 @@ c_publish_fpv_streaming_callback(CameraRGBImage img, void *user_data)
   return global_liveview_ptr_->publish_fpv_camera_images(img, user_data);
 }
 
-bool LiveviewModule::camera_setup_streaming(
-    bool start,
-    int payload_index,
-    int camera_source,
-    bool decoded_output)
+bool
+LiveviewModule::camera_setup_streaming(bool start, int payload_index,
+                                       int camera_source, bool decoded_output)
 {
-  E_DjiLiveViewCameraPosition p_index = static_cast<E_DjiLiveViewCameraPosition>(payload_index);
-  E_DjiLiveViewCameraSource cam_source = static_cast<E_DjiLiveViewCameraSource>(camera_source),
+  if (payload_index != -1)
+  {
+    E_DjiLiveViewCameraPosition p_index =
+        static_cast<E_DjiLiveViewCameraPosition>(payload_index);
+    payload_index_ = p_index;
+  }
 
-  selected_camera_source_ = cam_source;
+  if (camera_source != -1)
+  {
+    E_DjiLiveViewCameraSource cam_source =
+        static_cast<E_DjiLiveViewCameraSource>(camera_source);
+    selected_camera_source_ = cam_source;
+  }
   decode_stream_ = decoded_output;
-  payload_index_ = p_index;
 
-  RCLCPP_INFO(
-      get_logger(),
-      "Setting up camera streaming for payload index %d, camera source %d, decoded %d",
-      payload_index_,
-      selected_camera_source_,
-      decode_stream_);
+  RCLCPP_INFO(get_logger(),
+              "Setting up camera streaming for payload index %d, camera source "
+              "%d, decoded %d",
+              payload_index_, selected_camera_source_, decode_stream_);
 
   if (start)
   {
@@ -250,22 +254,18 @@ bool LiveviewModule::camera_setup_streaming(
     {
       static char main_camera_name[] = "MAIN_CAMERA";
 
-      return start_camera_stream(
-          &c_publish_main_streaming_callback,
-          main_camera_name,
-          payload_index_,
-          selected_camera_source_);
+      return start_camera_stream(&c_publish_main_streaming_callback,
+                                 main_camera_name, payload_index_,
+                                 selected_camera_source_);
     }
 
     if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
     {
       static char fpv_camera_name[] = "FPV_CAMERA";
 
-      return start_camera_stream(
-          &c_publish_fpv_streaming_callback,
-          fpv_camera_name,
-          payload_index_,
-          selected_camera_source_);
+      return start_camera_stream(&c_publish_fpv_streaming_callback,
+                                 fpv_camera_name, payload_index_,
+                                 selected_camera_source_);
     }
 
     RCLCPP_ERROR(get_logger(), "Unsupported payload index %d", payload_index_);
@@ -274,20 +274,17 @@ bool LiveviewModule::camera_setup_streaming(
 
   RCLCPP_INFO(get_logger(), "Stopping streaming...");
 
-  return stop_main_camera_stream(
-      payload_index_,
-      selected_camera_source_);
+  return stop_main_camera_stream(payload_index_, selected_camera_source_);
 }
 
-void LiveviewModule::camera_setup_streaming_cb(
+void
+LiveviewModule::camera_setup_streaming_cb(
     const std::shared_ptr<CameraSetupStreaming::Request> request,
     const std::shared_ptr<CameraSetupStreaming::Response> response)
 {
-  response->success = camera_setup_streaming(
-      request->start_stop,
-      request->payload_index,
-      request->camera_source,
-      request->decoded_output);
+  response->success =
+      camera_setup_streaming(request->start_stop, request->payload_index,
+                             request->camera_source, request->decoded_output);
 }
 
 #if 0
