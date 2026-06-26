@@ -257,6 +257,8 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
 T_DjiReturnCode
 WidgetModule::streaming_state_get(E_DjiWidgetType type, uint32_t index, int32_t *value, void *user_data)
 {
+  std::cout << "streaming_state_get" << std::endl;
+
   if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
   {
     auto *self = static_cast<WidgetModule *>(user_data);
