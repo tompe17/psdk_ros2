@@ -96,6 +96,9 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
    * ROS
    */
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr widget_command_pub_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr widget_text_sub_;
+
+  void widget_text_callback(const std_msgs::msg::String::SharedPtr msg);
 
   /*
    * DJI widget handler table

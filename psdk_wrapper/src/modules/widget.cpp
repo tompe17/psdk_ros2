@@ -66,7 +66,22 @@ WidgetModule::on_configure(const rclcpp_lifecycle::State &)
   widget_command_pub_ =
       create_publisher<std_msgs::msg::String>("psdk_ros2/widget_command", 10);
 
+  widget_text_sub_ = create_subscription<std_msgs::msg::String>(
+      "psdk_ros2/rc_display_text",
+      10,  std::bind(&WidgetModule::widget_text_callback,
+                this,
+                std::placeholders::_1));
+
+
   return CallbackReturn::SUCCESS;
+}
+
+void WidgetModule::widget_text_callback(
+    const std_msgs::msg::String::SharedPtr msg)
+{
+  RCLCPP_INFO(get_logger(), "Widget text: %s", msg->data.c_str());
+
+  display_text(msg->data);
 }
 
 WidgetModule::CallbackReturn
