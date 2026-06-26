@@ -288,9 +288,14 @@ WidgetModule::handleThermalPressed()
 {
   RCLCPP_INFO(get_logger(), "handleThermalPressed");
 
+//  DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE = 1,
+//  DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM = 2,
+//  DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR = 3,
+
+
   // stop previous
   std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(false, -1, -1, true); })
+              { liveview->camera_setup_streaming(false, 1, 1, true); })
       .detach();
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_]
