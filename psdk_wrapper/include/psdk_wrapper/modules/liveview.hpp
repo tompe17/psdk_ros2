@@ -35,6 +35,14 @@
 namespace psdk_ros2
 {
 
+struct StreamState {
+  bool streaming = false;
+  E_DjiLiveViewCameraPosition payload_index =
+      DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
+  E_DjiLiveViewCameraSource camera_source =
+      DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT;
+};
+
 class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
@@ -99,6 +107,8 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
   bool camera_setup_streaming(bool start, int payload_index, int camera_source,
                               bool decoded_output);
+
+
 
 
  private:
@@ -204,11 +214,13 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};
   bool decode_stream_{true};
   bool is_module_initialized_{false};
-  E_DjiLiveViewCameraPosition payload_index_;
+//  E_DjiLiveViewCameraPosition payload_index_;
 
   int main_camera_width;
   int main_camera_height;
   int main_camera_jpeg_quality;
+
+  StreamState stream_state_;
 
   mutable std::shared_mutex global_ptr_mutex_;
   double updateFrequency(std::deque<rclcpp::Time>& timestamps,

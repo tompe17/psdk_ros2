@@ -150,7 +150,7 @@ LiveviewModule::init()
       {DJI_LIVEVIEW_CAMERA_POSITION_NO_3, (new DJICameraStreamDecoder())},
   };
   decode_stream_ = true;
-  payload_index_ = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
+//  payload_index_ = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
   is_module_initialized_ = true;
   return true;
 }
@@ -185,7 +185,7 @@ c_LiveviewConvertH264ToRgbCallback(E_DjiLiveViewCameraPosition position,
         position, buffer, buffer_length);
   }
 
-  if (global_liveview_ptr_->payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
+  if (global_liveview_ptr_->stream_state_.payload_index == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
   {
     return global_liveview_ptr_->publish_fpv_camera_images(buffer,
                                                            buffer_length);
@@ -226,55 +226,58 @@ bool
 LiveviewModule::camera_setup_streaming(bool start, int payload_index,
                                        int camera_source, bool decoded_output)
 {
+  E_DjiLiveViewCameraPosition dji_payload_index = stream_state_.payload_index;
   if (payload_index != -1)
   {
-    E_DjiLiveViewCameraPosition p_index =
+    dji_payload_index =
         static_cast<E_DjiLiveViewCameraPosition>(payload_index);
-    payload_index_ = p_index;
+//    payload_index_ = p_index;
   }
+
+  E_DjiLiveViewCameraSource dji_camera_source = stream_state_.camera_source;
 
   if (camera_source != -1)
   {
-    E_DjiLiveViewCameraSource cam_source =
+    dji_camera_source =
         static_cast<E_DjiLiveViewCameraSource>(camera_source);
-    selected_camera_source_ = cam_source;
+//    selected_camera_source_ = cam_source;
   }
   decode_stream_ = decoded_output;
 
   RCLCPP_INFO(get_logger(),
               "Setting up camera streaming for payload index %d, camera source "
               "%d, decoded %d, starting: %d",
-              payload_index_, selected_camera_source_, decode_stream_, start);
+              dji_payload_index, dji_camera_source, decode_stream_, start);
 
   if (start)
   {
     RCLCPP_INFO(get_logger(), "Starting streaming...");
 
-    if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
+    if (dji_payload_index == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
     {
       static char main_camera_name[] = "MAIN_CAMERA";
 
       return start_camera_stream(&c_publish_main_streaming_callback,
-                                 main_camera_name, payload_index_,
-                                 selected_camera_source_);
+                                 main_camera_name, dji_payload_index,
+                                 dji_camera_source);
     }
 
-    if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
+    if (dji_payload_index == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
     {
       static char fpv_camera_name[] = "FPV_CAMERA";
 
       return start_camera_stream(&c_publish_fpv_streaming_callback,
-                                 fpv_camera_name, payload_index_,
-                                 selected_camera_source_);
+                                 fpv_camera_name, dji_payload_index,
+                                 dji_camera_source);
     }
 
-    RCLCPP_ERROR(get_logger(), "Unsupported payload index %d", payload_index_);
+    RCLCPP_ERROR(get_logger(), "Unsupported payload index %d", dji_payload_index);
     return false;
   }
 
-  RCLCPP_INFO(get_logger(), "Stopping streaming... payload: %d camera: %d", payload_index_, selected_camera_source_);
+  RCLCPP_INFO(get_logger(), "Stopping streaming... payload: %d camera: %d", dji_payload_index, dji_camera_source);
 
-  return stop_main_camera_stream(payload_index_, selected_camera_source_);
+  return stop_main_camera_stream(dji_payload_index, dji_camera_source);
 }
 
 void
@@ -287,74 +290,6 @@ LiveviewModule::camera_setup_streaming_cb(
                              request->camera_source, request->decoded_output);
 }
 
-#if 0
-
-void
-LiveviewModule::camera_setup_streaming_cb(
-    const std::shared_ptr<CameraSetupStreaming::Request> request,
-    const std::shared_ptr<CameraSetupStreaming::Response> response)
-{
-  selected_camera_source_ =
-      static_cast<E_DjiLiveViewCameraSource>(request->camera_source);
-  decode_stream_ = request->decoded_output;
-  payload_index_ =
-      static_cast<E_DjiLiveViewCameraPosition>(request->payload_index);
-
-  RCLCPP_INFO(get_logger(),
-              "Setting up camera streaming for payload index %d and camera "
-              "source %d. Output decoded: %d",
-              payload_index_, selected_camera_source_, decode_stream_);
-
-  if (request->start_stop)
-  {
-    RCLCPP_INFO(get_logger(), "Starting streaming... fpvvam: %d",
-                DJI_LIVEVIEW_CAMERA_POSITION_FPV);
-    bool streaming_result;
-    if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_NO_1)
-    {
-      RCLCPP_INFO(get_logger(), "MAIN_CAMERA...");
-      char main_camera_name[] = "MAIN_CAMERA";
-      streaming_result = start_camera_stream(&c_publish_main_streaming_callback,
-                                             &main_camera_name, payload_index_,
-                                             selected_camera_source_);
-    }
-    else if (payload_index_ == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
-    {
-      RCLCPP_INFO(get_logger(), "FPV_CAMERA...");
-      char fpv_camera_name[] = "FPV_CAMERA";
-      streaming_result = start_camera_stream(&c_publish_fpv_streaming_callback,
-                                             &fpv_camera_name, payload_index_,
-                                             selected_camera_source_);
-    }
-
-    if (streaming_result)
-    {
-      response->success = true;
-      return;
-    }
-    else
-    {
-      response->success = false;
-      return;
-    }
-  }
-  else
-  {
-    RCLCPP_INFO(get_logger(), "Stopping camera streaming...");
-    if (stop_main_camera_stream(payload_index_, selected_camera_source_))
-    {
-      response->success = true;
-      return;
-    }
-    else
-    {
-      response->success = false;
-      return;
-    }
-  }
-}
-
-#endif
 
 bool
 LiveviewModule::start_camera_stream(CameraImageCallback callback,
@@ -393,6 +328,10 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
   else
   {
     RCLCPP_INFO(get_logger(), "Successfully started the camera streaming.");
+    stream_state_.streaming = true;
+    stream_state_.payload_index = payload_index;
+    stream_state_.camera_source = camera_source;
+//    payload_index_ = payload_index;
     return true;
   }
 }
@@ -419,6 +358,8 @@ LiveviewModule::stop_main_camera_stream(
       decoder->second->cleanup();
     }
     RCLCPP_INFO(get_logger(), "Successfully stopped camera streaming.");
+    stream_state_.streaming = false;
+
     return true;
   }
 }

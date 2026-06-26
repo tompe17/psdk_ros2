@@ -228,12 +228,6 @@ WidgetModule::handleWidePressed()
 {
   RCLCPP_INFO(get_logger(), "handleWidePressed");
 
-  //  std::thread([camera = psdk_ros2::global_camera_ptr_] {
-  //  camera->camera_set_optical_zoom(1, 2.0); })
-  //      .detach();
-  //  RCLCPP_ERROR(get_logger(), "Finished");
-
-  // stop previous
   std::thread(
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
