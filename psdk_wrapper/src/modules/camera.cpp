@@ -302,6 +302,27 @@ CameraModule::init()
 
   camera_name_ = camera_type;
 
+  E_DjiCameraManagerWorkMode mode;
+  T_DjiReturnCode rc =
+      DjiCameraManager_GetMode(main_payload_index, &mode);
+
+  if (rc == DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    switch (mode)
+    {
+      case DJI_CAMERA_MANAGER_WORK_MODE_SHOOT_PHOTO:
+        RCLCPP_INFO(get_logger(), "Photo mode");
+        break;
+
+      case DJI_CAMERA_MANAGER_WORK_MODE_RECORD_VIDEO:
+        RCLCPP_INFO(get_logger(), "Video mode");
+        break;
+
+      default:
+        break;
+    }
+  }
+
   is_module_initialized_ = true;
   return true;
 }
@@ -1331,7 +1352,7 @@ CameraModule::camera_record_video_cb(
   {
     RCLCPP_ERROR(
         get_logger(),
-        "Settinh mounted position %d camera's work mode as record-video "
+        "Setting mounted position %d camera's work mode as record-video "
         "mode failed, error code :%ld",
         index, return_code);
     response->success = false;
