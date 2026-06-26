@@ -243,8 +243,8 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
 
   RCLCPP_INFO(get_logger(),
               "Setting up camera streaming for payload index %d, camera source "
-              "%d, decoded %d",
-              payload_index_, selected_camera_source_, decode_stream_);
+              "%d, decoded %d, starting: %d",
+              payload_index_, selected_camera_source_, decode_stream_, start);
 
   if (start)
   {
