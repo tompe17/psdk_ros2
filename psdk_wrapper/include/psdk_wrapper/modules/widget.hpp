@@ -48,6 +48,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 
   bool init();
   bool deinit();
+  bool display_text(const std::string &text);
 
   void setCameraModule(std::shared_ptr<CameraModule> camera);
 

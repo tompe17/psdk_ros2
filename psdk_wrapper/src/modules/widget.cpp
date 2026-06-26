@@ -227,8 +227,18 @@ WidgetModule::camera_lens_get_value(E_DjiWidgetType widgetType,
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
+bool
+WidgetModule::display_text(const std::string &text)
+{
+  auto djiStat = DjiWidgetFloatingWindow_ShowMessage(text.c_str());
+  if (djiStat != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+    USER_LOG_ERROR("Floating window show message error, stat = 0x%08llX", djiStat);
+  }
+}
+
 T_DjiReturnCode
-WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t value, void *user_data)
+WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index,
+                                  int32_t value, void *user_data)
 {
   if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
   {
@@ -242,13 +252,11 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
     if (streaming)
     {
       RCLCPP_INFO(self->get_logger(), "Start streaming pressed");
-      std::thread(
-          [liveview = psdk_ros2::global_liveview_ptr_]
-          {
-            liveview->camera_setup_streaming(false, -1, -1, true);
-          })
+      std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+                  { liveview->camera_setup_streaming(false, -1, -1, true); })
           .detach();
 
+      self->display_text("Stopping.")
       //      StartStreaming();
     }
     else
@@ -262,9 +270,10 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
 }
 
 T_DjiReturnCode
-WidgetModule::streaming_state_get(E_DjiWidgetType type, uint32_t index, int32_t *value, void *user_data)
+WidgetModule::streaming_state_get(E_DjiWidgetType type, uint32_t index,
+                                  int32_t *value, void *user_data)
 {
-//  std::cout << "streaming_state_get" << std::endl;
+  //  std::cout << "streaming_state_get" << std::endl;
 
   if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
   {
