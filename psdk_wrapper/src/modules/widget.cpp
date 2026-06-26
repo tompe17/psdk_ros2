@@ -226,22 +226,11 @@ void
 WidgetModule::handleWidePressed()
 {
   RCLCPP_INFO(get_logger(), "handleWidePressed");
-  if (camera_ != nullptr)
-  {
-    auto res = camera_->camera_set_optical_zoom(1, 2.0);
-    if (!res)
-    {
-      RCLCPP_ERROR(get_logger(), "Wide not selected");
-    }
-    else
-    {
-      RCLCPP_ERROR(get_logger(), "Wide selected");
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(get_logger(), "camera_ not set");
-  }
+
+  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 2.0); })
+      .detach();
+  RCLCPP_ERROR(get_logger(), "Finished");
+
 }
 
 void
@@ -251,7 +240,7 @@ WidgetModule::handleZoomPressed()
 
   std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
       .detach();
-  RCLCPP_ERROR(get_logger(), "Zoom selected");
+  RCLCPP_ERROR(get_logger(), "Finished");
 
 #if 0
 //  if (camera_ != nullptr)
