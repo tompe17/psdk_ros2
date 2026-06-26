@@ -237,7 +237,7 @@ WidgetModule::handleWidePressed()
        .detach();
 
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 1, true); })
       .detach();
@@ -254,6 +254,9 @@ WidgetModule::handleZoomPressed()
   // stop previous
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, -1, -1, true); })
       .detach();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 2, true); })
       .detach();
@@ -301,12 +304,12 @@ WidgetModule::handleThermalPressed()
               { liveview->camera_setup_streaming(false, -1, -1, true); })
       .detach();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-//  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-//              { liveview->camera_setup_streaming(true, 1, 3, true); })
-//      .join();
+
+  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+              { liveview->camera_setup_streaming(true, 1, 3, true); })
+      .detach();
 
   //  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
   //      .detach();
