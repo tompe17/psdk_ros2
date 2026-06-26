@@ -251,12 +251,12 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index,
     RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
     if (streaming)
     {
-      RCLCPP_INFO(self->get_logger(), "Start streaming pressed");
+      RCLCPP_INFO(self->get_logger(), "Requesting stop streaming");
       std::thread([liveview = psdk_ros2::global_liveview_ptr_]
                   { liveview->camera_setup_streaming(false, -1, -1, true); })
           .detach();
 
-      self->display_text("Stopping.");
+//      self->display_text("Stopping.");
       //      StartStreaming();
     }
     else
