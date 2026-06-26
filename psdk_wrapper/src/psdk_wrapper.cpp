@@ -705,7 +705,7 @@ PSDKWrapper::init(T_DjiUserInfo *user_info)
   }
 
   auto alias = "PSDK_APP";
-  alias = "lrs PSDK"
+  alias = "lrs PSDK";
   if (DjiCore_SetAlias(alias) != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
     RCLCPP_ERROR(get_logger(), "Could not set alias.");
