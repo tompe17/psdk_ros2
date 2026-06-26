@@ -71,11 +71,11 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
                                                int32_t *widgetValue,
                                                void *userData);
 
-  static T_DjiReturnCode streaming_state_set(E_DjiWidgetType type,
+  static T_DjiReturnCode widget_state_set(E_DjiWidgetType type,
                                              uint32_t index, int32_t value,
                                              void *user_data);
 
-  static T_DjiReturnCode streaming_state_get(E_DjiWidgetType type,
+  static T_DjiReturnCode widget_state_get(E_DjiWidgetType type,
                                              uint32_t index, int32_t *value,
                                              void *user_data);
 
