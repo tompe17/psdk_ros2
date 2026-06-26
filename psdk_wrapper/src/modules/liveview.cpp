@@ -605,7 +605,7 @@ LiveviewModule::get_optical_frame_id()
 {
   for (auto &it : psdk_utils::camera_source_str)
   {
-    if (it.first == selected_camera_source_)
+    if (it.first == stream_state_.camera_source)
     {
       return it.second;
     }
