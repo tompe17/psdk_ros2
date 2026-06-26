@@ -238,9 +238,11 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
 
     bool streaming = psdk_ros2::global_liveview_ptr_->is_streaming();
 
+    RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
     if (streaming)
     {
       RCLCPP_INFO(self->get_logger(), "Start streaming pressed");
+      liveview->camera_setup_streaming(false, -1, -1, true);
 
       //      StartStreaming();
     }
@@ -257,7 +259,7 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
 T_DjiReturnCode
 WidgetModule::streaming_state_get(E_DjiWidgetType type, uint32_t index, int32_t *value, void *user_data)
 {
-  std::cout << "streaming_state_get" << std::endl;
+//  std::cout << "streaming_state_get" << std::endl;
 
   if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
   {
