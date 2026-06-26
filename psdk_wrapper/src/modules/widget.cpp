@@ -242,7 +242,12 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t 
     if (streaming)
     {
       RCLCPP_INFO(self->get_logger(), "Start streaming pressed");
-      liveview->camera_setup_streaming(false, -1, -1, true);
+      std::thread(
+          [liveview = psdk_ros2::global_liveview_ptr_]
+          {
+            liveview->camera_setup_streaming(false, -1, -1, true);
+          })
+          .detach();
 
       //      StartStreaming();
     }
