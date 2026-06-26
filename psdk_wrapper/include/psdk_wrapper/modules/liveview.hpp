@@ -97,6 +97,10 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
    */
   bool deinit();
 
+  bool camera_setup_streaming(bool start, int payload_index, int camera_source,
+                              bool decoded_output);
+
+
  private:
   friend void c_publish_main_streaming_callback(CameraRGBImage img,
                                                 void* user_data);
@@ -121,11 +125,6 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   void camera_setup_streaming_cb(
       const std::shared_ptr<CameraSetupStreaming::Request> request,
       const std::shared_ptr<CameraSetupStreaming::Response> response);
-
-  bool camera_setup_streaming(
-      bool start, E_DjiLiveViewCameraPosition payload_index,
-      E_DjiLiveViewCameraSource camera_source, bool decoded_output);
-
 
   /**
    * @brief Starts the camera streaming.
@@ -190,7 +189,6 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
    * @return string with the optical frame id name
    */
   std::string get_optical_frame_id();
-
 
   rclcpp::Service<CameraSetupStreaming>::SharedPtr
       camera_setup_streaming_service_;

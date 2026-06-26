@@ -224,13 +224,16 @@ c_publish_fpv_streaming_callback(CameraRGBImage img, void *user_data)
 
 bool LiveviewModule::camera_setup_streaming(
     bool start,
-    E_DjiLiveViewCameraPosition payload_index,
-    E_DjiLiveViewCameraSource camera_source,
+    int payload_index,
+    int camera_source,
     bool decoded_output)
 {
-  selected_camera_source_ = camera_source;
+  E_DjiLiveViewCameraPosition p_index = static_cast<E_DjiLiveViewCameraPosition>(payload_index);
+  E_DjiLiveViewCameraSource cam_source = static_cast<E_DjiLiveViewCameraSource>(camera_source),
+
+  selected_camera_source_ = cam_source;
   decode_stream_ = decoded_output;
-  payload_index_ = payload_index;
+  payload_index_ = p_index;
 
   RCLCPP_INFO(
       get_logger(),
@@ -282,8 +285,8 @@ void LiveviewModule::camera_setup_streaming_cb(
 {
   response->success = camera_setup_streaming(
       request->start_stop,
-      static_cast<E_DjiLiveViewCameraPosition>(request->payload_index),
-      static_cast<E_DjiLiveViewCameraSource>(request->camera_source),
+      request->payload_index,
+      request->camera_source,
       request->decoded_output);
 }
 
