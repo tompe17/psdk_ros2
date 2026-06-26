@@ -234,15 +234,14 @@ WidgetModule::handleWidePressed()
   //  RCLCPP_ERROR(get_logger(), "Finished");
 
   // stop previous
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(false, -1, -1, true); })
+  std::thread(
+      [liveview = psdk_ros2::global_liveview_ptr_]
+      {
+        liveview->camera_setup_streaming(false, -1, -1, true);
+        liveview->camera_setup_streaming(true, 1, 1, true);
+      })
       .detach();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(true, 1, 1, true); })
-      .detach();
 }
 
 void
@@ -251,19 +250,14 @@ WidgetModule::handleZoomPressed()
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
 
   // stop previous
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(false, -1, -1, true); })
+  std::thread(
+      [liveview = psdk_ros2::global_liveview_ptr_]
+      {
+        liveview->camera_setup_streaming(false, -1, -1, true);
+        liveview->camera_setup_streaming(true, 1, 2, true);
+      })
       .detach();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(true, 1, 2, true); })
-      .detach();
-
-  //  std::thread([camera = psdk_ros2::global_camera_ptr_] {
-  //  camera->camera_set_optical_zoom(1, 5.0); })
-  //      .detach();
   RCLCPP_ERROR(get_logger(), "Finished");
 
 #if 0
@@ -308,9 +302,9 @@ WidgetModule::handleThermalPressed()
 
   //  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
-//  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-//              { liveview->camera_setup_streaming(true, 1, 3, true); })
-//      .detach();
+  //  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+  //              { liveview->camera_setup_streaming(true, 1, 3, true); })
+  //      .detach();
 
   //  std::thread([camera = psdk_ros2::global_camera_ptr_] {
   //  camera->camera_set_optical_zoom(1, 5.0); })
