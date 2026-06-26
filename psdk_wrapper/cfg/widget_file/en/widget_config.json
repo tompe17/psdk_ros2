@@ -49,8 +49,8 @@
         "widget_type": "switch",
         "widget_name": "Video Stream",
         "icon_file_set": {
-          "icon_file_name_selected": "icon_wide.png",
-          "icon_file_name_unselected": "icon_zoom.png"
+          "icon_file_name_selected": "stream_on.png",
+          "icon_file_name_unselected": "stream_off.png"
         },
         "customize_rc_buttons_config": {
           "is_enable": true,
