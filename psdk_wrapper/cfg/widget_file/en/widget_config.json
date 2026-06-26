@@ -46,7 +46,7 @@
       },
       {
         "widget_index": 1,
-        "widget_type": "switch",
+        "widget_type": "button",
         "widget_name": "Video Stream"
       }
     ]

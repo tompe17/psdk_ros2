@@ -26,7 +26,7 @@ namespace psdk_ros2
 T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {0, DJI_WIDGET_TYPE_LIST, WidgetModule::camera_lens_set_value,
      WidgetModule::camera_lens_get_value, nullptr},
-    {1, DJI_WIDGET_TYPE_SWITCH, WidgetModule::streaming_state_set,
+    {1, DJI_WIDGET_TYPE_BUTTON, WidgetModule::streaming_state_set,
      WidgetModule::streaming_state_get, nullptr}};
 
 /*****************************************************************************/
