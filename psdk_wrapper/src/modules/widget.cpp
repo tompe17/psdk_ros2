@@ -294,6 +294,10 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
             { liveview->camera_setup_streaming(!streaming, -1, -1, true); })
             .detach();
 
+        if (streaming)
+          self->display_text("Now NOT streaming...");
+        else
+          self->display_text("Now streaming...");
 
 
 //        if (streaming)
