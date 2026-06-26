@@ -110,6 +110,8 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
 
 
+  bool is_streaming();
+
 
  private:
   friend void c_publish_main_streaming_callback(CameraRGBImage img,

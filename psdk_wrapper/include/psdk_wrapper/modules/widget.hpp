@@ -1,13 +1,13 @@
 /*
-* Copyright (C) 2024
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0.
+ * Copyright (C) 2024
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
  */
 
 /**
-* @file widget.hpp
-*
-* @brief Header file for the WidgetModule class
+ * @file widget.hpp
+ *
+ * @brief Header file for the WidgetModule class
  */
 
 #ifndef PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_WIDGET_HPP_
@@ -16,12 +16,10 @@
 #include <dji_widget.h>
 
 #include <memory>
-#include <string>
-
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-
 #include <std_msgs/msg/string.hpp>
+#include <string>
 
 #include "psdk_wrapper/modules/camera.hpp"
 
@@ -38,20 +36,15 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 
   ~WidgetModule();
 
-  CallbackReturn on_configure(
-      const rclcpp_lifecycle::State &state) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &state) override;
 
-  CallbackReturn on_activate(
-      const rclcpp_lifecycle::State &state) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &state) override;
 
-  CallbackReturn on_deactivate(
-      const rclcpp_lifecycle::State &state) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &state) override;
 
-  CallbackReturn on_cleanup(
-      const rclcpp_lifecycle::State &state) override;
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &state) override;
 
-  CallbackReturn on_shutdown(
-      const rclcpp_lifecycle::State &state) override;
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State &state) override;
 
   bool init();
   bool deinit();
@@ -72,43 +65,47 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   };
 
   /*
-  * DJI widget callbacks
+   * DJI widget callbacks
    */
-  static T_DjiReturnCode camera_lens_set_value(
-      E_DjiWidgetType widgetType,
-      uint32_t widgetIndex,
-      int32_t widgetValue,
-      void *userData);
+  static T_DjiReturnCode camera_lens_set_value(E_DjiWidgetType widgetType,
+                                               uint32_t widgetIndex,
+                                               int32_t widgetValue,
+                                               void *userData);
 
-  static T_DjiReturnCode camera_lens_get_value(
-      E_DjiWidgetType widgetType,
-      uint32_t widgetIndex,
-      int32_t *widgetValue,
-      void *userData);
+  static T_DjiReturnCode camera_lens_get_value(E_DjiWidgetType widgetType,
+                                               uint32_t widgetIndex,
+                                               int32_t *widgetValue,
+                                               void *userData);
+
+  static T_DjiReturnCode streaming_state_set(E_DjiWidgetType type,
+                                             uint32_t index, int32_t value,
+                                             void *user_data);
+
+  static T_DjiReturnCode streaming_state_get(E_DjiWidgetType type,
+                                             uint32_t index, int32_t *value,
+                                             void *user_data);
 
   /*
-  * Internal handlers
+   * Internal handlers
    */
   void handleWidePressed();
   void handleZoomPressed();
   void handleThermalPressed();
 
-
   void publishCommand(const std::string &command);
 
   /*
-  * Widget state
+   * Widget state
    */
   LensSelection current_lens_{LensSelection::WIDE};
 
   /*
-  * ROS
+   * ROS
    */
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr
-      widget_command_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr widget_command_pub_;
 
   /*
-  * DJI widget handler table
+   * DJI widget handler table
    */
   static T_DjiWidgetHandlerListItem widget_handlers_[];
 };

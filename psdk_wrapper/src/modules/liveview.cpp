@@ -280,6 +280,10 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
   return stop_main_camera_stream(dji_payload_index, dji_camera_source);
 }
 
+bool LiveviewModule::is_streaming(){
+  return stream_state_.streaming;
+}
+
 void
 LiveviewModule::camera_setup_streaming_cb(
     const std::shared_ptr<CameraSetupStreaming::Request> request,

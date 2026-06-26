@@ -43,6 +43,11 @@
           "is_enable": true,
           "mapping_config_display_order": 0
         }
+      },
+      {
+        "widget_index": 1,
+        "widget_type": "switch",
+        "widget_name": "Video Stream"
       }
     ]
   },

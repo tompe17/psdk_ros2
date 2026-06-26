@@ -25,7 +25,10 @@ namespace psdk_ros2
 
 T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {0, DJI_WIDGET_TYPE_LIST, WidgetModule::camera_lens_set_value,
-     WidgetModule::camera_lens_get_value, nullptr}};
+     WidgetModule::camera_lens_get_value, nullptr},
+    {1, DJI_WIDGET_TYPE_SWITCH, WidgetModule::streaming_state_set,
+     WidgetModule::streaming_state_get, nullptr}};
+
 /*****************************************************************************/
 /* Constructor / Destructor                                                  */
 /*****************************************************************************/
@@ -120,6 +123,7 @@ WidgetModule::init()
   }
 
   widget_handlers_[0].userData = this;
+  widget_handlers_[1].userData = this;
 
   std::string widget_path =
       ament_index_cpp::get_package_share_directory("psdk_wrapper") +
@@ -223,6 +227,50 @@ WidgetModule::camera_lens_get_value(E_DjiWidgetType widgetType,
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
+T_DjiReturnCode
+WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index, int32_t value, void *user_data)
+{
+  if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
+  {
+    auto *self = static_cast<WidgetModule *>(user_data);
+
+    if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
+
+    bool streaming = psdk_ros2::global_liveview_ptr_->is_streaming();
+
+    if (streaming)
+    {
+      RCLCPP_INFO(self->get_logger(), "Start streaming pressed");
+
+      //      StartStreaming();
+    }
+    else
+    {
+      RCLCPP_INFO(self->get_logger(), "Stop streaming pressed");
+
+      //      StopStreaming();}
+    }
+  }
+  return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+T_DjiReturnCode
+WidgetModule::streaming_state_get(E_DjiWidgetType type, uint32_t index, int32_t *value, void *user_data)
+{
+  if (type == DJI_WIDGET_TYPE_SWITCH && index == 1)
+  {
+    auto *self = static_cast<WidgetModule *>(user_data);
+
+    if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
+
+    bool streaming = psdk_ros2::global_liveview_ptr_->is_streaming();
+
+    *value = streaming ? 1 : 0;
+  }
+
+  return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
 void
 WidgetModule::handleWidePressed()
 {
@@ -235,7 +283,6 @@ WidgetModule::handleWidePressed()
         liveview->camera_setup_streaming(true, 1, 1, true);
       })
       .detach();
-
 }
 
 void
