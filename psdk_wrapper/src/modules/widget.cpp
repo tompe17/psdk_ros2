@@ -296,11 +296,11 @@ WidgetModule::handleThermalPressed()
   // stop previous
   std::thread([liveview = psdk_ros2::global_liveview_ptr_]
               { liveview->camera_setup_streaming(false, -1, -1, true); })
-      .detach();
+      .join();
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_]
               { liveview->camera_setup_streaming(true, 1, 3, true); })
-      .detach();
+      .join();
 
   //  std::thread([camera = psdk_ros2::global_camera_ptr_] { camera->camera_set_optical_zoom(1, 5.0); })
   //      .detach();
