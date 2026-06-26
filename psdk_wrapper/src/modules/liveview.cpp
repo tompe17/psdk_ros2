@@ -272,7 +272,7 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
     return false;
   }
 
-  RCLCPP_INFO(get_logger(), "Stopping streaming...");
+  RCLCPP_INFO(get_logger(), "Stopping streaming... payload: %d camera: %d", payload_index_, selected_camera_source_);
 
   return stop_main_camera_stream(payload_index_, selected_camera_source_);
 }
