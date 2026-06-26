@@ -74,6 +74,10 @@ WidgetModule::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(get_logger(), "Activating WidgetModule");
 
+//  widget_timer_ = create_wall_timer(
+//      std::chrono::seconds(1),
+//      std::bind(&WidgetModule::poll_widget_channel, this));
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -348,6 +352,34 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
   }
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+
+void WidgetModule::poll_widget_channel()
+{
+  T_DjiDataChannelState state;
+
+  if (DjiWidgetFloatingWindow_GetChannelState(&state) !=
+      DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+    return;
+
+//  std::cout << "poll_widget_channel: " << static_cast<int>(state) << std::endl;
+#if 0
+  if (state == /* connected value */ && !widget_registered)
+  {
+    DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
+    DjiWidget_RegHandlerList(widget_handlers_,
+                             sizeof(widget_handlers_) /
+                                 sizeof(widget_handlers_[0]));
+
+    widget_registered = true;
+  }
+
+  if (state != /* connected value */)
+  {
+    widget_registered = false;
+  }
+#endif
 }
 
 void

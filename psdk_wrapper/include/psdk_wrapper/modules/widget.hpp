@@ -101,6 +101,11 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
    * DJI widget handler table
    */
   static T_DjiWidgetHandlerListItem widget_handlers_[];
+  bool widget_registered;
+
+  rclcpp::TimerBase::SharedPtr widget_timer_;
+  void poll_widget_channel();
+
 };
 
 extern std::shared_ptr<WidgetModule> global_widget_ptr_;
