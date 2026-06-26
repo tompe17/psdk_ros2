@@ -232,8 +232,8 @@ WidgetModule::handleWidePressed()
 //      .detach();
 //  RCLCPP_ERROR(get_logger(), "Finished");
 
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, 1, 2, true); })
-       .detach();
+//  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, 1, 2, true); })
+//       .detach();
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 1, true); })
       .detach();
@@ -247,8 +247,8 @@ WidgetModule::handleZoomPressed()
 
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
 
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, 1, 1, true); })
-      .detach();
+//  std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(false, 1, 1, true); })
+//      .detach();
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_] { liveview->camera_setup_streaming(true, 1, 2, true); })
       .detach();
@@ -286,9 +286,9 @@ WidgetModule::handleThermalPressed()
 {
   RCLCPP_INFO(get_logger(), "handleThermalPressed");
 
-  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
-              { liveview->camera_setup_streaming(false, -1, -1, true); })
-      .detach();
+//  std::thread([liveview = psdk_ros2::global_liveview_ptr_]
+//              { liveview->camera_setup_streaming(false, -1, -1, true); })
+//      .detach();
 
   std::thread([liveview = psdk_ros2::global_liveview_ptr_]
               { liveview->camera_setup_streaming(true, 1, 3, true); })
