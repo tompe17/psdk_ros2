@@ -58,13 +58,6 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
  private:
   std::shared_ptr<CameraModule> camera_;
 
-  enum class LensSelection
-  {
-    WIDE = 0,
-    ZOOM = 1,
-    THERMAL = 2
-  };
-
   /*
    * DJI widget callbacks
    */
@@ -98,7 +91,6 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   /*
    * Widget state
    */
-  LensSelection current_lens_{LensSelection::WIDE};
 
   /*
    * ROS

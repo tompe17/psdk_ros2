@@ -180,24 +180,24 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
 
   if (self == nullptr) return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
 
-  self->current_lens_ = static_cast<LensSelection>(widgetValue);
+
 
   //  std::cout << "camera_lens_set_value: index=" << widgetIndex
   //            << " value=" << widgetValue << " current_lens_" <<
   //            (int)self->current_lens_ << std::endl;
 
-  switch (self->current_lens_)
+  switch (widgetValue)
   {
-    case LensSelection::WIDE:
+    case 0:
       std::cout << "wide" << std::endl;
       self->handleWidePressed();
       break;
 
-    case LensSelection::ZOOM:
+    case 1:
       std::cout << "zoom" << std::endl;
       self->handleZoomPressed();
       break;
-    case LensSelection::THERMAL:
+    case 2:
       self->handleThermalPressed();
       std::cout << "thermal" << std::endl;
       break;
@@ -222,7 +222,15 @@ WidgetModule::camera_lens_get_value(E_DjiWidgetType widgetType,
   if (self == nullptr || widgetValue == nullptr)
     return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
 
-  *widgetValue = static_cast<int32_t>(self->current_lens_);
+  // streaming source (camera lens)
+  if (widgetIndex == 0)
+  {
+    auto camera_source =  psdk_ros2::global_liveview_ptr_->get_camera_source_index();
+    if (camera_source==-1)
+      return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
+
+    *widgetValue = camera_source;
+  }
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -231,8 +239,10 @@ bool
 WidgetModule::display_text(const std::string &text)
 {
   auto djiStat = DjiWidgetFloatingWindow_ShowMessage(text.c_str());
-  if (djiStat != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
-    USER_LOG_ERROR("Floating window show message error, stat = 0x%08llX", djiStat);
+  if (djiStat != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    USER_LOG_ERROR("Floating window show message error, stat = 0x%08llX",
+                   djiStat);
   }
 }
 
@@ -256,7 +266,7 @@ WidgetModule::streaming_state_set(E_DjiWidgetType type, uint32_t index,
                   { liveview->camera_setup_streaming(false, -1, -1, true); })
           .detach();
 
-//      self->display_text("Stopping.");
+      //      self->display_text("Stopping.");
       //      StartStreaming();
     }
     else

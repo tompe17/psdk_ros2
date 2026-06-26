@@ -284,6 +284,19 @@ bool LiveviewModule::is_streaming(){
   return stream_state_.streaming;
 }
 
+int LiveviewModule::get_camera_source_index(){
+  switch (stream_state_.camera_source){
+    case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
+      return 0;
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
+      return 1;
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR:
+      return 2;
+  }
+  return -1;
+}
+
 void
 LiveviewModule::camera_setup_streaming_cb(
     const std::shared_ptr<CameraSetupStreaming::Request> request,

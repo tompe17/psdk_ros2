@@ -111,6 +111,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
 
   bool is_streaming();
+  int get_camera_source_index();
 
 
  private:
