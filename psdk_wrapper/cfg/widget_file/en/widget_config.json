@@ -46,8 +46,17 @@
       },
       {
         "widget_index": 1,
-        "widget_type": "button",
-        "widget_name": "Video Stream"
+        "widget_type": "switch",
+        "widget_name": "Video Stream",
+        "icon_file_set": {
+          "icon_file_name_selected": "icon_wide.png",
+          "icon_file_name_unselected": "icon_zoom.png"
+        },
+        "customize_rc_buttons_config": {
+          "is_enable": true,
+          "mapping_config_display_order": 1
+        }
+
       }
     ]
   },
