@@ -5,12 +5,13 @@
  */
 
 #include "psdk_wrapper/modules/widget.hpp"
-#include "psdk_wrapper/modules/camera.hpp"
 
 #include <dji_logger.h>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <iostream>
+
+#include "psdk_wrapper/modules/camera.hpp"
 
 using namespace std::placeholders;
 
@@ -43,7 +44,8 @@ WidgetModule::~WidgetModule()
   RCLCPP_INFO(get_logger(), "Destroying WidgetModule");
 }
 
-void WidgetModule::setCameraModule(std::shared_ptr<CameraModule> camera)
+void
+WidgetModule::setCameraModule(std::shared_ptr<CameraModule> camera)
 {
   camera_ = camera;
 }
@@ -236,16 +238,22 @@ WidgetModule::handleWidePressed()
       RCLCPP_ERROR(get_logger(), "Wide selected");
     }
   }
-  else {
+  else
+  {
     RCLCPP_ERROR(get_logger(), "camera_ not set");
   }
-
 }
 
 void
 WidgetModule::handleZoomPressed()
 {
   RCLCPP_INFO(get_logger(), "handleZoomPressed");
+
+  std::thread([camera = camera_] { camera->camera_set_optical_zoom(1, 5.0); })
+      .detach();
+  RCLCPP_ERROR(get_logger(), "Zoom selected");
+
+#if 0
 //  if (camera_ != nullptr)
   {
     auto res = psdk_ros2::global_camera_ptr_->camera_set_optical_zoom(1, 5.0);
@@ -264,6 +272,7 @@ WidgetModule::handleZoomPressed()
 //    RCLCPP_ERROR(get_logger(), "camera_ not set");
 //  }
   RCLCPP_ERROR(get_logger(), "finished");
+#endif
 }
 
 void
