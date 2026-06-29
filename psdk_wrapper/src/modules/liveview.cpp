@@ -266,7 +266,7 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
 
   auto camera_calib_folder =
           ament_index_cpp::get_package_share_directory("lrs_m300") +
-          "configs";
+          "/configs";
   load_camera_info_files(camera_calib_folder);
 
   return CallbackReturn::SUCCESS;
