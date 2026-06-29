@@ -428,7 +428,7 @@ WidgetModule::handleWidePressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, 1, true);
+        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM, true);
       })
       .detach();
 }
@@ -443,32 +443,12 @@ WidgetModule::handleZoomPressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, 2, true);
+        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE, true);
       })
       .detach();
 
   RCLCPP_ERROR(get_logger(), "Finished");
 
-#if 0
-//  if (camera_ != nullptr)
-  {
-    auto res = psdk_ros2::global_camera_ptr_->camera_set_optical_zoom(1, 5.0);
-
-//    auto res = camera_->camera_set_optical_zoom(1, 5.0);
-    if (!res)
-    {
-      RCLCPP_ERROR(get_logger(), "Zoom not selected");
-    }
-    else
-    {
-      RCLCPP_ERROR(get_logger(), "Zoom selected");
-    }
-  }
-//  else {
-//    RCLCPP_ERROR(get_logger(), "camera_ not set");
-//  }
-  RCLCPP_ERROR(get_logger(), "finished");
-#endif
 }
 
 void
@@ -485,7 +465,7 @@ WidgetModule::handleThermalPressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, 3, true);
+        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR, true);
       })
       .detach();
 
