@@ -63,6 +63,9 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
   auto camera_calib_folder =
       ament_index_cpp::get_package_share_directory("lrs_m300") + "/configs";
 
+  RCLCPP_INFO(get_logger(), "Get calibration: %d source: %d", camera_type, source);
+
+
   if (camera_type == DJI_CAMERA_TYPE_H20T)
   {
     //    H20T_wide.yml  H20T_zoom_2x.yml  H20T_zoom_5x.yml  P1_1x.yml
