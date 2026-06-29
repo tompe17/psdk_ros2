@@ -1867,8 +1867,8 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    std::cout << "sizeof(T_DjiReturnCode) = "
-              << sizeof(T_DjiReturnCode) << std::endl;
+    printf("rc = 0x%016llX\n",
+           static_cast<unsigned long long>(rc));
 
     RCLCPP_ERROR(get_logger(),
                  "Failed to %s synchronized split screen zoom for camera %d, "
