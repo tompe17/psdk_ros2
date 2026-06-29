@@ -1944,12 +1944,12 @@ bool CameraModule::camera_get_laser_ranging_info(
       get_logger(),
       "Laser distance: %.2f m, longitude: %.8f, latitude: %.8f, "
       "altitude: %.2f m screen: (%.02f, %.02f)",
-      laser_info.distance*10.0,
+      laser_info.distance/10.0,
       laser_info.longitude,
       laser_info.latitude,
-      laser_info.altitude*10.0,
-      laser_info.screenX*10.0,
-      laser_info.screenY*10.0);
+      laser_info.altitude/10.0,
+      laser_info.screenX/10.0,
+      laser_info.screenY/10.0);
 
   return true;
 }
