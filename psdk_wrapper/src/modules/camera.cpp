@@ -1884,7 +1884,7 @@ bool CameraModule::camera_set_synchronized_split_screen_zoom(
     RCLCPP_ERROR(
         get_logger(),
         "Failed to %s synchronized split screen zoom for camera %d, "
-        "error code: %ld.",
+        "error code: %0x%08lx.",
         enable ? "enable" : "disable",
         payload_index,
         rc);
