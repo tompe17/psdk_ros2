@@ -21,8 +21,9 @@
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/highgui.hpp>
 // #include "image_transport/image_transport.h"
-#include "psdk_wrapper/modules/camera.hpp"
+#include <cmath>
 
+#include "psdk_wrapper/modules/camera.hpp"
 extern "C"
 {
 #include <libavutil/log.h>
@@ -30,6 +31,7 @@ extern "C"
 
 namespace psdk_ros2
 {
+
 LiveviewModule::LiveviewModule(const std::string &name)
     : rclcpp_lifecycle::LifecycleNode(
           name, "",
@@ -54,74 +56,26 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
                                 uint32_t image_width, uint32_t image_height,
                                 float zoom_factor)
 {
-  //  get_attached_camera_type
-  //  E_DjiCameraType camera_type =
-  //      psdk_ros2::global_camera_ptr_->get_attached_camera_type();
-
-  //  auto source = stream_state_.camera_source;
-
   sensor_msgs::msg::CameraInfo camera_info;
-
-  auto camera_calib_folder =
-      ament_index_cpp::get_package_share_directory("lrs_m300") + "/configs";
-
-//  RCLCPP_INFO(get_logger(), "Get calibration: %d source: %d", camera_type,
-//              source);
-
+  
   if (camera_type == DJI_CAMERA_TYPE_H20T)
   {
-    //    H20T_wide.yml  H20T_zoom_2x.yml  H20T_zoom_5x.yml  P1_1x.yml
-    auto it = camera_infos_.find(source);
-    // contains
-    if (it != camera_infos_.end())
+    // all required files are loaded
+    if (camera_infos_.size() == kCameraCalibrationFiles.size())
     {
-      camera_info = camera_infos_[source];
-    }
-    else
-    {
-      auto file_path = "file://" + camera_calib_folder + "/";
-      switch (source)
+      if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_WIDE)
       {
-        case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
-        case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
-          file_path += "H20T_wide.yml";
-          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
-                      file_path.c_str());
-          camera_info_manager_->loadCameraInfo(file_path);
-          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE] =
-              camera_info_manager_->getCameraInfo();
-          break;
-
-        case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
-          file_path += "H20T_zoom_2x.yml";
-          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
-                      file_path.c_str());
-
-          camera_info_manager_->loadCameraInfo(file_path);
-          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
-              camera_info_manager_->getCameraInfo();
-          break;
-        default:
-          break;
+        camera_info = camera_infos_[CAMERA_INFO_H20T_WIDE];
+      }
+      else if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_ZOOM)
+      {
+        camera_info = get_camera_info_zoom(zoom_factor);
       }
     }
   }
   else if (camera_type == DJI_CAMERA_TYPE_P1)
   {
-    // P1 has only one source, assuming DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT
-    auto it = camera_infos_.find(DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT);
-    // contains
-    if (it != camera_infos_.end())
-    {
-      camera_info = camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT];
-    }
-    else
-    {
-      camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
-                                           "/P1_1x.yml");
-      camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT] =
-          camera_info_manager_->getCameraInfo();
-    }
+      camera_info = camera_infos_[CAMERA_INFO_P1];
   }
 
   // modify the params is image size is different from calibration
@@ -142,23 +96,114 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     camera_info.p[6] *= sy;  // cy
   }
 
-  // modify the params based on the current zoom - if using zoomed lens
-  if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM)
-  {
-    if (zoom_factor != 2.0)
-    {
-      double scale = zoom_factor / 2.0;
-      // Scale focal length
-      camera_info.k[0] *= scale;  // fx
-      camera_info.k[4] *= scale;  // fy
+  return camera_info;
+}
 
-      // Projection matrix
-      camera_info.p[0] *= scale;
-      camera_info.p[5] *= scale;
+bool LiveviewModule::load_camera_info_files(const std::string& folder)
+{
+
+  auto file_path = "file://" + folder + "/";
+
+  for (const auto &[type, filename] : kCameraCalibrationFiles)
+  {
+    const std::string calibration_file = file_path + filename;
+
+    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
+                calibration_file.c_str());
+
+    if (!camera_info_manager_->loadCameraInfo(calibration_file))
+    {
+      RCLCPP_WARN(get_logger(), "Failed to load camera calibration: %s",
+                  calibration_file.c_str());
+      continue;
     }
+
+    camera_infos_[type] = camera_info_manager_->getCameraInfo();
+  }
+}
+
+sensor_msgs::msg::CameraInfo
+LiveviewModule::get_camera_info_zoom(double zoom_factor)
+{
+  sensor_msgs::msg::CameraInfo cam2 = camera_infos_[CAMERA_INFO_H20T_ZOOM_2X];
+  sensor_msgs::msg::CameraInfo cam5 = camera_infos_[CAMERA_INFO_H20T_ZOOM_5X];
+  sensor_msgs::msg::CameraInfo cam10 = camera_infos_[CAMERA_INFO_H20T_ZOOM_10X];
+
+  sensor_msgs::msg::CameraInfo out = cam2;
+
+  //-----------------------------
+  // focal length
+  //-----------------------------
+
+  if (zoom_factor <= 5.0)
+  {
+    double t = (zoom_factor - 2.0) / 3.0;
+
+    out.k[0] = lerp(cam2.k[0], cam5.k[0], t);
+    out.k[4] = lerp(cam2.k[4], cam5.k[4], t);
+  }
+  else if (zoom_factor <= 10.0)
+  {
+    double t = (zoom_factor - 5.0) / 5.0;
+
+    out.k[0] = lerp(cam5.k[0], cam10.k[0], t);
+    out.k[4] = lerp(cam5.k[4], cam10.k[4], t);
+  }
+  else
+  {
+    double s = zoom_factor / 10.0;
+
+    out.k[0] = cam10.k[0] * s;
+    out.k[4] = cam10.k[4] * s;
   }
 
-  return camera_info;
+  //-----------------------------
+  // principal point
+  //-----------------------------
+
+  if (zoom_factor <= 5.0)
+  {
+    double t = (zoom_factor - 2.0) / 3.0;
+
+    out.k[2] = lerp(cam2.k[2], cam5.k[2], t);
+    out.k[5] = lerp(cam2.k[5], cam5.k[5], t);
+  }
+  else
+  {
+    out.k[2] = cam5.k[2];
+    out.k[5] = cam5.k[5];
+  }
+
+  //-----------------------------
+  // distortion
+  //-----------------------------
+
+  if (zoom_factor <= 5.0)
+  {
+    double t = (zoom_factor - 2.0) / 3.0;
+
+    for (size_t i = 0; i < 5; i++) out.d[i] = lerp(cam2.d[i], cam5.d[i], t);
+  }
+  else
+  {
+    out.d = cam5.d;
+  }
+
+  //-----------------------------
+  // projection
+  //-----------------------------
+
+  out.p.fill(0);
+
+  out.p[0] = out.k[0];
+  out.p[2] = out.k[2];
+
+  out.p[5] = out.k[4];
+  out.p[6] = out.k[5];
+
+  out.p[10] = 1.0;
+
+  return out;
 }
 
 LiveviewModule::CallbackReturn
@@ -411,13 +456,13 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
 }
 
 bool
-LiveviewModule::is_streaming()
+LiveviewModule::is_streaming() const
 {
   return stream_state_.streaming;
 }
 
 int
-LiveviewModule::get_camera_source_index()
+LiveviewModule::get_camera_source_index() const
 {
   switch (stream_state_.camera_source)
   {
@@ -628,10 +673,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   E_DjiCameraType camera_type =
       psdk_ros2::global_camera_ptr_->get_attached_camera_type();
 
-  float zoom_factor=psdk_ros2::global_camera_ptr_->get_zoom_factor();
+  float zoom_factor = psdk_ros2::global_camera_ptr_->get_zoom_factor();
 
-  auto camera_info =
-      get_camera_info(camera_type, stream_state_.camera_source, cols, rows, zoom_factor);
+  auto camera_info = get_camera_info(camera_type, stream_state_.camera_source,
+                                     cols, rows, zoom_factor);
   camera_info.header = msg.header;
   camera_info_pub_->publish(camera_info);
 #if 0

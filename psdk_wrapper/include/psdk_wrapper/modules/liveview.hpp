@@ -37,11 +37,29 @@
 namespace psdk_ros2
 {
 
+typedef enum
+{
+  CAMERA_INFO_H20T_ZOOM_2X,
+  CAMERA_INFO_H20T_ZOOM_5X ,
+  CAMERA_INFO_H20T_ZOOM_10X,
+  CAMERA_INFO_H20T_WIDE,
+  CAMERA_INFO_P1,
+
+} CameraInfoType;
+
 struct StreamState
 {
   bool streaming = false;
   E_DjiLiveViewCameraPosition payload_index = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
   E_DjiLiveViewCameraSource camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT;
+};
+
+const std::map<CameraInfoType, std::string> kCameraCalibrationFiles = {
+    {CAMERA_INFO_H20T_WIDE, "H20T_wide_1080.yml"},
+    {CAMERA_INFO_H20T_ZOOM_2X, "H20T_zoom_2x_1080.yml"},
+    {CAMERA_INFO_H20T_ZOOM_5X, "H20T_zoom_5x_1080.yml"},
+    {CAMERA_INFO_H20T_ZOOM_10X, "H20T_zoom_10x_1080.yml"},
+    {CAMERA_INFO_P1, "P1_1x.yml"},
 };
 
 class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
@@ -109,8 +127,12 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool camera_setup_streaming(bool start, int payload_index, int camera_source,
                               bool decoded_output);
 
-  bool is_streaming();
-  int get_camera_source_index();
+  bool is_streaming() const;
+  int get_camera_source_index() const;
+  inline double lerp(double a, double b, double t)
+  {
+    return a + t * (b - a);
+  }
 
  private:
   friend void c_publish_main_streaming_callback(CameraRGBImage img,
@@ -218,9 +240,9 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool is_module_initialized_{false};
   //  E_DjiLiveViewCameraPosition payload_index_;
 
-  int wanted_image_width;
-  int wanted_image_height;
-  int wanted_image_jpeg_quality;
+  int wanted_image_width{};
+  int wanted_image_height{};
+  int wanted_image_jpeg_quality{};
 
   StreamState stream_state_;
 
@@ -230,12 +252,15 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   std::deque<rclcpp::Time> timestamps_;
 
   std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
-  std::map<E_DjiLiveViewCameraSource, sensor_msgs::msg::CameraInfo>
+  std::map<CameraInfoType, sensor_msgs::msg::CameraInfo>
       camera_infos_;
   sensor_msgs::msg::CameraInfo get_camera_info(E_DjiCameraType camera_type,
                                                E_DjiLiveViewCameraSource source,
                                                uint32_t image_width,
                                                uint32_t image_height, float zoom_factor);
+  sensor_msgs::msg::CameraInfo get_camera_info_zoom(double zoom_factor);
+  bool load_camera_info_files(const std::string& folder);
+
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;
