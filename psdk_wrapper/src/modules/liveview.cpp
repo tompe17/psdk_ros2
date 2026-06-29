@@ -263,6 +263,11 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
   if (camera_type == DJI_CAMERA_TYPE_H20T)
     stream_state_.camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE;
 
+  auto camera_calib_folder =
+          ament_index_cpp::get_package_share_directory("lrs_m300") +
+          "configs";
+  load_camera_info_files(camera_calib_folder);
+
   return CallbackReturn::SUCCESS;
 }
 
