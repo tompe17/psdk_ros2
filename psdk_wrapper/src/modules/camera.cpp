@@ -1867,11 +1867,14 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
+    std::cout << "sizeof(T_DjiReturnCode) = "
+              << sizeof(T_DjiReturnCode) << std::endl;
+
     RCLCPP_ERROR(get_logger(),
                  "Failed to %s synchronized split screen zoom for camera %d, "
                  "error code: %lx.",
                  enable ? "enable" : "disable", payload_index, rc);
-    RCLCPP_INFO(get_logger(), "rc = 0x%08X", (uint32_t)rc);
+    RCLCPP_INFO(get_logger(), "rc = 0x%X", (uint64_t)rc);
     return false;
   }
 
