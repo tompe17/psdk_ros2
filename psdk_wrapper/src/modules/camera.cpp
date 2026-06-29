@@ -1871,6 +1871,7 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
                  "Failed to %s synchronized split screen zoom for camera %d, "
                  "error code: %lx.",
                  enable ? "enable" : "disable", payload_index, rc);
+    RCLCPP_INFO(get_logger(), "rc = 0x%08X", (uint32_t)rc);
     return false;
   }
 
