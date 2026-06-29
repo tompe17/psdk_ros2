@@ -80,6 +80,7 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
       auto file_path = "file://" + camera_calib_folder + "/";
       switch (source)
       {
+        case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
           file_path+="H20T_wide.yml";
           RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s", file_path.c_str());
@@ -160,6 +161,7 @@ LiveviewModule::on_deactivate(const rclcpp_lifecycle::State &state)
   RCLCPP_INFO(get_logger(), "Deactivating LiveviewModule");
   main_camera_stream_pub_->on_deactivate();
   fpv_camera_stream_pub_->on_deactivate();
+  camera_info_pub_->on_deactivate()
   return CallbackReturn::SUCCESS;
 }
 
@@ -171,6 +173,7 @@ LiveviewModule::on_cleanup(const rclcpp_lifecycle::State &state)
   camera_setup_streaming_service_.reset();
   main_camera_stream_pub_.reset();
   fpv_camera_stream_pub_.reset();
+  camera_info_pub_.reset();
   return CallbackReturn::SUCCESS;
 }
 
