@@ -142,6 +142,7 @@ LiveviewModule::on_activate(const rclcpp_lifecycle::State &state)
   RCLCPP_INFO(get_logger(), "Activating LiveviewModule");
   main_camera_stream_pub_->on_activate();
   fpv_camera_stream_pub_->on_activate();
+  camera_info_pub_->on_activate();
   return CallbackReturn::SUCCESS;
 }
 
