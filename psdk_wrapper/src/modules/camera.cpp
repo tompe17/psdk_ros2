@@ -191,7 +191,6 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
           "psdk_ros2/camera_delete_file_by_index",
           std::bind(&CameraModule::execute_delete_file_by_index, this));
 
-
   camera_info_pub_ = create_publisher<std_msgs::msg::String>(
       "psdk_ros2/camera_information", 10);
 
@@ -302,11 +301,9 @@ CameraModule::init()
 
   camera_name_ = camera_type;
 
-
-  //todo: enforce video mode - photo mode has wrong size when streaming
+  // todo: enforce video mode - photo mode has wrong size when streaming
   E_DjiCameraManagerWorkMode mode;
-  T_DjiReturnCode rc =
-      DjiCameraManager_GetMode(main_payload_index, &mode);
+  T_DjiReturnCode rc = DjiCameraManager_GetMode(main_payload_index, &mode);
 
   if (rc == DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -345,14 +342,14 @@ CameraModule::deinit()
   return true;
 }
 
-bool CameraModule::query_zoom()
+bool
+CameraModule::query_zoom()
 {
   float zoom = 1.0f;
   int payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
 
   T_DjiReturnCode return_code;
-  E_DjiMountPosition index =
-      static_cast<E_DjiMountPosition>(payload_index);
+  E_DjiMountPosition index = static_cast<E_DjiMountPosition>(payload_index);
 
   T_DjiCameraManagerOpticalZoomParam zoom_factor;
   return_code = DjiCameraManager_GetOpticalZoomParam(index, &zoom_factor);
@@ -366,12 +363,15 @@ bool CameraModule::query_zoom()
     return false;
   }
 
-  zoom_factor_.store(zoom_factor.currentOpticalZoomFactor, std::memory_order_relaxed);
-  max_zoom_factor_.store(zoom_factor.maxOpticalZoomFactor, std::memory_order_relaxed);
+  zoom_factor_.store(zoom_factor.currentOpticalZoomFactor,
+                     std::memory_order_relaxed);
+  max_zoom_factor_.store(zoom_factor.maxOpticalZoomFactor,
+                         std::memory_order_relaxed);
   return true;
 }
 
-void CameraModule::publish_camera_information()
+void
+CameraModule::publish_camera_information()
 {
   query_zoom();
 
@@ -390,7 +390,7 @@ void CameraModule::publish_camera_information()
 }
 
 bool
-CameraModule::get_camera_type(std::string & camera_type,
+CameraModule::get_camera_type(std::string &camera_type,
                               const E_DjiMountPosition index)
 {
   RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
@@ -406,7 +406,8 @@ CameraModule::get_camera_type(std::string & camera_type,
   }
   else
   {  // TODO(@lidiadltv): Remove this map
-    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d", attached_camera_type_);
+    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d",
+                 attached_camera_type_);
 
     for (auto &it : psdk_utils::camera_type_str)
     {
@@ -414,7 +415,8 @@ CameraModule::get_camera_type(std::string & camera_type,
       {
         std::string camera_type_copy = it.second;
         camera_type = camera_type_copy;
-        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s", camera_type.c_str());
+        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s",
+                     camera_type.c_str());
 
         return true;
       }
@@ -436,7 +438,8 @@ CameraModule::camera_get_type_cb(
 
   if (get_camera_type(camera_type, index))
   {
-    RCLCPP_ERROR(get_logger(), "get_camera_type_cb returned: %s", camera_type.c_str());    
+    RCLCPP_ERROR(get_logger(), "get_camera_type_cb returned: %s",
+                 camera_type.c_str());
     response->camera_type = camera_type;
     response->success = true;
   }
@@ -853,16 +856,13 @@ CameraModule::camera_get_focus_mode_cb(
   }
 }
 
-
 void
 CameraModule::camera_set_optical_zoom_cb(
     const std::shared_ptr<CameraSetOpticalZoom::Request> request,
     const std::shared_ptr<CameraSetOpticalZoom::Response> response)
 {
   response->success =
-      camera_set_optical_zoom(
-          request->payload_index,
-          request->zoom_factor);
+      camera_set_optical_zoom(request->payload_index, request->zoom_factor);
 }
 
 #if 0
@@ -901,43 +901,31 @@ CameraModule::camera_set_optical_zoom_cb(
 
 #endif
 
-bool CameraModule::camera_set_optical_zoom(int payload_index,  float zoom_factor)
+bool
+CameraModule::camera_set_optical_zoom(int payload_index, float zoom_factor)
 {
-  RCLCPP_ERROR(
-      get_logger(),
-      "camera_set_optical_zoom: payload_index: %d, zoom_factor: %f",
-      payload_index,
-      zoom_factor);
+  RCLCPP_ERROR(get_logger(),
+               "camera_set_optical_zoom: payload_index: %d, zoom_factor: %f",
+               payload_index, zoom_factor);
 
-  const E_DjiCameraZoomDirection zoom_direction =
-      DJI_CAMERA_ZOOM_DIRECTION_OUT;
+  const E_DjiCameraZoomDirection zoom_direction = DJI_CAMERA_ZOOM_DIRECTION_OUT;
 
-  E_DjiMountPosition index =
-      static_cast<E_DjiMountPosition>(payload_index);
+  E_DjiMountPosition index = static_cast<E_DjiMountPosition>(payload_index);
 
   T_DjiReturnCode return_code =
-      DjiCameraManager_SetOpticalZoomParam(
-          index,
-          zoom_direction,
-          zoom_factor);
+      DjiCameraManager_SetOpticalZoomParam(index, zoom_direction, zoom_factor);
 
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Failed to set optical zoom %.1f on payload %d (error %ld)",
-        zoom_factor,
-        index,
-        return_code);
+    RCLCPP_ERROR(get_logger(),
+                 "Failed to set optical zoom %.1f on payload %d (error %ld)",
+                 zoom_factor, index, return_code);
 
     return false;
   }
 
-  RCLCPP_INFO(
-      get_logger(),
-      "Set optical zoom %.1f on payload %d",
-      zoom_factor,
-      index);
+  RCLCPP_INFO(get_logger(), "Set optical zoom %.1f on payload %d", zoom_factor,
+              index);
 
   return true;
 }
@@ -947,11 +935,12 @@ CameraModule::camera_get_optical_zoom_cb(
     const std::shared_ptr<CameraGetOpticalZoom::Request> request,
     const std::shared_ptr<CameraGetOpticalZoom::Response> response)
 {
-  /// RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb payload_index: %d", request->payload_index);  
+  /// RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb payload_index: %d",
+  /// request->payload_index);
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
-  ///RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb index: %d", index);  
+  /// RCLCPP_ERROR(get_logger(), "camera_get_optical_zoom_cb index: %d", index);
   T_DjiCameraManagerOpticalZoomParam zoom_factor;
   return_code = DjiCameraManager_GetOpticalZoomParam(index, &zoom_factor);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -1867,35 +1856,26 @@ CameraModule::create_directory(const std::string &path)
   return true;
 }
 
-bool CameraModule::camera_set_synchronized_split_screen_zoom(
-    uint8_t payload_index,
-    bool enable)
+bool
+CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
+                                                        bool enable)
 {
+  auto dji_payload_index = static_cast<E_DjiMountPosition>(payload_index);
 
-    auto dji_payload_index =
-      static_cast<E_DjiMountPosition >(payload_index);
-
-  T_DjiReturnCode rc =
-      DjiCameraManager_SetSynchronizedSplitScreenZoomEnabled(
-          dji_payload_index, enable);
+  T_DjiReturnCode rc = DjiCameraManager_SetSynchronizedSplitScreenZoomEnabled(
+      dji_payload_index, enable);
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Failed to %s synchronized split screen zoom for camera %d, "
-        "error code: %0x%08lx.",
-        enable ? "enable" : "disable",
-        payload_index,
-        rc);
+    RCLCPP_ERROR(get_logger(),
+                 "Failed to %s synchronized split screen zoom for camera %d, "
+                 "error code: %lx.",
+                 enable ? "enable" : "disable", payload_index, rc);
     return false;
   }
 
-  RCLCPP_INFO(
-      get_logger(),
-      "%s synchronized split screen zoom for camera %d.",
-      enable ? "Enabled" : "Disabled",
-      payload_index);
+  RCLCPP_INFO(get_logger(), "%s synchronized split screen zoom for camera %d.",
+              enable ? "Enabled" : "Disabled", payload_index);
 
   return true;
 }
