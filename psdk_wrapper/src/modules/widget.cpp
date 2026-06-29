@@ -306,7 +306,7 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
             [camera = psdk_ros2::global_camera_ptr_]
             {
               T_DjiCameraManagerLaserRangingInfo laser_info;
-
+              laser_info.enable_lidar = true;
               camera->camera_get_laser_ranging_info(1, laser_info);
             })
             .detach();
