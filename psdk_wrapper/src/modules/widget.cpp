@@ -302,9 +302,9 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
         RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
 
-        std::thread([camera = psdk_ros2::global_camera_ptr_]
-                    { camera->camera_set_synchronized_split_screen_zoom(1, true); })
-            .detach();
+//        std::thread([camera = psdk_ros2::global_camera_ptr_]
+//                    { camera->camera_set_synchronized_split_screen_zoom(1, true); })
+//            .detach();
         std::thread([camera = psdk_ros2::global_camera_ptr_]
                     { camera->camera_set_synchronized_split_screen_zoom(2, true); })
             .detach();
