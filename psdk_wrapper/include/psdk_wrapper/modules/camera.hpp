@@ -172,6 +172,10 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   bool camera_get_video_resolution_frame_rate(
       uint8_t payload_index, T_DjiCameraManagerVideoFormat& video_format);
 
+  bool camera_get_laser_ranging_info(uint8_t payload_index,
+                                     T_DjiCameraManagerLaserRangingInfo &laser_info);
+
+
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
       T_DjiDownloadFilePacketInfo packetInfo, const uint8_t* data,

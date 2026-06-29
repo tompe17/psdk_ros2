@@ -1915,4 +1915,43 @@ bool CameraModule::camera_get_video_resolution_frame_rate(
   return true;
 }
 
+bool CameraModule::camera_get_laser_ranging_info(
+    uint8_t payload_index,
+    T_DjiCameraManagerLaserRangingInfo &laser_info)
+{
+
+  auto dji_payload_index =
+      static_cast<E_DjiMountPosition>(payload_index);
+
+  T_DjiReturnCode return_code;
+
+  return_code =
+      DjiCameraManager_GetLaserRangingInfo(dji_payload_index, &laser_info);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(
+        get_logger(),
+        "Get mounted position %d camera laser ranging info failed, "
+        "error code: 0x%016llX.",
+        payload_index,
+        static_cast<unsigned long long>(return_code));
+
+    return false;
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Laser distance: %.2f m, longitude: %.8f, latitude: %.8f, "
+      "altitude: %.2f m screen: (%.02f, %.02f)",
+      laser_info.distance*10.0,
+      laser_info.longitude,
+      laser_info.latitude,
+      laser_info.altitude*10.0,
+      laser_info.screenX*10.0,
+      laser_info.screenY*10.0);
+
+  return true;
+}
+
 }  // namespace psdk_ros2

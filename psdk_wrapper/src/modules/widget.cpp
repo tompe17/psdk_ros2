@@ -305,13 +305,24 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
         std::thread(
             [camera = psdk_ros2::global_camera_ptr_]
             {
-              T_DjiCameraManagerVideoFormat video_format;
+              T_DjiCameraManagerLaserRangingInfo laser_info;
 
-              camera->camera_get_video_resolution_frame_rate(1, video_format);
-              std::cout << "Resolution: " << video_format.videoResolution
-                        << "rate: " << video_format.videoFrameRate << std::endl;
+              camera->camera_get_laser_ranging_info(1, laser_info);
             })
             .detach();
+
+        //        std::thread(
+        //            [camera = psdk_ros2::global_camera_ptr_]
+        //            {
+        //              T_DjiCameraManagerVideoFormat video_format;
+        //
+        //              camera->camera_get_video_resolution_frame_rate(1,
+        //              video_format); std::cout << "Resolution: " <<
+        //              video_format.videoResolution
+        //                        << "rate: " << video_format.videoFrameRate <<
+        //                        std::endl;
+        //            })
+        //            .detach();
 
         //        std::thread([camera = psdk_ros2::global_camera_ptr_]
         //                    {
