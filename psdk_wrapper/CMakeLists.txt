@@ -36,6 +36,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(camera_info_manager REQUIRED)
 
 # FetchContent module
 include(FetchContent)
@@ -152,6 +153,7 @@ set(dependencies
   std_srvs
   cv_bridge
   image_transport
+  camera_info_manager
 )
 
 add_executable(psdk_wrapper_node

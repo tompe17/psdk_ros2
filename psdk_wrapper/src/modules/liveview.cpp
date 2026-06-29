@@ -21,6 +21,7 @@
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/highgui.hpp>
 // #include "image_transport/image_transport.h"
+#include "psdk_wrapper/modules/camera.hpp"
 
 extern "C"
 {
@@ -38,11 +39,78 @@ LiveviewModule::LiveviewModule(const std::string &name)
 
 {
   RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
+  camera_info_manager_ =
+      std::make_unique<camera_info_manager::CameraInfoManager>(this, "dymmy");
 }
 
 LiveviewModule::~LiveviewModule()
 {
   RCLCPP_INFO(get_logger(), "Destroying LiveviewModule");
+}
+
+sensor_msgs::msg::CameraInfo
+LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
+                                E_DjiLiveViewCameraSource source)
+{
+  //  get_attached_camera_type
+  //  E_DjiCameraType camera_type =
+  //      psdk_ros2::global_camera_ptr_->get_attached_camera_type();
+
+  //  auto source = stream_state_.camera_source;
+
+  sensor_msgs::msg::CameraInfo camera_info;
+
+  auto camera_calib_folder =
+      ament_index_cpp::get_package_share_directory("lrs_m300") + "/configs";
+
+  if (camera_type == DJI_CAMERA_TYPE_H20T)
+  {
+    //    H20T_wide.yml  H20T_zoom_2x.yml  H20T_zoom_5x.yml  P1_1x.yml
+    auto it = camera_infos_.find(source);
+    // contains
+    if (it != camera_infos_.end())
+    {
+      camera_info = camera_infos_[source];
+    }
+    else
+    {
+      switch (source)
+      {
+        case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
+          camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
+                                               "/H20T_wide.yml");
+          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE] =
+              camera_info_manager_->getCameraInfo();
+        case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
+          camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
+                                               "/H20T_2x.yml");
+          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
+              camera_info_manager_->getCameraInfo();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  else if (camera_type == DJI_CAMERA_TYPE_P1)
+  {
+    // P1 has only one source, assuming DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT
+    auto it = camera_infos_.find(DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT);
+    // contains
+    if (it != camera_infos_.end())
+    {
+      camera_info = camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT];
+    }
+    else
+    {
+      camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
+                                           "/P1_1x.yml");
+      camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT] =
+          camera_info_manager_->getCameraInfo();
+    }
+  }
+
+  return camera_info;
 }
 
 LiveviewModule::CallbackReturn
@@ -59,6 +127,11 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
       std::bind(&LiveviewModule::camera_setup_streaming_cb, this,
                 std::placeholders::_1, std::placeholders::_2),
       qos_profile_);
+
+  camera_info_pub_ =
+      create_publisher<sensor_msgs::msg::CameraInfo>(
+          "psdk_ros2/camera_info",
+          rclcpp::SensorDataQoS());
   return CallbackReturn::SUCCESS;
 }
 
@@ -150,7 +223,7 @@ LiveviewModule::init()
       {DJI_LIVEVIEW_CAMERA_POSITION_NO_3, (new DJICameraStreamDecoder())},
   };
   decode_stream_ = true;
-//  payload_index_ = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
+  //  payload_index_ = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
   is_module_initialized_ = true;
   return true;
 }
@@ -185,7 +258,8 @@ c_LiveviewConvertH264ToRgbCallback(E_DjiLiveViewCameraPosition position,
         position, buffer, buffer_length);
   }
 
-  if (global_liveview_ptr_->stream_state_.payload_index == DJI_LIVEVIEW_CAMERA_POSITION_FPV)
+  if (global_liveview_ptr_->stream_state_.payload_index ==
+      DJI_LIVEVIEW_CAMERA_POSITION_FPV)
   {
     return global_liveview_ptr_->publish_fpv_camera_images(buffer,
                                                            buffer_length);
@@ -229,18 +303,16 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
   E_DjiLiveViewCameraPosition dji_payload_index = stream_state_.payload_index;
   if (payload_index != -1)
   {
-    dji_payload_index =
-        static_cast<E_DjiLiveViewCameraPosition>(payload_index);
-//    payload_index_ = p_index;
+    dji_payload_index = static_cast<E_DjiLiveViewCameraPosition>(payload_index);
+    //    payload_index_ = p_index;
   }
 
   E_DjiLiveViewCameraSource dji_camera_source = stream_state_.camera_source;
 
   if (camera_source != -1)
   {
-    dji_camera_source =
-        static_cast<E_DjiLiveViewCameraSource>(camera_source);
-//    selected_camera_source_ = cam_source;
+    dji_camera_source = static_cast<E_DjiLiveViewCameraSource>(camera_source);
+    //    selected_camera_source_ = cam_source;
   }
   decode_stream_ = decoded_output;
 
@@ -271,21 +343,28 @@ LiveviewModule::camera_setup_streaming(bool start, int payload_index,
                                  dji_camera_source);
     }
 
-    RCLCPP_ERROR(get_logger(), "Unsupported payload index %d", dji_payload_index);
+    RCLCPP_ERROR(get_logger(), "Unsupported payload index %d",
+                 dji_payload_index);
     return false;
   }
 
-  RCLCPP_INFO(get_logger(), "Stopping streaming... payload: %d camera: %d", dji_payload_index, dji_camera_source);
+  RCLCPP_INFO(get_logger(), "Stopping streaming... payload: %d camera: %d",
+              dji_payload_index, dji_camera_source);
 
   return stop_main_camera_stream(dji_payload_index, dji_camera_source);
 }
 
-bool LiveviewModule::is_streaming(){
+bool
+LiveviewModule::is_streaming()
+{
   return stream_state_.streaming;
 }
 
-int LiveviewModule::get_camera_source_index(){
-  switch (stream_state_.camera_source){
+int
+LiveviewModule::get_camera_source_index()
+{
+  switch (stream_state_.camera_source)
+  {
     case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
     case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
       return 0;
@@ -306,7 +385,6 @@ LiveviewModule::camera_setup_streaming_cb(
       camera_setup_streaming(request->start_stop, request->payload_index,
                              request->camera_source, request->decoded_output);
 }
-
 
 bool
 LiveviewModule::start_camera_stream(CameraImageCallback callback,
@@ -348,7 +426,7 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
     stream_state_.streaming = true;
     stream_state_.payload_index = payload_index;
     stream_state_.camera_source = camera_source;
-//    payload_index_ = payload_index;
+    //    payload_index_ = payload_index;
     return true;
   }
 }
@@ -490,6 +568,13 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   // ---- Publish ----
   main_camera_stream_pub_->publish(msg);
+
+  E_DjiCameraType camera_type =
+      psdk_ros2::global_camera_ptr_->get_attached_camera_type();
+
+  auto camera_info = get_camera_info(camera_type, stream_state_.camera_source);
+  camera_info.header = msg.header;
+  camera_info_pub_->publish(camera_info);
 #if 0
   auto t1 = this->now();
   (void)user_data;

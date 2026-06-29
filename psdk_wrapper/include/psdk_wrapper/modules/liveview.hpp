@@ -32,6 +32,9 @@
 #include "psdk_interfaces/srv/camera_setup_streaming.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
+#include <camera_info_manager/camera_info_manager.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
 namespace psdk_ros2
 {
 
@@ -209,7 +212,8 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
       sensor_msgs::msg::CompressedImage>::SharedPtr main_camera_stream_pub_;
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Image>::SharedPtr
       fpv_camera_stream_pub_;
-
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::CameraInfo>::SharedPtr
+      camera_info_pub_;
   std::map<::E_DjiLiveViewCameraPosition, DJICameraStreamDecoder*>
       stream_decoder_;
 //  E_DjiLiveViewCameraSource selected_camera_source_;
@@ -229,6 +233,13 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   double updateFrequency(std::deque<rclcpp::Time>& timestamps,
                          const rclcpp::Time& now, double window_sec);
   std::deque<rclcpp::Time> timestamps_;
+
+
+  std::unique_ptr<camera_info_manager::CameraInfoManager>
+      camera_info_manager_;
+  std::map<E_DjiLiveViewCameraSource, sensor_msgs::msg::CameraInfo> camera_infos_;
+  sensor_msgs::msg::CameraInfo get_camera_info(E_DjiCameraType camera_type, E_DjiLiveViewCameraSource source);
+
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;
