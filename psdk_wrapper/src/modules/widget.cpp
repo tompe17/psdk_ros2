@@ -302,15 +302,27 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
         RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
 
-        std::thread([camera = psdk_ros2::global_camera_ptr_]
-                    { camera->camera_set_synchronized_split_screen_zoom(1, true); })
+        std::thread(
+            [camera = psdk_ros2::global_camera_ptr_]
+            {
+              T_DjiCameraManagerVideoFormat video_format;
+
+              camera->camera_get_video_resolution_frame_rate(1, video_format);
+              std::cout << "Resolution: " << video_format.videoResolution
+                        << "rate: " << video_format.videoFrameRate << std::endl;
+            })
             .detach();
-//        std::thread([camera = psdk_ros2::global_camera_ptr_]
-//                    { camera->camera_set_synchronized_split_screen_zoom(2, true); })
-//            .detach();
-//        std::thread([camera = psdk_ros2::global_camera_ptr_]
-//                    { camera->camera_set_synchronized_split_screen_zoom(3, true); })
-//            .detach();
+
+        //        std::thread([camera = psdk_ros2::global_camera_ptr_]
+        //                    {
+        //                    camera->camera_set_synchronized_split_screen_zoom(2,
+        //                    true); })
+        //            .detach();
+        //        std::thread([camera = psdk_ros2::global_camera_ptr_]
+        //                    {
+        //                    camera->camera_set_synchronized_split_screen_zoom(3,
+        //                    true); })
+        //            .detach();
 
         std::thread(
             [liveview = psdk_ros2::global_liveview_ptr_, streaming]

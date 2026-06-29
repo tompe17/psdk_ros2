@@ -1856,6 +1856,7 @@ CameraModule::create_directory(const std::string &path)
   return true;
 }
 
+// this is most likely not supported in M300+H20T
 bool
 CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
                                                         bool enable)
@@ -1867,14 +1868,12 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    printf("rc = 0x%016llX\n",
-           static_cast<unsigned long long>(rc));
 
     RCLCPP_ERROR(get_logger(),
                  "Failed to %s synchronized split screen zoom for camera %d, "
                  "error code: %lx.",
                  enable ? "enable" : "disable", payload_index, rc);
-    RCLCPP_INFO(get_logger(), "rc = 0x%X", (uint64_t)rc);
+
     return false;
   }
 
@@ -1883,4 +1882,37 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
 
   return true;
 }
+
+
+bool CameraModule::camera_get_video_resolution_frame_rate(
+    uint8_t payload_index,
+    T_DjiCameraManagerVideoFormat &video_format)
+{
+
+  auto dji_payload_index =
+      static_cast<E_DjiMountPosition>(payload_index);
+
+  T_DjiReturnCode rc =
+      DjiCameraManager_GetVideoResolutionFrameRate(dji_payload_index, &video_format);
+
+  if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(
+        get_logger(),
+        "Get camera %d video format failed, error code: 0x%016llX.",
+        payload_index,
+        static_cast<unsigned long long>(rc));
+    return false;
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Camera %d video format: resolution=%d frame_rate=%d",
+      payload_index,
+      video_format.videoResolution,
+      video_format.videoFrameRate);
+
+  return true;
+}
+
 }  // namespace psdk_ros2

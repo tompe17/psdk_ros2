@@ -167,7 +167,10 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   std::string default_path_to_download_media_{"/logs/media"};
 
   bool camera_set_optical_zoom(int payload_index, float zoom_factor);
-  bool camera_set_synchronized_split_screen_zoom(uint8_t payload_index, bool enable);
+  bool camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
+                                                 bool enable);
+  bool camera_get_video_resolution_frame_rate(
+      uint8_t payload_index, T_DjiCameraManagerVideoFormat& video_format);
 
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
