@@ -428,7 +428,7 @@ WidgetModule::handleWidePressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM, true);
+        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE, true);
       })
       .detach();
 }
@@ -443,7 +443,7 @@ WidgetModule::handleZoomPressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE, true);
+        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM, true);
       })
       .detach();
 
