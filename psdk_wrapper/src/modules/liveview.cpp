@@ -139,7 +139,15 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
       qos_profile_);
 
   camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
-      "psdk_ros2/camera_info", rclcpp::SensorDataQoS());
+      "psdk_ros2/main_camera_stream/camera_info", rclcpp::SensorDataQoS());
+
+  E_DjiCameraType camera_type =
+      psdk_ros2::global_camera_ptr_->get_attached_camera_type();
+
+
+  if (camera_type == DJI_CAMERA_TYPE_H20T)
+    stream_state_.camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE;
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -161,7 +169,7 @@ LiveviewModule::on_deactivate(const rclcpp_lifecycle::State &state)
   RCLCPP_INFO(get_logger(), "Deactivating LiveviewModule");
   main_camera_stream_pub_->on_deactivate();
   fpv_camera_stream_pub_->on_deactivate();
-  camera_info_pub_->on_deactivate()
+  camera_info_pub_->on_deactivate();
   return CallbackReturn::SUCCESS;
 }
 
