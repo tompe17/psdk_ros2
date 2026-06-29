@@ -86,6 +86,7 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
           camera_info_manager_->loadCameraInfo(file_path);
           camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
               camera_info_manager_->getCameraInfo();
+          break;
 
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
           file_path+="H20T_zoom_2x.yml";
