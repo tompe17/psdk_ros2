@@ -115,11 +115,12 @@ bool LiveviewModule::load_camera_info_files(const std::string& folder)
     {
       RCLCPP_WARN(get_logger(), "Failed to load camera calibration: %s",
                   calibration_file.c_str());
-      continue;
+      return false;
     }
 
     camera_infos_[type] = camera_info_manager_->getCameraInfo();
   }
+  return true;
 }
 
 /**
