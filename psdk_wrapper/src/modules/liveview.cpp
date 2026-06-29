@@ -74,16 +74,21 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     }
     else
     {
+      auto file_path = "file://" + camera_calib_folder + "/";
       switch (source)
       {
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
-          camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
-                                               "/H20T_wide.yml");
-          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE] =
+          file_path+="H20T_wide.yml";
+          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s", file_path.c_str());
+          camera_info_manager_->loadCameraInfo(file_path);
+          camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
               camera_info_manager_->getCameraInfo();
+
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
-          camera_info_manager_->loadCameraInfo("file://" + camera_calib_folder +
-                                               "/H20T_2x.yml");
+          file_path+="H20T_2x.yml";
+          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s", file_path.c_str());
+
+          camera_info_manager_->loadCameraInfo(file_path);
           camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
               camera_info_manager_->getCameraInfo();
           break;
@@ -128,10 +133,8 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
                 std::placeholders::_1, std::placeholders::_2),
       qos_profile_);
 
-  camera_info_pub_ =
-      create_publisher<sensor_msgs::msg::CameraInfo>(
-          "psdk_ros2/camera_info",
-          rclcpp::SensorDataQoS());
+  camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
+      "psdk_ros2/camera_info", rclcpp::SensorDataQoS());
   return CallbackReturn::SUCCESS;
 }
 
