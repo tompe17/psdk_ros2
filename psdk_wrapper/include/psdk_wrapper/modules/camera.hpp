@@ -176,6 +176,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   bool camera_get_laser_ranging_info(uint8_t payload_index,
                                      T_DjiCameraManagerLaserRangingInfo &laser_info);
 
+  float get_zoom_factor();
 
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
@@ -590,6 +591,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   // pioru: camera information topic
   void publish_camera_information();
   bool query_zoom();
+
 
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr camera_info_pub_;
   rclcpp::TimerBase::SharedPtr camera_info_timer_;

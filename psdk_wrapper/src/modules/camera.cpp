@@ -389,6 +389,11 @@ CameraModule::publish_camera_information()
   camera_info_pub_->publish(msg);
 }
 
+float CameraModule::get_zoom_factor()
+{
+  return zoom_factor_.load();
+}
+
 bool
 CameraModule::get_camera_type(std::string &camera_type,
                               const E_DjiMountPosition index)

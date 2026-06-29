@@ -19,6 +19,8 @@
 
 #include <dji_liveview.h>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <camera_info_manager/camera_info_manager.hpp>
 #include <dji_camera_stream_decoder.hpp>  //NOLINT
 #include <map>
 #include <memory>
@@ -32,18 +34,14 @@
 #include "psdk_interfaces/srv/camera_setup_streaming.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
-#include <camera_info_manager/camera_info_manager.hpp>
-#include <ament_index_cpp/get_package_share_directory.hpp>
-
 namespace psdk_ros2
 {
 
-struct StreamState {
+struct StreamState
+{
   bool streaming = false;
-  E_DjiLiveViewCameraPosition payload_index =
-      DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
-  E_DjiLiveViewCameraSource camera_source =
-      DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT;
+  E_DjiLiveViewCameraPosition payload_index = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
+  E_DjiLiveViewCameraSource camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT;
 };
 
 class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
@@ -111,11 +109,8 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool camera_setup_streaming(bool start, int payload_index, int camera_source,
                               bool decoded_output);
 
-
-
   bool is_streaming();
   int get_camera_source_index();
-
 
  private:
   friend void c_publish_main_streaming_callback(CameraRGBImage img,
@@ -216,12 +211,12 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
       camera_info_pub_;
   std::map<::E_DjiLiveViewCameraPosition, DJICameraStreamDecoder*>
       stream_decoder_;
-//  E_DjiLiveViewCameraSource selected_camera_source_;
+  //  E_DjiLiveViewCameraSource selected_camera_source_;
   /// const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
   rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};
   bool decode_stream_{true};
   bool is_module_initialized_{false};
-//  E_DjiLiveViewCameraPosition payload_index_;
+  //  E_DjiLiveViewCameraPosition payload_index_;
 
   int wanted_image_width;
   int wanted_image_height;
@@ -234,12 +229,13 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
                          const rclcpp::Time& now, double window_sec);
   std::deque<rclcpp::Time> timestamps_;
 
-
-  std::unique_ptr<camera_info_manager::CameraInfoManager>
-      camera_info_manager_;
-  std::map<E_DjiLiveViewCameraSource, sensor_msgs::msg::CameraInfo> camera_infos_;
-  sensor_msgs::msg::CameraInfo get_camera_info(E_DjiCameraType camera_type, E_DjiLiveViewCameraSource source);
-
+  std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
+  std::map<E_DjiLiveViewCameraSource, sensor_msgs::msg::CameraInfo>
+      camera_infos_;
+  sensor_msgs::msg::CameraInfo get_camera_info(E_DjiCameraType camera_type,
+                                               E_DjiLiveViewCameraSource source,
+                                               uint32_t image_width,
+                                               uint32_t image_height, float zoom_factor);
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;

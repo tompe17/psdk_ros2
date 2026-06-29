@@ -50,7 +50,9 @@ LiveviewModule::~LiveviewModule()
 
 sensor_msgs::msg::CameraInfo
 LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
-                                E_DjiLiveViewCameraSource source)
+                                E_DjiLiveViewCameraSource source,
+                                uint32_t image_width, uint32_t image_height,
+                                float zoom_factor)
 {
   //  get_attached_camera_type
   //  E_DjiCameraType camera_type =
@@ -63,8 +65,8 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
   auto camera_calib_folder =
       ament_index_cpp::get_package_share_directory("lrs_m300") + "/configs";
 
-  RCLCPP_INFO(get_logger(), "Get calibration: %d source: %d", camera_type, source);
-
+  RCLCPP_INFO(get_logger(), "Get calibration: %d source: %d", camera_type,
+              source);
 
   if (camera_type == DJI_CAMERA_TYPE_H20T)
   {
@@ -82,16 +84,18 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
       {
         case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
-          file_path+="H20T_wide.yml";
-          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s", file_path.c_str());
+          file_path += "H20T_wide.yml";
+          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
+                      file_path.c_str());
           camera_info_manager_->loadCameraInfo(file_path);
           camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE] =
               camera_info_manager_->getCameraInfo();
           break;
 
         case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
-          file_path+="H20T_zoom_2x.yml";
-          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s", file_path.c_str());
+          file_path += "H20T_zoom_2x.yml";
+          RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
+                      file_path.c_str());
 
           camera_info_manager_->loadCameraInfo(file_path);
           camera_infos_[DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM] =
@@ -120,6 +124,40 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     }
   }
 
+  // modify the params is image size is different from calibration
+  if (image_width != camera_info.width || image_height != camera_info.height)
+  {
+    double sx = static_cast<double>(image_width) / camera_info.width;
+    double sy = static_cast<double>(image_height) / camera_info.height;
+    // K
+    camera_info.k[0] *= sx;  // fx
+    camera_info.k[2] *= sx;  // cx
+    camera_info.k[4] *= sy;  // fy
+    camera_info.k[5] *= sy;  // cy
+
+    // P
+    camera_info.p[0] *= sx;  // fx
+    camera_info.p[2] *= sx;  // cx
+    camera_info.p[5] *= sy;  // fy
+    camera_info.p[6] *= sy;  // cy
+  }
+
+  // modify the params based on the current zoom - if using zoomed lens
+  if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM)
+  {
+    if (zoom_factor != 2.0)
+    {
+      double scale = zoom_factor / 2.0;
+      // Scale focal length
+      camera_info.k[0] *= scale;  // fx
+      camera_info.k[4] *= scale;  // fy
+
+      // Projection matrix
+      camera_info.p[0] *= scale;
+      camera_info.p[5] *= scale;
+    }
+  }
+
   return camera_info;
 }
 
@@ -143,7 +181,6 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
 
   E_DjiCameraType camera_type =
       psdk_ros2::global_camera_ptr_->get_attached_camera_type();
-
 
   if (camera_type == DJI_CAMERA_TYPE_H20T)
     stream_state_.camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE;
@@ -591,7 +628,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   E_DjiCameraType camera_type =
       psdk_ros2::global_camera_ptr_->get_attached_camera_type();
 
-  auto camera_info = get_camera_info(camera_type, stream_state_.camera_source);
+  float zoom_factor=psdk_ros2::global_camera_ptr_->get_zoom_factor();
+
+  auto camera_info =
+      get_camera_info(camera_type, stream_state_.camera_source, cols, rows, zoom_factor);
   camera_info.header = msg.header;
   camera_info_pub_->publish(camera_info);
 #if 0
