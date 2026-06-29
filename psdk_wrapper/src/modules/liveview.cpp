@@ -127,11 +127,11 @@ LiveviewModule::init()
   }
 
   declare_parameter<int>("main_camera_width", -1);
-  get_parameter("main_camera_width", main_camera_width);
+  get_parameter("main_camera_width", wanted_image_width);
   declare_parameter<int>("main_camera_height", -1);
-  get_parameter("main_camera_height", main_camera_height);
+  get_parameter("main_camera_height", wanted_image_height);
   declare_parameter<int>("main_camera_jpeg_quality", 80);
-  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
+  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
 
   RCLCPP_INFO(get_logger(), "Initiating liveview module");
   T_DjiReturnCode return_code = DjiLiveview_Init();
@@ -452,18 +452,18 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   int cols = img.cols;
   int rows = img.rows;
 
-  get_parameter("main_camera_width", main_camera_width);
-  get_parameter("main_camera_height", main_camera_height);
-  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
+  get_parameter("main_camera_width", wanted_image_width);
+  get_parameter("main_camera_height", wanted_image_height);
+  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
 
   //  RCLCPP_INFO_STREAM(get_logger(),
-  //                     "main_camera_jpeg_quality " <<
-  //                     main_camera_jpeg_quality);
+  //                     "wanted_image_jpeg_quality " <<
+  //                     wanted_image_jpeg_quality);
   //
-  if ((main_camera_width > 0) && (main_camera_height > 0))
+  if ((wanted_image_width > 0) && (wanted_image_height > 0))
   {
-    cols = main_camera_width;
-    rows = main_camera_height;
+    cols = wanted_image_width;
+    rows = wanted_image_height;
   }
 
   cv::Mat img_bgr;
@@ -475,7 +475,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   // ---- Compress with lower JPEG quality ----
   std::vector<uchar> buffer;
   std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY,
-                             main_camera_jpeg_quality};
+                             wanted_image_jpeg_quality};
 
   cv::imencode(".jpg", outimg, buffer, params);
 

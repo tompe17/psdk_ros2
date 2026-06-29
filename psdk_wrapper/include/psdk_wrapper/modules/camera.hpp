@@ -21,8 +21,6 @@
 #include <dji_camera_manager.h>  //NOLINT
 #include <osal.h>                //NOLINT
 
-#include <std_msgs/msg/string.hpp>
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -30,6 +28,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <shared_mutex>
+#include <std_msgs/msg/string.hpp>
 #include <string>
 
 #include "psdk_interfaces/action/camera_delete_file_by_index.hpp"
@@ -167,8 +166,8 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
 
   std::string default_path_to_download_media_{"/logs/media"};
 
-
-  bool camera_set_optical_zoom(int payload_index,  float zoom_factor);
+  bool camera_set_optical_zoom(int payload_index, float zoom_factor);
+  bool camera_set_synchronized_split_screen_zoom(uint8_t payload_index, bool enable);
 
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
@@ -180,7 +179,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
    * @param index payload index to be checked
    * @return true - if camera has been found, false - otherwise
    */
-  bool get_camera_type(std::string & camera_type,
+  bool get_camera_type(std::string& camera_type,
                        const E_DjiMountPosition index);
 
   /* ROS 2 Service callbacks */
@@ -591,9 +590,6 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   std::atomic<float> max_zoom_factor_{1.0f};
 
   std::string camera_name_;
-
-
-
 };
 
 extern std::shared_ptr<CameraModule> global_camera_ptr_;

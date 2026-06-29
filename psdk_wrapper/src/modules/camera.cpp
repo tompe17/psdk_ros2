@@ -302,6 +302,8 @@ CameraModule::init()
 
   camera_name_ = camera_type;
 
+
+  //todo: enforce video mode - photo mode has wrong size when streaming
   E_DjiCameraManagerWorkMode mode;
   T_DjiReturnCode rc =
       DjiCameraManager_GetMode(main_payload_index, &mode);
@@ -1865,4 +1867,36 @@ CameraModule::create_directory(const std::string &path)
   return true;
 }
 
+bool CameraModule::camera_set_synchronized_split_screen_zoom(
+    uint8_t payload_index,
+    bool enable)
+{
+
+    auto dji_payload_index =
+      static_cast<E_DjiMountPosition >(payload_index);
+
+  T_DjiReturnCode rc =
+      DjiCameraManager_SetSynchronizedSplitScreenZoomEnabled(
+          dji_payload_index, enable);
+
+  if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(
+        get_logger(),
+        "Failed to %s synchronized split screen zoom for camera %d, "
+        "error code: %ld.",
+        enable ? "enable" : "disable",
+        payload_index,
+        rc);
+    return false;
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "%s synchronized split screen zoom for camera %d.",
+      enable ? "Enabled" : "Disabled",
+      payload_index);
+
+  return true;
+}
 }  // namespace psdk_ros2

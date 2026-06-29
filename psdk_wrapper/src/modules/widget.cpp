@@ -67,17 +67,15 @@ WidgetModule::on_configure(const rclcpp_lifecycle::State &)
       create_publisher<std_msgs::msg::String>("psdk_ros2/widget_command", 10);
 
   widget_text_sub_ = create_subscription<std_msgs::msg::String>(
-      "psdk_ros2/rc_display_text",
-      10,  std::bind(&WidgetModule::widget_text_callback,
-                this,
+      "psdk_ros2/rc_display_text", 10,
+      std::bind(&WidgetModule::widget_text_callback, this,
                 std::placeholders::_1));
-
 
   return CallbackReturn::SUCCESS;
 }
 
-void WidgetModule::widget_text_callback(
-    const std_msgs::msg::String::SharedPtr msg)
+void
+WidgetModule::widget_text_callback(const std_msgs::msg::String::SharedPtr msg)
 {
   RCLCPP_INFO(get_logger(), "Widget text: %s", msg->data.c_str());
 
@@ -89,9 +87,9 @@ WidgetModule::on_activate(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(get_logger(), "Activating WidgetModule");
 
-//  widget_timer_ = create_wall_timer(
-//      std::chrono::seconds(1),
-//      std::bind(&WidgetModule::poll_widget_channel, this));
+  //  widget_timer_ = create_wall_timer(
+  //      std::chrono::seconds(1),
+  //      std::bind(&WidgetModule::poll_widget_channel, this));
 
   return CallbackReturn::SUCCESS;
 }
@@ -304,6 +302,10 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
         RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
 
+        std::thread([camera = psdk_ros2::global_camera_ptr_]
+                    { camera->camera_set_synchronized_split_screen_zoom(1, true); })
+            .detach();
+
         std::thread(
             [liveview = psdk_ros2::global_liveview_ptr_, streaming]
             { liveview->camera_setup_streaming(!streaming, -1, -1, true); })
@@ -314,19 +316,6 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
         else
           self->display_text("Now streaming...");
 
-
-//        if (streaming)
-//        {
-//          RCLCPP_INFO(self->get_logger(), "Requesting stop streaming");
-//
-//          //      self->display_text("Stopping.");
-//          //      StartStreaming();
-//        }
-//        else
-//        {
-//          RCLCPP_INFO(self->get_logger(), "Stop streaming pressed");
-//        }
-
         break;
       }
 
@@ -334,7 +323,6 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
       RCLCPP_INFO(self->get_logger(), "Unknown widget index: %d", index);
       break;
-
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -366,15 +354,15 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
       break;
     }
     default:
-      RCLCPP_INFO(self->get_logger(), "widget_state_get: unknown widget index: %d", index);
-
+      RCLCPP_INFO(self->get_logger(),
+                  "widget_state_get: unknown widget index: %d", index);
   }
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
-
-void WidgetModule::poll_widget_channel()
+void
+WidgetModule::poll_widget_channel()
 {
   T_DjiDataChannelState state;
 
@@ -382,7 +370,8 @@ void WidgetModule::poll_widget_channel()
       DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
     return;
 
-//  std::cout << "poll_widget_channel: " << static_cast<int>(state) << std::endl;
+//  std::cout << "poll_widget_channel: " << static_cast<int>(state) <<
+//  std::endl;
 #if 0
   if (state == /* connected value */ && !widget_registered)
   {

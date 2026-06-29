@@ -219,9 +219,9 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool is_module_initialized_{false};
 //  E_DjiLiveViewCameraPosition payload_index_;
 
-  int main_camera_width;
-  int main_camera_height;
-  int main_camera_jpeg_quality;
+  int wanted_image_width;
+  int wanted_image_height;
+  int wanted_image_jpeg_quality;
 
   StreamState stream_state_;
 
