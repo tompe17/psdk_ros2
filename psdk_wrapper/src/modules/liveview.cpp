@@ -57,7 +57,7 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
                                 float zoom_factor)
 {
   sensor_msgs::msg::CameraInfo camera_info;
-  
+
   if (camera_type == DJI_CAMERA_TYPE_H20T)
   {
     // all required files are loaded
@@ -122,6 +122,39 @@ bool LiveviewModule::load_camera_info_files(const std::string& folder)
   }
 }
 
+/**
+ * Generates camera intrinsics for the current H20T optical zoom.
+ *
+ * The H20T was calibrated at 2×, 5× and 10× optical zoom. Analysis of
+ * repeated calibrations showed:
+ *
+ *  - The focal length (fx, fy) is highly repeatable and scales almost
+ *    linearly with the reported optical zoom.
+ *  - The principal point (cx, cy) is reasonably stable up to 5× but
+ *    becomes inconsistent at higher zooms, likely due to DJI's internal
+ *    image processing (cropping, stabilization, ISP) and the difficulty
+ *    of accurately calibrating a very narrow field of view.
+ *  - Distortion coefficients above 5× are not repeatable between
+ *    calibrations and are therefore considered unreliable.
+ *
+ * The generated CameraInfo therefore uses a hybrid model:
+ *
+ *  - fx/fy:
+ *      • interpolated between the 2×, 5× and 10× calibrations
+ *      • scaled linearly beyond 10× using the current optical zoom
+ *
+ *  - cx/cy:
+ *      • interpolated between 2× and 5×
+ *      • fixed to the 5× calibration above 5×
+ *
+ *  - distortion:
+ *      • interpolated between 2× and 5×
+ *      • fixed to the 5× calibration above 5×
+ *
+ * This approach prioritizes parameters that proved repeatable during
+ * calibration while avoiding the unstable high-zoom estimates, resulting
+ * in a more robust camera model over the full 2×–50× zoom range.
+ */
 sensor_msgs::msg::CameraInfo
 LiveviewModule::get_camera_info_zoom(double zoom_factor)
 {
