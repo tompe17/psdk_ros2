@@ -61,6 +61,66 @@
 
 namespace psdk_ros2
 {
+class FcClockSynchronizer
+{
+ public:
+
+  FcClockSynchronizer(bool ros_time_only=false)
+      : initialized_(false),
+        offset_us_(0),
+        ros_time_only_(ros_time_only)
+  {
+  }
+
+  void
+  update(uint64_t fc_time_us, const rclcpp::Time& ros_now)
+  {
+    const int64_t measured =
+        ros_now.nanoseconds() / 1000 - static_cast<int64_t>(fc_time_us);
+
+    if (!initialized_)
+    {
+      offset_us_ = measured;
+      initialized_ = true;
+      return;
+    }
+
+    // Reject obvious scheduling hiccups (>5 ms)
+    if (std::llabs(measured - offset_us_) > 5000) return;
+
+    // First-order low-pass filter
+    constexpr double alpha = 0.01;
+
+    offset_us_ =
+        static_cast<int64_t>((1.0 - alpha) * offset_us_ + alpha * measured);
+  }
+
+  rclcpp::Time
+  toRosTime(uint64_t fc_time_us) const
+  {
+    if (!initialized_) return rclcpp::Time(0);
+
+    return rclcpp::Time((fc_time_us + offset_us_) * 1000ULL);
+  }
+
+  bool
+  initialized() const
+  {
+    return initialized_;
+  }
+
+  bool
+  ros_time_only() const
+  {
+    return ros_time_only_;
+  }
+
+ private:
+  bool initialized_ = false;
+  bool ros_time_only_ = false;  // for legacy compatibility - will return ROS time now()
+  int64_t offset_us_ = 0;
+};
+
 class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
@@ -122,6 +182,15 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    * @return true/false
    */
   bool deinit();
+
+  FcClockSynchronizer clock_sync_;
+  rclcpp::Time get_measurement_time(const T_DjiDataTimestamp* fc_timeastamp);
+
+  static inline uint64_t
+  fc_timestamp_to_us(const T_DjiDataTimestamp* ts)
+  {
+    return static_cast<uint64_t>(ts->millisecond) * 1000ULL + ts->microsecond;
+  }
 
   /* C-typed DJI topic subscriber callbacks*/
   friend T_DjiReturnCode c_attitude_callback(
@@ -981,7 +1050,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   /**
    * @brief Method which publishes the dynamic transforms for a given copter
    */
-  void publish_dynamic_transforms();
+  void publish_dynamic_transforms(const T_DjiDataTimestamp *timestamp);
 
   /**
    * @brief Method which computes the yaw angle difference between the gimbal

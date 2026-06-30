@@ -68,6 +68,8 @@
 namespace psdk_ros2
 {
 
+
+
 class CameraModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:

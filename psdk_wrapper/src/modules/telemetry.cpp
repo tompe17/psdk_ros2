@@ -18,6 +18,9 @@
 #include "psdk_wrapper/modules/telemetry.hpp"
 namespace psdk_ros2
 {
+
+
+
 TelemetryModule::TelemetryModule(const std::string &name)
     : rclcpp_lifecycle::LifecycleNode(
           name, "",
@@ -35,6 +38,27 @@ TelemetryModule::TelemetryModule(const std::string &name)
 TelemetryModule::~TelemetryModule()
 {
   RCLCPP_INFO(get_logger(), "Destroying TelemetryModule");
+}
+
+
+
+
+rclcpp::Time TelemetryModule::get_measurement_time(
+    const T_DjiDataTimestamp* fc_timestamp)
+{
+  auto ros_now = get_clock()->now();
+
+  if (clock_sync_.ros_time_only())
+    return ros_now;
+
+  uint64_t fc_us = fc_timestamp_to_us(fc_timestamp);
+
+  clock_sync_.update(fc_us, ros_now);
+
+  if (!clock_sync_.initialized())
+    return ros_now;
+
+  return clock_sync_.toRosTime(fc_us);
 }
 
 TelemetryModule::CallbackReturn
@@ -805,7 +829,7 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
                                    const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionQuaternion> quaternion =
       std::make_unique<T_DjiFcSubscriptionQuaternion>(
           *reinterpret_cast<const T_DjiFcSubscriptionQuaternion *>(data));
@@ -824,7 +848,8 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   R_FLU2ENU.getRotation(current_quat_FLU2ENU);
 
   geometry_msgs::msg::QuaternionStamped quaternion_msg;
-  quaternion_msg.header.stamp = this->get_clock()->now();
+//  quaternion_msg.header.stamp = this->get_clock()->now();
+  quaternion_msg.header.stamp = get_measurement_time(timestamp);
   quaternion_msg.header.frame_id = params_.body_frame;
   quaternion_msg.quaternion.w = current_quat_FLU2ENU.getW();
   quaternion_msg.quaternion.x = current_quat_FLU2ENU.getX();
@@ -843,12 +868,13 @@ TelemetryModule::velocity_callback(const uint8_t *data, uint16_t data_size,
                                    const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionVelocity> velocity =
       std::make_unique<T_DjiFcSubscriptionVelocity>(
           *reinterpret_cast<const T_DjiFcSubscriptionVelocity *>(data));
   geometry_msgs::msg::Vector3Stamped twist_msg;
-  twist_msg.header.stamp = this->get_clock()->now();
+//  twist_msg.header.stamp = this->get_clock()->now();
+  twist_msg.header.stamp = get_measurement_time(timestamp);
   twist_msg.header.frame_id = params_.map_frame;
   /* Note: The y and x data is swapped to follow the REP103 convention and use
    * ENU representation. Original DJI twist msg is given as NEU.
@@ -883,7 +909,8 @@ TelemetryModule::angular_rate_ground_fused_callback(
   tf2::Vector3 angular_rate_ground_fused_ENU =
       psdk_utils::R_NED2ENU * angular_rate_ground_fused_NED;
   geometry_msgs::msg::Vector3Stamped angular_rate_ground_fused_msg;
-  angular_rate_ground_fused_msg.header.stamp = this->get_clock()->now();
+//  angular_rate_ground_fused_msg.header.stamp = this->get_clock()->now();
+  angular_rate_ground_fused_msg.header.stamp = get_measurement_time(timestamp);
   angular_rate_ground_fused_msg.header.frame_id = params_.map_frame;
   angular_rate_ground_fused_msg.vector.x = angular_rate_ground_fused_ENU.getX();
   angular_rate_ground_fused_msg.vector.y = angular_rate_ground_fused_ENU.getY();
@@ -912,7 +939,8 @@ TelemetryModule::angular_rate_body_raw_callback(
   tf2::Vector3 angular_rate_FLU =
       psdk_utils::R_FLU2FRD.transpose() * angular_rate_FRD;
   geometry_msgs::msg::Vector3Stamped angular_rate_body_raw_msg;
-  angular_rate_body_raw_msg.header.stamp = this->get_clock()->now();
+//  angular_rate_body_raw_msg.header.stamp = this->get_clock()->now();
+  angular_rate_body_raw_msg.header.stamp = get_measurement_time(timestamp);
   angular_rate_body_raw_msg.header.frame_id = params_.body_frame;
   angular_rate_body_raw_msg.vector.x = angular_rate_FLU.getX();
   angular_rate_body_raw_msg.vector.y = angular_rate_FLU.getY();
@@ -931,7 +959,8 @@ TelemetryModule::imu_callback(const uint8_t *data, uint16_t data_size,
       std::make_unique<T_DjiFcSubscriptionHardSync>(
           *reinterpret_cast<const T_DjiFcSubscriptionHardSync *>(data));
   sensor_msgs::msg::Imu imu_msg;
-  imu_msg.header.stamp = this->get_clock()->now();
+//  imu_msg.header.stamp = this->get_clock()->now();
+  imu_msg.header.stamp = get_measurement_time(timestamp);
   /* Temporarly use body frame as the location of the imu frame is unknown*/
   imu_msg.header.frame_id = params_.body_frame;
   /* Note: The quaternion provided by DJI is in FRD body coordinate frame wrt.
@@ -984,7 +1013,8 @@ TelemetryModule::vo_position_callback(const uint8_t *data, uint16_t data_size,
   tf2::Vector3 position_NED{position_vo->x, position_vo->y, position_vo->z};
   tf2::Vector3 position_ENU = psdk_utils::R_NED2ENU * position_NED;
   psdk_interfaces::msg::PositionFused position_msg;
-  position_msg.header.stamp = this->get_clock()->now();
+//  position_msg.header.stamp = this->get_clock()->now();
+  position_msg.header.stamp = get_measurement_time(timestamp);
   position_msg.header.frame_id = params_.map_frame;
   position_msg.position.x = position_ENU.getX();
   position_msg.position.y = position_ENU.getY();
@@ -1031,7 +1061,8 @@ TelemetryModule::gps_fused_callback(const uint8_t *data, uint16_t data_size,
       std::make_unique<T_DjiFcSubscriptionPositionFused>(
           *reinterpret_cast<const T_DjiFcSubscriptionPositionFused *>(data));
   sensor_msgs::msg::NavSatFix gps_position_fused_msg;
-  gps_position_fused_msg.header.stamp = this->get_clock()->now();
+//  gps_position_fused_msg.header.stamp = this->get_clock()->now();
+  gps_position_fused_msg.header.stamp = get_measurement_time(timestamp);
   // DJI unit is rad. Transform it to deg
   gps_position_fused_msg.longitude =
       psdk_utils::rad_to_deg(gps_fused->longitude);
@@ -1047,12 +1078,13 @@ TelemetryModule::gps_position_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionGpsPosition> gps_position =
       std::make_unique<T_DjiFcSubscriptionGpsPosition>(
           *reinterpret_cast<const T_DjiFcSubscriptionGpsPosition *>(data));
   sensor_msgs::msg::NavSatFix gps_position_msg;
-  gps_position_msg.header.stamp = this->get_clock()->now();
+//  gps_position_msg.header.stamp = this->get_clock()->now();
+  gps_position_msg.header.stamp = get_measurement_time(timestamp);
   // Transform from DJI unit: deg*10<SUP>-7</SUP> to deg
   gps_position_msg.longitude = gps_position->x / pow(10, 7);
   gps_position_msg.latitude = gps_position->y / pow(10, 7);
@@ -1067,12 +1099,13 @@ TelemetryModule::gps_velocity_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionGpsVelocity> gps_velocity =
       std::make_unique<T_DjiFcSubscriptionGpsVelocity>(
           *reinterpret_cast<const T_DjiFcSubscriptionGpsVelocity *>(data));
   geometry_msgs::msg::TwistStamped gps_velocity_msg;
-  gps_velocity_msg.header.stamp = this->get_clock()->now();
+//  gps_velocity_msg.header.stamp = this->get_clock()->now();
+  gps_velocity_msg.header.stamp = get_measurement_time(timestamp);
   gps_velocity_msg.header.frame_id = params_.map_frame;
   // Convert cm/s given by dji topic to m/s
   gps_velocity_msg.twist.linear.x = gps_velocity->x / 100;
@@ -1087,12 +1120,13 @@ TelemetryModule::gps_details_callback(const uint8_t *data, uint16_t data_size,
                                       const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionGpsDetails> gps_details =
       std::make_unique<T_DjiFcSubscriptionGpsDetails>(
           *reinterpret_cast<const T_DjiFcSubscriptionGpsDetails *>(data));
   psdk_interfaces::msg::GPSDetails gps_details_msg;
-  gps_details_msg.header.stamp = this->get_clock()->now();
+//  gps_details_msg.header.stamp = this->get_clock()->now();
+  gps_details_msg.header.stamp = get_measurement_time(timestamp);
   // Convert cm/s given by dji topic to m/s
   gps_details_msg.horizontal_dop = gps_details->hdop;
   gps_details_msg.position_dop = gps_details->pdop;
@@ -1145,12 +1179,13 @@ TelemetryModule::rtk_position_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionRtkPosition> rtk_position =
       std::make_unique<T_DjiFcSubscriptionRtkPosition>(
           *reinterpret_cast<const T_DjiFcSubscriptionRtkPosition *>(data));
   sensor_msgs::msg::NavSatFix rtk_position_msg;
-  rtk_position_msg.header.stamp = this->get_clock()->now();
+//  rtk_position_msg.header.stamp = this->get_clock()->now();
+  rtk_position_msg.header.stamp = get_measurement_time(timestamp);
   rtk_position_msg.longitude =
       rtk_position->longitude;                         // Longitude, unit: deg.
   rtk_position_msg.latitude = rtk_position->latitude;  // Latitude, unit: deg.
@@ -1165,12 +1200,13 @@ TelemetryModule::rtk_velocity_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionRtkVelocity> rtk_velocity =
       std::make_unique<T_DjiFcSubscriptionRtkVelocity>(
           *reinterpret_cast<const T_DjiFcSubscriptionRtkVelocity *>(data));
   geometry_msgs::msg::TwistStamped rtk_velocity_msg;
-  rtk_velocity_msg.header.stamp = this->get_clock()->now();
+//  rtk_velocity_msg.header.stamp = this->get_clock()->now();
+  rtk_velocity_msg.header.stamp = get_measurement_time(timestamp);
   // Convert cm/s given by dji topic to m/s
   rtk_velocity_msg.twist.linear.x = rtk_velocity->x / 100;
   rtk_velocity_msg.twist.linear.y = rtk_velocity->y / 100;
@@ -1185,12 +1221,13 @@ TelemetryModule::rtk_yaw_callback(const uint8_t *data, uint16_t data_size,
 {
   /**@todo Convert yaw angle to standard convention*/
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionRtkYaw> rtk_yaw =
       std::make_unique<T_DjiFcSubscriptionRtkYaw>(
           *reinterpret_cast<const T_DjiFcSubscriptionRtkYaw *>(data));
   psdk_interfaces::msg::RTKYaw rtk_yaw_msg;
-  rtk_yaw_msg.header.stamp = this->get_clock()->now();
+//  rtk_yaw_msg.header.stamp = this->get_clock()->now();
+  rtk_yaw_msg.header.stamp = get_measurement_time(timestamp);
   rtk_yaw_msg.yaw = *rtk_yaw;
   rtk_yaw_pub_->publish(rtk_yaw_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -1248,14 +1285,15 @@ TelemetryModule::magnetometer_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   // This reading is the magnetic field recorded by the magnetometer in x,y,z
   // axis,
   std::unique_ptr<T_DjiFcSubscriptionCompass> magnetic_field =
       std::make_unique<T_DjiFcSubscriptionCompass>(
           *reinterpret_cast<const T_DjiFcSubscriptionCompass *>(data));
   sensor_msgs::msg::MagneticField magnetic_field_msg;
-  magnetic_field_msg.header.stamp = this->get_clock()->now();
+//  magnetic_field_msg.header.stamp = this->get_clock()->now();
+  magnetic_field_msg.header.stamp = get_measurement_time(timestamp);
   magnetic_field_msg.magnetic_field.x = magnetic_field->x;
   magnetic_field_msg.magnetic_field.y = magnetic_field->y;
   magnetic_field_msg.magnetic_field.z = magnetic_field->z;
@@ -1268,14 +1306,15 @@ TelemetryModule::rc_callback(const uint8_t *data, uint16_t data_size,
                              const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionRC> rc_data =
       std::make_unique<T_DjiFcSubscriptionRC>(
           *reinterpret_cast<const T_DjiFcSubscriptionRC *>(data));
   sensor_msgs::msg::Joy rc_msg;
   rc_msg.axes = {0, 0, 0, 0};
   rc_msg.buttons = {0, 0};
-  rc_msg.header.stamp = this->get_clock()->now();
+//  rc_msg.header.stamp = this->get_clock()->now();
+  rc_msg.header.stamp = get_measurement_time(timestamp);
   rc_msg.axes[0] = rc_data->roll;      // [-10000,10000]
   rc_msg.axes[1] = rc_data->pitch;     // [-10000,10000]
   rc_msg.axes[2] = rc_data->yaw;       // [-10000,10000]
@@ -1291,12 +1330,13 @@ TelemetryModule::esc_callback(const uint8_t *data, uint16_t data_size,
                               const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionEscData> esc_data =
       std::make_unique<T_DjiFcSubscriptionEscData>(
           *reinterpret_cast<const T_DjiFcSubscriptionEscData *>(data));
   psdk_interfaces::msg::EscData esc_msg;
-  esc_msg.header.stamp = this->get_clock()->now();
+//  esc_msg.header.stamp = this->get_clock()->now();
+  esc_msg.header.stamp = get_measurement_time(timestamp);
   // Populate the message with ESC data
   for (int i = 0; i < 8; ++i)
   {
@@ -1322,12 +1362,13 @@ TelemetryModule::rc_connection_status_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionRCWithFlagData> rc_connection_data =
       std::make_unique<T_DjiFcSubscriptionRCWithFlagData>(
           *reinterpret_cast<const T_DjiFcSubscriptionRCWithFlagData *>(data));
   psdk_interfaces::msg::RCConnectionStatus connection_status_msg;
-  connection_status_msg.header.stamp = this->get_clock()->now();
+//  connection_status_msg.header.stamp = this->get_clock()->now();
+  connection_status_msg.header.stamp = get_measurement_time(timestamp);
   connection_status_msg.air_connection = rc_connection_data->flag.skyConnected;
   connection_status_msg.ground_connection =
       rc_connection_data->flag.groundConnected;
@@ -1343,7 +1384,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
                                         const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionGimbalAngles> gimbal_angles =
       std::make_unique<T_DjiFcSubscriptionGimbalAngles>(
           *reinterpret_cast<const T_DjiFcSubscriptionGimbalAngles *>(data));
@@ -1355,7 +1396,8 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
    * to East
    */
   geometry_msgs::msg::Vector3Stamped gimbal_angles_msg;
-  gimbal_angles_msg.header.stamp = this->get_clock()->now();
+//  gimbal_angles_msg.header.stamp = this->get_clock()->now();
+  gimbal_angles_msg.header.stamp = get_measurement_time(timestamp);
   gimbal_angles_msg.header.frame_id = params_.gimbal_base_frame;
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
@@ -1380,7 +1422,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
       std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
       current_state_.gimbal_angles = gimbal_angles_msg;
     }
-    publish_dynamic_transforms();
+    publish_dynamic_transforms(timestamp);
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -1390,12 +1432,13 @@ TelemetryModule::gimbal_status_callback(const uint8_t *data, uint16_t data_size,
                                         const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionGimbalStatus> gimbal_status =
       std::make_unique<T_DjiFcSubscriptionGimbalStatus>(
           *reinterpret_cast<const T_DjiFcSubscriptionGimbalStatus *>(data));
   psdk_interfaces::msg::GimbalStatus gimbal_status_msg;
-  gimbal_status_msg.header.stamp = this->get_clock()->now();
+//  gimbal_status_msg.header.stamp = this->get_clock()->now();
+  gimbal_status_msg.header.stamp = get_measurement_time(timestamp);
   gimbal_status_msg.mount_status = gimbal_status->mountStatus;
   gimbal_status_msg.is_busy = gimbal_status->isBusy;
   gimbal_status_msg.pitch_limited = gimbal_status->pitchLimited;
@@ -1424,12 +1467,13 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
                                         const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionFlightStatus> flight_status =
       std::make_unique<T_DjiFcSubscriptionFlightStatus>(
           *reinterpret_cast<const T_DjiFcSubscriptionFlightStatus *>(data));
   psdk_interfaces::msg::FlightStatus flight_status_msg;
-  flight_status_msg.header.stamp = this->get_clock()->now();
+//  flight_status_msg.header.stamp = this->get_clock()->now();
+  flight_status_msg.header.stamp = get_measurement_time(timestamp);
   flight_status_msg.flight_status = *flight_status;
   flight_status_pub_->publish(flight_status_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -1440,12 +1484,13 @@ TelemetryModule::display_mode_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionDisplaymode> display_mode =
       std::make_unique<T_DjiFcSubscriptionDisplaymode>(
           *reinterpret_cast<const T_DjiFcSubscriptionDisplaymode *>(data));
   psdk_interfaces::msg::DisplayMode display_mode_msg;
-  display_mode_msg.header.stamp = this->get_clock()->now();
+//  display_mode_msg.header.stamp = this->get_clock()->now();
+  display_mode_msg.header.stamp = get_measurement_time(timestamp);
   display_mode_msg.display_mode = *display_mode;
   display_mode_pub_->publish(display_mode_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -1489,12 +1534,13 @@ TelemetryModule::flight_anomaly_callback(const uint8_t *data,
                                          const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionFlightAnomaly> flight_anomaly =
       std::make_unique<T_DjiFcSubscriptionFlightAnomaly>(
           *reinterpret_cast<const T_DjiFcSubscriptionFlightAnomaly *>(data));
   psdk_interfaces::msg::FlightAnomaly flight_anomaly_msg;
-  flight_anomaly_msg.header.stamp = this->get_clock()->now();
+//  flight_anomaly_msg.header.stamp = this->get_clock()->now();
+  flight_anomaly_msg.header.stamp = get_measurement_time(timestamp);
   flight_anomaly_msg.impact_in_air = flight_anomaly->impactInAir;
   flight_anomaly_msg.random_fly = flight_anomaly->randomFly;
   flight_anomaly_msg.height_ctrl_fail = flight_anomaly->heightCtrlFail;
@@ -1525,7 +1571,9 @@ TelemetryModule::battery_callback(const uint8_t *data, uint16_t data_size,
       std::make_unique<T_DjiFcSubscriptionWholeBatteryInfo>(
           *reinterpret_cast<const T_DjiFcSubscriptionWholeBatteryInfo *>(data));
   sensor_msgs::msg::BatteryState battery_info_msg;
+  // this is done on purpose - battery callback might have a bug and not update the timestamp
   battery_info_msg.header.stamp = this->get_clock()->now();
+//  battery_info_msg.header.stamp = get_measurement_time(timestamp);
   battery_info_msg.capacity =
       static_cast<_Float32>(battery_info->capacity) / 1000;  // mAh -> Ah
   battery_info_msg.current =
@@ -1560,12 +1608,13 @@ TelemetryModule::control_mode_callback(const uint8_t *data, uint16_t data_size,
                                        const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionControlDevice> control_mode =
       std::make_unique<T_DjiFcSubscriptionControlDevice>(
           *reinterpret_cast<const T_DjiFcSubscriptionControlDevice *>(data));
   psdk_interfaces::msg::ControlMode control_mode_msg;
-  control_mode_msg.header.stamp = this->get_clock()->now();
+//  control_mode_msg.header.stamp = this->get_clock()->now();
+  control_mode_msg.header.stamp = get_measurement_time(timestamp);
   control_mode_msg.control_mode = control_mode->controlMode;
   control_mode_msg.device_mode = control_mode->deviceStatus;
   control_mode_msg.control_auth = control_mode->flightStatus;
@@ -1578,12 +1627,13 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
                                      const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionHomePointInfo> home_point =
       std::make_unique<T_DjiFcSubscriptionHomePointInfo>(
           *reinterpret_cast<const T_DjiFcSubscriptionHomePointInfo *>(data));
   sensor_msgs::msg::NavSatFix home_point_msg;
-  home_point_msg.header.stamp = this->get_clock()->now();
+//  home_point_msg.header.stamp = this->get_clock()->now();
+  home_point_msg.header.stamp = get_measurement_time(timestamp);
   home_point_msg.longitude = home_point->longitude;
   home_point_msg.latitude = home_point->latitude;
   home_point_pub_->publish(home_point_msg);
@@ -1621,7 +1671,7 @@ TelemetryModule::acceleration_ground_fused_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionAccelerationGround> acc_ground_fused =
       std::make_unique<T_DjiFcSubscriptionAccelerationGround>(
           *reinterpret_cast<const T_DjiFcSubscriptionAccelerationGround *>(
@@ -1636,7 +1686,8 @@ TelemetryModule::acceleration_ground_fused_callback(
   tf2::Vector3 acc_ground_fused_ENU =
       psdk_utils::R_NED2ENU * acc_ground_fused_NED;
   geometry_msgs::msg::AccelStamped acc_ground_fused_msg;
-  acc_ground_fused_msg.header.stamp = this->get_clock()->now();
+//  acc_ground_fused_msg.header.stamp = this->get_clock()->now();
+  acc_ground_fused_msg.header.stamp = get_measurement_time(timestamp);
   acc_ground_fused_msg.header.frame_id = params_.map_frame;
   acc_ground_fused_msg.accel.linear.x = acc_ground_fused_ENU.getX();
   acc_ground_fused_msg.accel.linear.y = acc_ground_fused_ENU.getY();
@@ -1651,7 +1702,7 @@ TelemetryModule::acceleration_body_fused_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionAccelerationBody> acc_body_fused =
       std::make_unique<T_DjiFcSubscriptionAccelerationBody>(
           *reinterpret_cast<const T_DjiFcSubscriptionAccelerationBody *>(data));
@@ -1665,7 +1716,8 @@ TelemetryModule::acceleration_body_fused_callback(
   tf2::Vector3 acc_body_fused_FLU =
       psdk_utils::R_FLU2FRD.transpose() * acc_body_fused_FRD;
   geometry_msgs::msg::AccelStamped acc_body_fused_msg;
-  acc_body_fused_msg.header.stamp = this->get_clock()->now();
+//  acc_body_fused_msg.header.stamp = this->get_clock()->now();
+  acc_body_fused_msg.header.stamp = get_measurement_time(timestamp);
   acc_body_fused_msg.header.frame_id = params_.body_frame;
   acc_body_fused_msg.accel.linear.x = acc_body_fused_FLU.getX();
   acc_body_fused_msg.accel.linear.y = acc_body_fused_FLU.getY();
@@ -1680,7 +1732,7 @@ TelemetryModule::acceleration_body_raw_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionAccelerationRaw> acc_body_raw =
       std::make_unique<T_DjiFcSubscriptionAccelerationRaw>(
           *reinterpret_cast<const T_DjiFcSubscriptionAccelerationRaw *>(data));
@@ -1693,7 +1745,8 @@ TelemetryModule::acceleration_body_raw_callback(
   tf2::Vector3 acc_body_raw_FLU =
       psdk_utils::R_FLU2FRD.transpose() * acc_body_raw_FRD;
   geometry_msgs::msg::AccelStamped acc_body_raw_msg;
-  acc_body_raw_msg.header.stamp = this->get_clock()->now();
+//  acc_body_raw_msg.header.stamp = this->get_clock()->now();
+  acc_body_raw_msg.header.stamp = get_measurement_time(timestamp);
   acc_body_raw_msg.header.frame_id = params_.body_frame;
   acc_body_raw_msg.accel.linear.x = acc_body_raw_FLU.getX();
   acc_body_raw_msg.accel.linear.y = acc_body_raw_FLU.getY();
@@ -1769,14 +1822,15 @@ TelemetryModule::single_battery_index1_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionSingleBatteryInfo> single_battery_info =
       std::make_unique<T_DjiFcSubscriptionSingleBatteryInfo>(
           *reinterpret_cast<const T_DjiFcSubscriptionSingleBatteryInfo *>(
               data));
 
   psdk_interfaces::msg::SingleBatteryInfo single_battery_info_msg;
-  single_battery_info_msg.header.stamp = this->get_clock()->now();
+//  single_battery_info_msg.header.stamp = this->get_clock()->now();
+  single_battery_info_msg.header.stamp = get_measurement_time(timestamp);
 
   single_battery_info_msg.battery_index = single_battery_info->batteryIndex;
   single_battery_info_msg.voltage =
@@ -1820,14 +1874,15 @@ TelemetryModule::single_battery_index2_callback(
     const T_DjiDataTimestamp *timestamp)
 {
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionSingleBatteryInfo> single_battery_info =
       std::make_unique<T_DjiFcSubscriptionSingleBatteryInfo>(
           *reinterpret_cast<const T_DjiFcSubscriptionSingleBatteryInfo *>(
               data));
 
   psdk_interfaces::msg::SingleBatteryInfo single_battery_info_msg;
-  single_battery_info_msg.header.stamp = this->get_clock()->now();
+//  single_battery_info_msg.header.stamp = this->get_clock()->now();
+  single_battery_info_msg.header.stamp = get_measurement_time(timestamp);
 
   single_battery_info_msg.battery_index = single_battery_info->batteryIndex;
   single_battery_info_msg.voltage =
@@ -2650,14 +2705,15 @@ TelemetryModule::publish_static_transforms()
 }
 
 void
-TelemetryModule::publish_dynamic_transforms()
+TelemetryModule::publish_dynamic_transforms(const T_DjiDataTimestamp *timestamp)
 {
   if (aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
       aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)
   {
     // Publish TF between Gimbal Base - Gimbal
     geometry_msgs::msg::TransformStamped tf_gimbal_base_gimbal;
-    tf_gimbal_base_gimbal.header.stamp = this->get_clock()->now();
+//    tf_gimbal_base_gimbal.header.stamp = this->get_clock()->now();
+    tf_gimbal_base_gimbal.header.stamp = get_measurement_time(timestamp);
     tf_gimbal_base_gimbal.header.frame_id = params_.gimbal_base_frame;
     tf_gimbal_base_gimbal.child_frame_id = params_.gimbal_frame;
     tf_gimbal_base_gimbal.transform.translation.x = 0.0;
