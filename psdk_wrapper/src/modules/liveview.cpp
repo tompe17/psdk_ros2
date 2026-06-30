@@ -42,7 +42,7 @@ LiveviewModule::LiveviewModule(const std::string &name)
 {
   RCLCPP_INFO(get_logger(), "Creating LiveviewModule");
   camera_info_manager_ =
-      std::make_unique<camera_info_manager::CameraInfoManager>(this, "dymmy");
+      std::make_unique<camera_info_manager::CameraInfoManager>(this, "dummy");
 }
 
 LiveviewModule::~LiveviewModule()
