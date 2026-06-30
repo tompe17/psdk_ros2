@@ -955,19 +955,18 @@ TelemetryModule::imu_callback(const uint8_t *data, uint16_t data_size,
                               const T_DjiDataTimestamp *timestamp)
 {
 
-  uint64_t fc_us = static_cast<uint64_t>(timestamp->microsecond);
-
-  auto ros_now = this->get_clock()->now();
-
-  std::cout
-      << "ms=" << timestamp->millisecond
-      << " us=" << timestamp->microsecond
-      << " fc_us=" << fc_us
-      << " ros_us=" << ros_now.nanoseconds() / 1000
-      << std::endl;
+//  uint64_t fc_us = static_cast<uint64_t>(timestamp->microsecond);
+//
+//  auto ros_now = this->get_clock()->now();
+//  std::cout
+//      << "ms=" << timestamp->millisecond
+//      << " us=" << timestamp->microsecond
+//      << " fc_us=" << fc_us
+//      << " ros_us=" << ros_now.nanoseconds() / 1000
+//      << std::endl;
 
   (void)data_size;
-  (void)timestamp;
+//  (void)timestamp;
   std::unique_ptr<T_DjiFcSubscriptionHardSync> hard_sync_data =
       std::make_unique<T_DjiFcSubscriptionHardSync>(
           *reinterpret_cast<const T_DjiFcSubscriptionHardSync *>(data));

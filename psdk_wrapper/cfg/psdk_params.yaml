@@ -21,6 +21,7 @@
       main_camera_width: 1080
       main_camera_height: 600
       main_camera_jpeg_quality: 70
+      image_time_offset_ms: 0
 
       file_path: "/logs/media/"
 

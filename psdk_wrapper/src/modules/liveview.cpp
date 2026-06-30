@@ -345,6 +345,8 @@ LiveviewModule::init()
   get_parameter("main_camera_height", wanted_image_height);
   declare_parameter<int>("main_camera_jpeg_quality", 80);
   get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
+  declare_parameter<int>("image_time_offset_ms", 0);
+  get_parameter("image_time_offset_ms", image_time_offset_ms);
 
   RCLCPP_INFO(get_logger(), "Initiating liveview module");
   T_DjiReturnCode return_code = DjiLiveview_Init();
@@ -673,6 +675,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   get_parameter("main_camera_width", wanted_image_width);
   get_parameter("main_camera_height", wanted_image_height);
   get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
+  get_parameter("image_time_offset_ms", image_time_offset_ms);
 
   //  RCLCPP_INFO_STREAM(get_logger(),
   //                     "wanted_image_jpeg_quality " <<
@@ -697,8 +700,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   cv::imencode(".jpg", outimg, buffer, params);
 
-  auto tf_time_offset_ms = 120;
-  rclcpp::Duration offset = rclcpp::Duration::from_nanoseconds(tf_time_offset_ms * 1e6);
+  rclcpp::Duration offset = rclcpp::Duration::from_nanoseconds(image_time_offset_ms * 1e6);
 
 
   // ---- Build CompressedImage
