@@ -64,11 +64,8 @@ namespace psdk_ros2
 class FcClockSynchronizer
 {
  public:
-
-  FcClockSynchronizer(bool ros_time_only=false)
-      : initialized_(false),
-        offset_us_(0),
-        ros_time_only_(ros_time_only)
+  explicit FcClockSynchronizer(bool ros_time_only = false)
+      : initialized_(false), ros_time_only_(ros_time_only), offset_us_(0)
   {
   }
 
@@ -116,9 +113,9 @@ class FcClockSynchronizer
   }
 
  private:
-  bool initialized_ = false;
-  bool ros_time_only_ = false;  // for legacy compatibility - will return ROS time now()
-  int64_t offset_us_ = 0;
+  bool initialized_;
+  bool ros_time_only_;  // for legacy compatibility - will return ROS time now()
+  int64_t offset_us_;
 };
 
 class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
@@ -1050,7 +1047,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   /**
    * @brief Method which publishes the dynamic transforms for a given copter
    */
-  void publish_dynamic_transforms(const T_DjiDataTimestamp *timestamp);
+  void publish_dynamic_transforms(const T_DjiDataTimestamp* timestamp);
 
   /**
    * @brief Method which computes the yaw angle difference between the gimbal
