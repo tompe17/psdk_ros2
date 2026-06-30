@@ -70,10 +70,10 @@ class FcClockSynchronizer
   }
 
   void
-  update(uint64_t fc_time_us, const rclcpp::Time& ros_now)
+  update(uint64_t fc_us, const rclcpp::Time& ros_now)
   {
     const int64_t measured =
-        ros_now.nanoseconds() / 1000 - static_cast<int64_t>(fc_time_us);
+        ros_now.nanoseconds() / 1000 - static_cast<int64_t>(fc_us);
 
     if (!initialized_)
     {
@@ -82,23 +82,17 @@ class FcClockSynchronizer
       return;
     }
 
-    // Reject obvious scheduling hiccups (>5 ms)
-    if (std::llabs(measured - offset_us_) > 5000) return;
-
-    // First-order low-pass filter
-    constexpr double alpha = 0.01;
-
-    offset_us_ =
-        static_cast<int64_t>((1.0 - alpha) * offset_us_ + alpha * measured);
+    // Keep the smallest observed offset.
+    // Larger values are almost always due to Linux scheduling delays.
+    if (measured < offset_us_) offset_us_ = measured;
   }
 
   rclcpp::Time
-  toRosTime(uint64_t fc_time_us) const
+  toRosTime(uint64_t fc_us) const
   {
     if (!initialized_) return rclcpp::Time(0);
 
-
-    return rclcpp::Time((fc_time_us + offset_us_) * 1000ULL);
+    return rclcpp::Time((static_cast<int64_t>(fc_us) + offset_us_) * 1000LL);
   }
 
   bool
