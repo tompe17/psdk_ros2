@@ -44,7 +44,7 @@ TelemetryModule::~TelemetryModule()
 
 
 rclcpp::Time TelemetryModule::get_measurement_time(
-    const T_DjiDataTimestamp &timestamp)
+    const T_DjiDataTimestamp *timestamp)
 {
   auto ros_now = this->get_clock()->now();
 
