@@ -97,6 +97,7 @@ class FcClockSynchronizer
   {
     if (!initialized_) return rclcpp::Time(0);
 
+
     return rclcpp::Time((fc_time_us + offset_us_) * 1000ULL);
   }
 
