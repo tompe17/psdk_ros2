@@ -43,20 +43,23 @@ TelemetryModule::~TelemetryModule()
 
 
 
-rclcpp::Time TelemetryModule::get_measurement_time(
-    const T_DjiDataTimestamp *timestamp)
+rclcpp::Time
+TelemetryModule::get_measurement_time(
+    const T_DjiDataTimestamp* timestamp)
 {
   auto ros_now = this->get_clock()->now();
 
-  // Use ONLY the microsecond field.
-  uint64_t fc_us = timestamp.microsecond;
-
-  clock_sync_.update(fc_us, ros_now);
-
-  if (!clock_sync_.initialized())
+  if (clock_sync_.ros_time_only())
+  {
     return ros_now;
+  }
 
-  return clock_sync_.toRosTime(fc_us);
+  uint64_t fc64_us =
+      clock_sync_.extendTimestamp(timestamp->microsecond);
+
+  clock_sync_.update(fc64_us, ros_now);
+
+  return clock_sync_.toRosTime(fc64_us);
 }
 
 TelemetryModule::CallbackReturn

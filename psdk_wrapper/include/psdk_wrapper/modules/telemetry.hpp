@@ -65,15 +65,34 @@ class FcClockSynchronizer
 {
  public:
   explicit FcClockSynchronizer(bool ros_time_only = false)
-      : initialized_(false), ros_time_only_(ros_time_only), offset_us_(0)
+      : initialized_(false),
+        ros_time_only_(ros_time_only),
+        offset_us_(0),
+        last_fc32_us_(0),
+        wrap_count_(0)
   {
   }
 
+  uint64_t
+  extendTimestamp(uint32_t fc32_us)
+  {
+    // Detect wrap (~71.6 minutes)
+    if (initialized_ && fc32_us < last_fc32_us_)
+    {
+      ++wrap_count_;
+    }
+
+    last_fc32_us_ = fc32_us;
+
+    return (wrap_count_ << 32) | static_cast<uint64_t>(fc32_us);
+  }
+
   void
-  update(uint64_t fc_us, const rclcpp::Time& ros_now)
+  update(uint64_t fc64_us, const rclcpp::Time& ros_now)
   {
     const int64_t measured =
-        ros_now.nanoseconds() / 1000 - static_cast<int64_t>(fc_us);
+        ros_now.nanoseconds() / 1000 -
+        static_cast<int64_t>(fc64_us);
 
     if (!initialized_)
     {
@@ -82,17 +101,22 @@ class FcClockSynchronizer
       return;
     }
 
-    // Keep the smallest observed offset.
-    // Larger values are almost always due to Linux scheduling delays.
-    if (measured < offset_us_) offset_us_ = measured;
+    // Keep the minimum observed offset.
+    // Larger values are almost always scheduler delays.
+    if (measured < offset_us_)
+    {
+      offset_us_ = measured;
+    }
   }
 
   rclcpp::Time
-  toRosTime(uint64_t fc_us) const
+  toRosTime(uint64_t fc64_us) const
   {
-    if (!initialized_) return rclcpp::Time(0);
+    if (!initialized_)
+      return rclcpp::Time(0);
 
-    return rclcpp::Time((static_cast<int64_t>(fc_us) + offset_us_) * 1000LL);
+    return rclcpp::Time(
+        static_cast<uint64_t>(fc64_us + offset_us_) * 1000ULL);
   }
 
   bool
@@ -109,10 +133,13 @@ class FcClockSynchronizer
 
  private:
   bool initialized_;
-  bool ros_time_only_;  // for legacy compatibility - will return ROS time now()
-  int64_t offset_us_;
-};
+  bool ros_time_only_;
 
+  int64_t offset_us_;
+
+  uint32_t last_fc32_us_;
+  uint64_t wrap_count_;
+};
 class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
