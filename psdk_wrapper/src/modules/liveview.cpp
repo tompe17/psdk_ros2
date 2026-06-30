@@ -697,9 +697,13 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   cv::imencode(".jpg", outimg, buffer, params);
 
+  auto tf_time_offset_ms = 120;
+  rclcpp::Duration offset = rclcpp::Duration::from_nanoseconds(tf_time_offset_ms * 1e6);
+
+
   // ---- Build CompressedImage
   sensor_msgs::msg::CompressedImage msg;
-  msg.header.stamp = this->get_clock()->now();
+  msg.header.stamp = this->get_clock()->now() - offset;
   std::string ns = get_namespace();
   std::string unit = ns.substr(1);
   msg.header.frame_id = unit + "/camera0/image_frame";
@@ -855,6 +859,7 @@ LiveviewModule::get_optical_frame_id()
       return it.second;
     }
   }
+  return "";
 }
 
 }  // namespace psdk_ros2
