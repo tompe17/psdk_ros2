@@ -180,7 +180,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    */
   bool deinit();
 
-  FcClockSynchronizer clock_sync_;
+  FcClockSynchronizer clock_sync_ = FcClockSynchronizer(true);
   rclcpp::Time get_measurement_time(const T_DjiDataTimestamp* fc_timeastamp);
 
   static inline uint64_t
