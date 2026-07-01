@@ -708,7 +708,8 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   // ---- Build CompressedImage
   sensor_msgs::msg::CompressedImage msg;
-  msg.header.stamp = this->get_clock()->now() - offset;
+  auto stamp_now = this->get_clock()->now();
+  msg.header.stamp = stamp_now - offset;
   std::string ns = get_namespace();
   std::string unit = ns.substr(1);
   msg.header.frame_id = unit + "/camera0/image_frame";
@@ -726,6 +727,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   auto camera_info = get_camera_info(camera_type, stream_state_.camera_source,
                                      cols, rows, zoom_factor);
   camera_info.header = msg.header;
+  camera_info.header.stamp = stamp_now;
   camera_info_pub_->publish(camera_info);
 #if 0
   auto t1 = this->now();
