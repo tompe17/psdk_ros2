@@ -128,6 +128,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
                               bool decoded_output);
 
   bool is_streaming() const;
+  std::string get_camera_lens_name();
   int get_camera_source_index() const;
   inline double lerp(double a, double b, double t)
   {

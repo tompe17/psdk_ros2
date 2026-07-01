@@ -22,6 +22,7 @@
 #include "psdk_wrapper/modules/camera.hpp"
 
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
+#include "psdk_wrapper/modules/liveview.hpp"
 
 namespace psdk_ros2
 {
@@ -376,10 +377,12 @@ CameraModule::publish_camera_information()
   query_zoom();
 
   std_msgs::msg::String msg;
+  auto lens=psdk_ros2::global_liveview_ptr_->get_camera_lens_name();
 
   std::ostringstream oss;
   oss << "{"
       << "\"camera\":\"" << camera_name_ << "\","
+      << "\"lens\":\"" << lens << "\","
       << "\"zoom_factor\":" << zoom_factor_.load() << ","
       << "\"max_zoom_factor\":" << max_zoom_factor_.load() << ","
       << "}";

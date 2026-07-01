@@ -505,6 +505,20 @@ LiveviewModule::is_streaming() const
   return stream_state_.streaming;
 }
 
+std::string LiveviewModule::get_camera_lens_name(){
+  switch (stream_state_.camera_source)
+  {
+    case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE:
+      return "wide";
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM:
+      return "zoom";
+    case DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR:
+      return "ir";
+  }
+  return "unknown";
+}
+
 int
 LiveviewModule::get_camera_source_index() const
 {
