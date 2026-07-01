@@ -94,6 +94,9 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     camera_info.p[2] *= sx;  // cx
     camera_info.p[5] *= sy;  // fy
     camera_info.p[6] *= sy;  // cy
+
+    camera_info.width = image_width;
+    camera_info.height = image_height;
   }
 
   return camera_info;
