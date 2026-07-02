@@ -186,7 +186,7 @@ void DJICameraStreamDecoder::callbackThreadFunc()
         }
     }
 }
-
+#if 0
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
     const uint8_t *pData = buf;
@@ -280,6 +280,171 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
     }
     pthread_mutex_unlock(&decodemutex);
     /// av_free_packet(&pkt);
+#endif
+}
+#endif
+
+void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
+{
+  const uint8_t *pData = buf;
+  int remainingLen = bufLen;
+  int processedLen = 0;
+
+#ifdef FFMPEG_INSTALLED
+
+  AVPacket pkt;
+  av_init_packet(&pkt);
+  pkt.data = nullptr;
+  pkt.size = 0;
+
+  pthread_mutex_lock(&decodemutex);
+
+  while (remainingLen > 0)
+  {
+    if (!pCodecParserCtx || !pCodecCtx)
+      break;
+
+    processedLen = av_parser_parse2(
+        pCodecParserCtx,
+        pCodecCtx,
+        &pkt.data,
+        &pkt.size,
+        pData,
+        remainingLen,
+        AV_NOPTS_VALUE,
+        AV_NOPTS_VALUE,
+        AV_NOPTS_VALUE);
+
+    if (processedLen <= 0)
+      break;
+
+    remainingLen -= processedLen;
+    pData += processedLen;
+
+    if (pkt.size <= 0)
+      continue;
+
+    int ret = avcodec_send_packet(pCodecCtx, &pkt);
+
+    if (ret == AVERROR(EAGAIN))
+    {
+      continue;
+    }
+    else if (ret < 0)
+    {
+      fprintf(stderr,
+              "Error sending packet for decoding (%d bytes): %d\n",
+              pkt.size,
+              ret);
+      pthread_mutex_unlock(&decodemutex);
+      return;
+    }
+
+    // Receive every available frame
+    while (true)
+    {
+      ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
+
+      if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+        break;
+
+      if (ret < 0)
+      {
+        fprintf(stderr,
+                "Error during decoding: %d\n",
+                ret);
+        break;
+      }
+
+      //----------------------------------------------------------
+      // Skip corrupted frames
+      //----------------------------------------------------------
+
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+      if (pFrameYUV->flags & AV_FRAME_FLAG_CORRUPT)
+      {
+        fprintf(stderr, "Skipping corrupted frame.\n");
+        av_frame_unref(pFrameYUV);
+        continue;
+      }
+#else
+      if (pFrameYUV->decode_error_flags != 0)
+      {
+        fprintf(stderr,
+                "Skipping corrupted frame (decode_error_flags=0x%x).\n",
+                pFrameYUV->decode_error_flags);
+        av_frame_unref(pFrameYUV);
+        continue;
+      }
+#endif
+
+      //----------------------------------------------------------
+
+      int w = pFrameYUV->width;
+      int h = pFrameYUV->height;
+
+      if (pSwsCtx == nullptr)
+      {
+        pSwsCtx = sws_getContext(
+            w,
+            h,
+            pCodecCtx->pix_fmt,
+            w,
+            h,
+            AV_PIX_FMT_RGB24,
+            SWS_BILINEAR,
+            nullptr,
+            nullptr,
+            nullptr);
+      }
+
+      if (rgbBuf == nullptr)
+      {
+        bufSize = av_image_get_buffer_size(
+            AV_PIX_FMT_RGB24,
+            w,
+            h,
+            1);
+
+        rgbBuf = (uint8_t *)av_malloc(bufSize);
+
+        av_image_fill_arrays(
+            pFrameRGB->data,
+            pFrameRGB->linesize,
+            rgbBuf,
+            AV_PIX_FMT_RGB24,
+            w,
+            h,
+            1);
+      }
+
+      if (pSwsCtx && rgbBuf)
+      {
+        sws_scale(
+            pSwsCtx,
+            (const uint8_t *const *)pFrameYUV->data,
+            pFrameYUV->linesize,
+            0,
+            h,
+            pFrameRGB->data,
+            pFrameRGB->linesize);
+
+        pFrameRGB->width = w;
+        pFrameRGB->height = h;
+
+        decodedImageHandler.writeNewImageWithLock(
+            pFrameRGB->data[0],
+            bufSize,
+            w,
+            h);
+      }
+
+      av_frame_unref(pFrameYUV);
+    }
+  }
+
+  pthread_mutex_unlock(&decodemutex);
+
 #endif
 }
 
