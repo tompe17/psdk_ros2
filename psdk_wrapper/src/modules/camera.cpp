@@ -383,14 +383,16 @@ CameraModule::publish_camera_information()
   std_msgs::msg::String msg;
   auto lens=psdk_ros2::global_liveview_ptr_->get_camera_lens_name();
   auto streaming=psdk_ros2::global_liveview_ptr_->is_streaming();
+  auto jpeg=psdk_ros2::global_liveview_ptr_->get_image_jpeg_compression();
 
   std::ostringstream oss;
   oss << "{"
       << "\"camera\":\"" << camera_type_str_ << "\","
       << "\"lens\":\"" << lens << "\","
-      << "\"streaming\":\"" << streaming << "\","
       << "\"zoom_factor\":" << zoom_factor_.load() << ","
       << "\"max_zoom_factor\":" << max_zoom_factor_.load() << ","
+      << "\"streaming\":\"" << streaming << "\","
+      << "\"jpeg\":\"" << jpeg << "\","
       << "}";
 
   msg.data = oss.str();
