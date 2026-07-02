@@ -216,6 +216,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
             ;
           } else if (ret < 0) {
             fprintf(stderr, "Error sending a packet for decoding: %d - %d\n", pkt.size, ret);
+            return;
           } else {
             // ret == 0
           }
