@@ -367,7 +367,7 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
         break;
       }
     case 2:
-      RCLCPP_INFO(self->get_logger(), "Setting zoom %d", value);
+      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
 
       break;
 
