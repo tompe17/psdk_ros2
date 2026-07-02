@@ -57,6 +57,20 @@
           "mapping_config_display_order": 1
         }
 
+      },
+      {
+        "widget_index": 2,
+        "widget_type": "scale",
+        "widget_name": "Jpeg compression Level",
+        "icon_file_set": {
+          "icon_file_name_selected": "icon_thermal.png",
+          "icon_file_name_unselected": "icon_thermal.png"
+        },
+        "customize_rc_buttons_config": {
+          "is_enable": true,
+          "mapping_config_display_order": 2,
+          "button_value_step_length": 5
+        }
       }
     ]
   },
