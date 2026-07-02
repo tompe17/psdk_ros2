@@ -69,6 +69,8 @@ private:
 
     pthread_mutex_t decodemutex;
 
+    bool m_receivedFirstKeyFrame{false};
+
 #ifdef FFMPEG_INSTALLED
     AVCodecContext *pCodecCtx;
     const AVCodec *pCodec;

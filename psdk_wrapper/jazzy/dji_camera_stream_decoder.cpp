@@ -75,7 +75,8 @@ DJICameraStreamDecoder::~DJICameraStreamDecoder()
 bool DJICameraStreamDecoder::init()
 {
     pthread_mutex_lock(&decodemutex);
-
+    m_receivedFirstKeyFrame = false;
+    fprintf(stderr, "INIT: m_receivedFirstKeyFrame - %d\n", m_receivedFirstKeyFrame);
     if (true == initSuccess) {
         USER_LOG_INFO("Decoder already initialized.\n");
         return true;
@@ -283,7 +284,6 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 #endif
 }
 #endif
-
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
   const uint8_t *pData = buf;
@@ -327,20 +327,16 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
     int ret = avcodec_send_packet(pCodecCtx, &pkt);
 
     if (ret == AVERROR(EAGAIN))
-    {
       continue;
-    }
-    else if (ret < 0)
+
+    if (ret < 0)
     {
       fprintf(stderr,
-              "Error sending packet for decoding (%d bytes): %d\n",
-              pkt.size,
+              "Error sending packet for decoding: %d\n",
               ret);
-      pthread_mutex_unlock(&decodemutex);
-      return;
+      break;
     }
 
-    // Receive every available frame
     while (true)
     {
       ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
@@ -351,34 +347,28 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
       if (ret < 0)
       {
         fprintf(stderr,
-                "Error during decoding: %d\n",
+                "Error receiving frame: %d\n",
                 ret);
         break;
       }
 
-      //----------------------------------------------------------
-      // Skip corrupted frames
-      //----------------------------------------------------------
+      //--------------------------------------------------
+      // Wait until the first keyframe arrives.
+      //--------------------------------------------------
 
-#if LIBAVUTIL_VERSION_MAJOR >= 57
-      if (pFrameYUV->flags & AV_FRAME_FLAG_CORRUPT)
+      if (!m_receivedFirstKeyFrame)
       {
-        fprintf(stderr, "Skipping corrupted frame.\n");
-        av_frame_unref(pFrameYUV);
-        continue;
-      }
-#else
-      if (pFrameYUV->decode_error_flags != 0)
-      {
-        fprintf(stderr,
-                "Skipping corrupted frame (decode_error_flags=0x%x).\n",
-                pFrameYUV->decode_error_flags);
-        av_frame_unref(pFrameYUV);
-        continue;
-      }
-#endif
+        if (!pFrameYUV->key_frame)
+        {
+          av_frame_unref(pFrameYUV);
+          continue;
+        }
 
-      //----------------------------------------------------------
+        fprintf(stderr, "First keyframe received.\n");
+        m_receivedFirstKeyFrame = true;
+      }
+
+      //--------------------------------------------------
 
       int w = pFrameYUV->width;
       int h = pFrameYUV->height;
@@ -388,7 +378,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
         pSwsCtx = sws_getContext(
             w,
             h,
-            pCodecCtx->pix_fmt,
+            (AVPixelFormat)pFrameYUV->format,
             w,
             h,
             AV_PIX_FMT_RGB24,
@@ -418,26 +408,23 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
             1);
       }
 
-      if (pSwsCtx && rgbBuf)
-      {
-        sws_scale(
-            pSwsCtx,
-            (const uint8_t *const *)pFrameYUV->data,
-            pFrameYUV->linesize,
-            0,
-            h,
-            pFrameRGB->data,
-            pFrameRGB->linesize);
+      sws_scale(
+          pSwsCtx,
+          (const uint8_t *const *)pFrameYUV->data,
+          pFrameYUV->linesize,
+          0,
+          h,
+          pFrameRGB->data,
+          pFrameRGB->linesize);
 
-        pFrameRGB->width = w;
-        pFrameRGB->height = h;
+      pFrameRGB->width = w;
+      pFrameRGB->height = h;
 
-        decodedImageHandler.writeNewImageWithLock(
-            pFrameRGB->data[0],
-            bufSize,
-            w,
-            h);
-      }
+      decodedImageHandler.writeNewImageWithLock(
+          pFrameRGB->data[0],
+          bufSize,
+          w,
+          h);
 
       av_frame_unref(pFrameYUV);
     }
@@ -447,7 +434,6 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #endif
 }
-
 bool DJICameraStreamDecoder::registerCallback(CameraImageCallback f, void *param)
 {
     cb = f;
