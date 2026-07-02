@@ -111,8 +111,11 @@ bool LiveviewModule::load_camera_info_files(const std::string& folder)
   {
     const std::string calibration_file = file_path + filename;
 
-    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
-                calibration_file.c_str());
+//    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
+//                calibration_file.c_str());
+
+
+    camera_info_manager_->setCameraName(kCameraCalibrationNames.at(type));
 
     if (!camera_info_manager_->loadCameraInfo(calibration_file))
     {

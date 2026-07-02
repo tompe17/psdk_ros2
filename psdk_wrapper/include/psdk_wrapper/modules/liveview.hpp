@@ -59,7 +59,15 @@ const std::map<CameraInfoType, std::string> kCameraCalibrationFiles = {
     {CAMERA_INFO_H20T_ZOOM_2X, "H20T_zoom_2x_1080.yml"},
     {CAMERA_INFO_H20T_ZOOM_5X, "H20T_zoom_5x_1080.yml"},
     {CAMERA_INFO_H20T_ZOOM_10X, "H20T_zoom_10x_1080.yml"},
-    {CAMERA_INFO_P1, "P1_1x.yml"},
+    {CAMERA_INFO_P1, "P1_1x_1080.yml"},
+};
+
+const std::map<CameraInfoType, std::string> kCameraCalibrationNames = {
+    {CAMERA_INFO_H20T_WIDE, "H20T_wide"},
+    {CAMERA_INFO_H20T_ZOOM_2X, "H20T_zoom_2x"},
+    {CAMERA_INFO_H20T_ZOOM_5X, "H20T_zoom_5x"},
+    {CAMERA_INFO_H20T_ZOOM_10X, "H20T_zoom_10x"},
+    {CAMERA_INFO_P1, "P1_1x"},
 };
 
 class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
