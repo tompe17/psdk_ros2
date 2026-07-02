@@ -196,6 +196,14 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #ifdef FFMPEG_INSTALLED
 
+  fprintf(stderr, "bufLen=%d :", bufLen);
+
+  int n = bufLen > 32 ? 32 : bufLen;
+
+  for (int i = 0; i < n; ++i)
+    fprintf(stderr, " %02X", buf[i]);
+
+  fprintf(stderr, "\n");
   // -----------------------------------------------------------------
   // Debug: dump all H.264 NAL units found in the raw input buffer.
   // -----------------------------------------------------------------
