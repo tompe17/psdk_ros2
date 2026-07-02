@@ -129,8 +129,6 @@ WidgetModule::init()
 {
   T_DjiReturnCode rc;
 
-  std::cout << "INIT" << std::endl;
-
   rc = DjiWidget_Init();
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -161,11 +159,9 @@ WidgetModule::init()
 
   }
 
-  rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
-
   //  rc = DjiWidget_RegDefaultUiConfigByDirPath(
   //      "/home/lrs/lrs_jazzy/src/psdk_ros2/psdk_wrapper/cfg/widget_file/en/");
-
+  rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
     RCLCPP_ERROR(get_logger(), "Failed to register widget UI (%ld)", rc);
@@ -317,14 +313,14 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
         RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
 
-        std::thread(
-            [camera = psdk_ros2::global_camera_ptr_]
-            {
-              T_DjiCameraManagerLaserRangingInfo laser_info;
-              laser_info.enable_lidar = true;
-              camera->camera_get_laser_ranging_info(1, laser_info);
-            })
-            .detach();
+//        std::thread(
+//            [camera = psdk_ros2::global_camera_ptr_]
+//            {
+//              T_DjiCameraManagerLaserRangingInfo laser_info;
+//              laser_info.enable_lidar = true;
+//              camera->camera_get_laser_ranging_info(1, laser_info);
+//            })
+//            .detach();
 
         //        std::thread(
         //            [camera = psdk_ros2::global_camera_ptr_]
