@@ -297,10 +297,10 @@ CameraModule::init()
   E_DjiMountPosition main_payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
   if (get_camera_type(camera_type, main_payload_index))
   {
-    RCLCPP_INFO(get_logger(), "Camera type %s detected", camera_type.c_str());
+    RCLCPP_INFO(get_logger(), "Camera type detected: %s", camera_type.c_str());
   }
 
-  camera_name_ = camera_type;
+  camera_type_str_ = camera_type;
 
   // todo: enforce video mode - photo mode has wrong size when streaming
   E_DjiCameraManagerWorkMode mode;
@@ -346,6 +346,10 @@ CameraModule::deinit()
 bool
 CameraModule::query_zoom()
 {
+  if (attached_camera_type_ != DJI_CAMERA_TYPE_H20T){
+    return false;
+  }
+
   float zoom = 1.0f;
   int payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
 
@@ -382,7 +386,7 @@ CameraModule::publish_camera_information()
 
   std::ostringstream oss;
   oss << "{"
-      << "\"camera\":\"" << camera_name_ << "\","
+      << "\"camera\":\"" << camera_type_str_ << "\","
       << "\"lens\":\"" << lens << "\","
       << "\"streaming\":\"" << streaming << "\","
       << "\"zoom_factor\":" << zoom_factor_.load() << ","
@@ -403,7 +407,7 @@ bool
 CameraModule::get_camera_type(std::string &camera_type,
                               const E_DjiMountPosition index)
 {
-  RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
+//  RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
   T_DjiReturnCode return_code =
       DjiCameraManager_GetCameraType(index, &attached_camera_type_);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -415,9 +419,9 @@ CameraModule::get_camera_type(std::string &camera_type,
     return false;
   }
   else
-  {  // TODO(@lidiadltv): Remove this map
-    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d",
-                 attached_camera_type_);
+  {
+//    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d",
+//                 attached_camera_type_);
 
     for (auto &it : psdk_utils::camera_type_str)
     {
@@ -425,8 +429,8 @@ CameraModule::get_camera_type(std::string &camera_type,
       {
         std::string camera_type_copy = it.second;
         camera_type = camera_type_copy;
-        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s",
-                     camera_type.c_str());
+//        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s",
+//                     camera_type.c_str());
 
         return true;
       }

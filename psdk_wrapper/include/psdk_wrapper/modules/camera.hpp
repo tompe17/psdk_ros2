@@ -582,7 +582,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};
 
   bool is_module_initialized_{false};
-  E_DjiCameraType attached_camera_type_;
+  E_DjiCameraType attached_camera_type_{DJI_CAMERA_TYPE_UNKNOWN};
   int32_t file_index_to_download_{0};
   std::string file_name_to_download_;
   std::string file_path_to_download_;
@@ -601,7 +601,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   std::atomic<float> zoom_factor_{1.0f};
   std::atomic<float> max_zoom_factor_{1.0f};
 
-  std::string camera_name_;
+  std::string camera_type_str_;
 };
 
 extern std::shared_ptr<CameraModule> global_camera_ptr_;
