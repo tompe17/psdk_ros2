@@ -114,7 +114,7 @@ bool LiveviewModule::load_camera_info_files(const std::string& folder)
 //    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
 //                calibration_file.c_str());
 
-    auto it = kCameraCalibrationNames.find(CAMERA_INFO_H20T_WIDE);
+    auto it = kCameraCalibrationNames.find(type);
 
     if (it != kCameraCalibrationNames.end())
     {
