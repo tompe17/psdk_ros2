@@ -584,10 +584,10 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
     }
   }
 
-  get_parameter("main_camera_width", wanted_image_width);
-  get_parameter("main_camera_height", wanted_image_height);
-  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
-  get_parameter("image_time_offset_ms", image_time_offset_ms);
+//  get_parameter("main_camera_width", wanted_image_width);
+//  get_parameter("main_camera_height", wanted_image_height);
+//  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
+//  get_parameter("image_time_offset_ms", image_time_offset_ms);
 
 
   //  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
