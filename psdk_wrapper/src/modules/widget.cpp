@@ -408,6 +408,7 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     case 2:
     case 3:
     {
+      *value = psdk_ros2::global_liveview_ptr_->get_image_jpeg_compression();
 
       break;
     }
