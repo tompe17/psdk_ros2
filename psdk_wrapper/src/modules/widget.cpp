@@ -27,11 +27,12 @@ T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {0, DJI_WIDGET_TYPE_LIST, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr},
     {1, DJI_WIDGET_TYPE_SWITCH, WidgetModule::widget_state_set,
-     WidgetModule::widget_state_get, nullptr},
-    {2, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
-     WidgetModule::widget_state_get, nullptr},
-    {3, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr}
+//,
+//    {2, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
+//     WidgetModule::widget_state_get, nullptr},
+//    {3, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
+//     WidgetModule::widget_state_get, nullptr}
 };
 
 /*****************************************************************************/
@@ -368,7 +369,7 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       }
     case 2:
     case 3:
-      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
+//      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
       psdk_ros2::global_liveview_ptr_->set_image_jpeg_compression(value);
       break;
 
