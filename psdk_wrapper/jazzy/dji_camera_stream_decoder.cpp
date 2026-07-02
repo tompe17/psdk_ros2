@@ -196,18 +196,29 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #ifdef FFMPEG_INSTALLED
 
-  fprintf(stderr, "bufLen=%d :", bufLen);
+  static uint64_t callbackCounter = 0;
+  callbackCounter++;
 
-  int n = bufLen > 32 ? 32 : bufLen;
+  fprintf(stderr,
+          "\n=========================================================\n");
+  fprintf(stderr,
+          "CALLBACK #%llu  bufLen=%d\n",
+          (unsigned long long)callbackCounter,
+          bufLen);
 
-  for (int i = 0; i < n; ++i)
+  fprintf(stderr, "First bytes:");
+
+  int dump = bufLen < 32 ? bufLen : 32;
+  for (int i = 0; i < dump; i++)
     fprintf(stderr, " %02X", buf[i]);
 
   fprintf(stderr, "\n");
-  // -----------------------------------------------------------------
-  // Debug: dump all H.264 NAL units found in the raw input buffer.
-  // -----------------------------------------------------------------
-  for (int i = 0; i < bufLen - 4; ++i)
+
+  // -------------------------------------------------------
+  // Scan raw callback for Annex-B NAL units.
+  // -------------------------------------------------------
+
+  for (int i = 0; i < bufLen - 4; i++)
   {
     int startCodeLen = 0;
 
@@ -225,7 +236,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
       startCodeLen = 4;
     }
 
-    if (startCodeLen == 0)
+    if (!startCodeLen)
       continue;
 
     uint8_t nalType = buf[i + startCodeLen] & 0x1F;
@@ -233,32 +244,46 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
     switch (nalType)
     {
       case 1:
-        fprintf(stderr, "[H264] Non-IDR slice\n");
+        fprintf(stderr,
+                "NAL @ %6d : Non-IDR slice\n",
+                i);
         break;
 
       case 5:
         fprintf(stderr,
-                "\n================ IDR FOUND ================\n");
+                "NAL @ %6d : ******** IDR ********\n",
+                i);
         break;
 
       case 6:
-        fprintf(stderr, "[H264] SEI\n");
+        fprintf(stderr,
+                "NAL @ %6d : SEI\n",
+                i);
         break;
 
       case 7:
-        fprintf(stderr, "[H264] SPS\n");
+        fprintf(stderr,
+                "NAL @ %6d : SPS\n",
+                i);
         break;
 
       case 8:
-        fprintf(stderr, "[H264] PPS\n");
+        fprintf(stderr,
+                "NAL @ %6d : PPS\n",
+                i);
         break;
 
       case 9:
-        fprintf(stderr, "[H264] AUD\n");
+        fprintf(stderr,
+                "NAL @ %6d : AUD\n",
+                i);
         break;
 
       default:
-        fprintf(stderr, "[H264] NAL type %u\n", nalType);
+        fprintf(stderr,
+                "NAL @ %6d : Type %u\n",
+                i,
+                nalType);
         break;
     }
   }
@@ -271,9 +296,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
   while (remainingLen > 0)
   {
     if (!pCodecParserCtx || !pCodecCtx)
-    {
       break;
-    }
 
     processedLen = av_parser_parse2(
         pCodecParserCtx,
@@ -286,12 +309,32 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
         AV_NOPTS_VALUE,
         AV_NOPTS_VALUE);
 
+    fprintf(stderr,
+            "parser: consumed=%d remaining=%d pkt.size=%d\n",
+            processedLen,
+            remainingLen,
+            pkt.size);
+
     remainingLen -= processedLen;
     pData += processedLen;
 
     if (pkt.size > 0)
     {
+      fprintf(stderr,
+              "packet first bytes:");
+
+      int d = pkt.size < 16 ? pkt.size : 16;
+
+      for (int i = 0; i < d; i++)
+        fprintf(stderr, " %02X", pkt.data[i]);
+
+      fprintf(stderr, "\n");
+
       int ret = avcodec_send_packet(pCodecCtx, &pkt);
+
+      fprintf(stderr,
+              "avcodec_send_packet() returned %d\n",
+              ret);
 
       if (ret == AVERROR(EAGAIN))
       {
@@ -299,7 +342,7 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
       else if (ret < 0)
       {
         fprintf(stderr,
-                "Error sending a packet for decoding: %d - %d\n",
+                "Error sending packet for decoding: %d - %d\n",
                 pkt.size,
                 ret);
 
@@ -317,7 +360,13 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
       {
         if (ret >= 0)
         {
-          ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
+          ret = avcodec_receive_frame(
+              pCodecCtx,
+              pFrameYUV);
+
+          fprintf(stderr,
+                  "avcodec_receive_frame() returned %d\n",
+                  ret);
 
           if (ret == AVERROR(EAGAIN) ||
               ret == AVERROR_EOF)
@@ -341,6 +390,13 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
           int w = pFrameYUV->width;
           int h = pFrameYUV->height;
+
+          fprintf(stderr,
+                  "FRAME decoded %dx%d fmt=%d key=%d\n",
+                  w,
+                  h,
+                  pFrameYUV->format,
+                  pFrameYUV->key_frame);
 
           if (nullptr == pSwsCtx)
           {
@@ -407,7 +463,6 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #endif
 }
-
 #if 0
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
