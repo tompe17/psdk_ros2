@@ -146,14 +146,19 @@ WidgetModule::init()
       ament_index_cpp::get_package_share_directory("psdk_wrapper") +
       "/cfg/widget_file/en";
 
-  // for now, it skips the rest if payload is not H20T
-  // payload specific config can be added later if needed (e.g. separate folders
-  // for specific payloads)
-  if (psdk_ros2::global_camera_ptr_->get_attached_camera_type() !=
-      DJI_CAMERA_TYPE_H20T)
-  {
-    RCLCPP_INFO(get_logger(), "Widget module initialized (non H20T)");
-    return true;
+  auto camera_type = psdk_ros2::global_camera_ptr_->get_attached_camera_type();
+
+  switch (camera_type){
+    case DJI_CAMERA_TYPE_H20T:
+      widget_path+="/h20t";
+      break;
+    case DJI_CAMERA_TYPE_P1:
+      widget_path+="/p1";
+      break;
+    default:
+      RCLCPP_INFO(get_logger(), "Widget module initialized");
+      return true;
+
   }
 
   rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
