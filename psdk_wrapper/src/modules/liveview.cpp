@@ -63,7 +63,7 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     // all required files are loaded
     if (camera_infos_.size() == kCameraCalibrationFiles.size())
     {
-      if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_WIDE)
+      if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_WIDE || source == DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT)
       {
         camera_info = camera_infos_[CAMERA_INFO_H20T_WIDE];
       }
