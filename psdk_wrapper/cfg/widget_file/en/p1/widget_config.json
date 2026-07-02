@@ -36,14 +36,14 @@
     },
     "widget_list": [
       {
+        "widget_index": 3,
+        "widget_type": "scale",
+        "widget_name": "Zoom level"
+      },
+      {
         "widget_index": 5,
         "widget_type": "button",
         "widget_name": "Button 5"
-      },
-      {
-        "widget_index": 6,
-        "widget_type": "scale",
-        "widget_name": "Scale 6"
       },
       {
         "widget_index": 7,

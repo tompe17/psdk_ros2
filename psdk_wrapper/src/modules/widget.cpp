@@ -202,7 +202,6 @@ WidgetModule::camera_lens_set_value(E_DjiWidgetType widgetType,
                                     void *userData)
 {
   (void)widgetType;
-  (void)widgetIndex;
 
   auto *self = static_cast<WidgetModule *>(userData);
 
@@ -241,7 +240,6 @@ WidgetModule::camera_lens_get_value(E_DjiWidgetType widgetType,
                                     void *userData)
 {
   (void)widgetType;
-  (void)widgetIndex;
 
   auto *self = static_cast<WidgetModule *>(userData);
 
@@ -358,6 +356,10 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
         break;
       }
+    case 3:
+      RCLCPP_INFO(self->get_logger(), "Setting zoom %d", value);
+
+      break;
 
     default:
 
