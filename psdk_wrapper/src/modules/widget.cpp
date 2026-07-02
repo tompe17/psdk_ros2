@@ -146,6 +146,16 @@ WidgetModule::init()
       ament_index_cpp::get_package_share_directory("psdk_wrapper") +
       "/cfg/widget_file/en";
 
+  // for now, it skips the rest if payload is not H20T
+  // payload specific config can be added later if needed (e.g. separate folders
+  // for specific payloads)
+  if (psdk_ros2::global_camera_ptr_->get_attached_camera_type() !=
+      DJI_CAMERA_TYPE_H20T)
+  {
+    RCLCPP_INFO(get_logger(), "Widget module initialized (non H20T)");
+    return true;
+  }
+
   rc = DjiWidget_RegDefaultUiConfigByDirPath(widget_path.c_str());
 
   //  rc = DjiWidget_RegDefaultUiConfigByDirPath(
@@ -158,7 +168,7 @@ WidgetModule::init()
     return false;
   }
   RCLCPP_INFO(get_logger(), "Widget path: %s", widget_path.c_str());
-  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
+//  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
 
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));
@@ -428,7 +438,8 @@ WidgetModule::handleWidePressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE, true);
+        liveview->camera_setup_streaming(
+            true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE, true);
       })
       .detach();
 }
@@ -443,12 +454,12 @@ WidgetModule::handleZoomPressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM, true);
+        liveview->camera_setup_streaming(
+            true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_ZOOM, true);
       })
       .detach();
 
   RCLCPP_ERROR(get_logger(), "Finished");
-
 }
 
 void
@@ -465,7 +476,8 @@ WidgetModule::handleThermalPressed()
       [liveview = psdk_ros2::global_liveview_ptr_]
       {
         liveview->camera_setup_streaming(false, -1, -1, true);
-        liveview->camera_setup_streaming(true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR, true);
+        liveview->camera_setup_streaming(
+            true, 1, DJI_LIVEVIEW_CAMERA_SOURCE_H20T_IR, true);
       })
       .detach();
 
