@@ -137,6 +137,7 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
 
   bool is_streaming() const;
   int get_image_jpeg_compression() const;
+  void  set_image_jpeg_compression(const int &jpeg_quality);
 
   std::string get_camera_lens_name();
   int get_camera_source_index() const;

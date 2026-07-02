@@ -516,6 +516,9 @@ LiveviewModule::is_streaming() const
 int
 LiveviewModule::get_image_jpeg_compression() const {return wanted_image_jpeg_quality;}
 
+void
+LiveviewModule::set_image_jpeg_compression(const int &jpeg_quality){wanted_image_jpeg_quality = jpeg_quality;}
+
 std::string LiveviewModule::get_camera_lens_name()
 {
   switch (stream_state_.camera_source)
@@ -586,7 +589,7 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
   get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
   get_parameter("image_time_offset_ms", image_time_offset_ms);
 
-  
+
   //  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
   //              payload_index, camera_source);
   T_DjiReturnCode return_code = DjiLiveview_StartH264Stream(

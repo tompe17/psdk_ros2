@@ -367,8 +367,9 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
         break;
       }
     case 2:
+    case 3:
       RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
-
+      psdk_ros2::global_liveview_ptr_->set_image_jpeg_compression(value);
       break;
 
     default:
