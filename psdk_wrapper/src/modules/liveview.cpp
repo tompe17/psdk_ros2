@@ -75,7 +75,7 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
   }
   else if (camera_type == DJI_CAMERA_TYPE_P1)
   {
-      camera_info = camera_infos_[CAMERA_INFO_P1];
+    camera_info = camera_infos_[CAMERA_INFO_P1];
   }
 
   // modify the params is image size is different from calibration
@@ -102,17 +102,17 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
   return camera_info;
 }
 
-bool LiveviewModule::load_camera_info_files(const std::string& folder)
+bool
+LiveviewModule::load_camera_info_files(const std::string &folder)
 {
-
   auto file_path = "file://" + folder + "/";
 
   for (const auto &[type, filename] : kCameraCalibrationFiles)
   {
     const std::string calibration_file = file_path + filename;
 
-//    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
-//                calibration_file.c_str());
+    //    RCLCPP_INFO(get_logger(), "Loading camera calibration file: %s",
+    //                calibration_file.c_str());
 
     auto it = kCameraCalibrationNames.find(type);
 
@@ -120,11 +120,8 @@ bool LiveviewModule::load_camera_info_files(const std::string& folder)
     {
       const std::string &name = it->second;
       camera_info_manager_->setCameraName(name);
-//      RCLCPP_INFO(get_logger(), "Camera name: %s", name.c_str());
+      //      RCLCPP_INFO(get_logger(), "Camera name: %s", name.c_str());
     }
-
-
-
 
     if (!camera_info_manager_->loadCameraInfo(calibration_file))
     {
@@ -280,8 +277,7 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
     stream_state_.camera_source = DJI_LIVEVIEW_CAMERA_SOURCE_H20T_WIDE;
 
   auto camera_calib_folder =
-          ament_index_cpp::get_package_share_directory("lrs_m300") +
-          "/configs";
+      ament_index_cpp::get_package_share_directory("lrs_m300") + "/configs";
   load_camera_info_files(camera_calib_folder);
 
   return CallbackReturn::SUCCESS;
@@ -517,7 +513,11 @@ LiveviewModule::is_streaming() const
   return stream_state_.streaming;
 }
 
-std::string LiveviewModule::get_camera_lens_name(){
+int
+LiveviewModule::get_image_jpeg_compression() const {return wanted_image_jpeg_quality;}
+
+std::string LiveviewModule::get_camera_lens_name()
+{
   switch (stream_state_.camera_source)
   {
     case DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT:
@@ -563,11 +563,11 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
                                     E_DjiLiveViewCameraPosition payload_index,
                                     E_DjiLiveViewCameraSource camera_source)
 {
-//  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream");
+  //  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream");
   if (decode_stream_)
   {
-//    RCLCPP_INFO(rclcpp::get_logger("liveview"),
-//                "start_camera_stream: decode_stream_");
+    //    RCLCPP_INFO(rclcpp::get_logger("liveview"),
+    //                "start_camera_stream: decode_stream_");
     auto decoder = stream_decoder_.find(payload_index);
     if ((decoder != stream_decoder_.end()) && decoder->second)
     {
@@ -580,8 +580,14 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
       return false;
     }
   }
-//  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
-//              payload_index, camera_source);
+
+  get_parameter("main_camera_width", wanted_image_width);
+  get_parameter("main_camera_height", wanted_image_height);
+  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
+  get_parameter("image_time_offset_ms", image_time_offset_ms);
+
+  //  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
+  //              payload_index, camera_source);
   T_DjiReturnCode return_code = DjiLiveview_StartH264Stream(
       payload_index, camera_source, c_LiveviewConvertH264ToRgbCallback);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -701,11 +707,6 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   int cols = img.cols;
   int rows = img.rows;
 
-  get_parameter("main_camera_width", wanted_image_width);
-  get_parameter("main_camera_height", wanted_image_height);
-  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
-  get_parameter("image_time_offset_ms", image_time_offset_ms);
-
   //  RCLCPP_INFO_STREAM(get_logger(),
   //                     "wanted_image_jpeg_quality " <<
   //                     wanted_image_jpeg_quality);
@@ -729,8 +730,8 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
 
   cv::imencode(".jpg", outimg, buffer, params);
 
-  rclcpp::Duration offset = rclcpp::Duration::from_nanoseconds(image_time_offset_ms * 1e6);
-
+  rclcpp::Duration offset =
+      rclcpp::Duration::from_nanoseconds(image_time_offset_ms * 1e6);
 
   // ---- Build CompressedImage
   sensor_msgs::msg::CompressedImage msg;

@@ -405,6 +405,12 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
       *value = streaming ? 1 : 0;
       break;
     }
+    case 2:
+    case 3:
+    {
+
+      break;
+    }
     default:
       RCLCPP_INFO(self->get_logger(),
                   "widget_state_get: unknown widget index: %d", index);
