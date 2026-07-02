@@ -187,7 +187,220 @@ void DJICameraStreamDecoder::callbackThreadFunc()
         }
     }
 }
-#if 1
+
+void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
+{
+  const uint8_t *pData = buf;
+  int remainingLen = bufLen;
+  int processedLen = 0;
+
+#ifdef FFMPEG_INSTALLED
+
+  // -----------------------------------------------------------------
+  // Debug: dump all H.264 NAL units found in the raw input buffer.
+  // -----------------------------------------------------------------
+  for (int i = 0; i < bufLen - 4; ++i)
+  {
+    int startCodeLen = 0;
+
+    if (buf[i] == 0x00 &&
+        buf[i + 1] == 0x00 &&
+        buf[i + 2] == 0x01)
+    {
+      startCodeLen = 3;
+    }
+    else if (buf[i] == 0x00 &&
+             buf[i + 1] == 0x00 &&
+             buf[i + 2] == 0x00 &&
+             buf[i + 3] == 0x01)
+    {
+      startCodeLen = 4;
+    }
+
+    if (startCodeLen == 0)
+      continue;
+
+    uint8_t nalType = buf[i + startCodeLen] & 0x1F;
+
+    switch (nalType)
+    {
+      case 1:
+        fprintf(stderr, "[H264] Non-IDR slice\n");
+        break;
+
+      case 5:
+        fprintf(stderr,
+                "\n================ IDR FOUND ================\n");
+        break;
+
+      case 6:
+        fprintf(stderr, "[H264] SEI\n");
+        break;
+
+      case 7:
+        fprintf(stderr, "[H264] SPS\n");
+        break;
+
+      case 8:
+        fprintf(stderr, "[H264] PPS\n");
+        break;
+
+      case 9:
+        fprintf(stderr, "[H264] AUD\n");
+        break;
+
+      default:
+        fprintf(stderr, "[H264] NAL type %u\n", nalType);
+        break;
+    }
+  }
+
+  AVPacket pkt;
+  av_init_packet(&pkt);
+
+  pthread_mutex_lock(&decodemutex);
+
+  while (remainingLen > 0)
+  {
+    if (!pCodecParserCtx || !pCodecCtx)
+    {
+      break;
+    }
+
+    processedLen = av_parser_parse2(
+        pCodecParserCtx,
+        pCodecCtx,
+        &pkt.data,
+        &pkt.size,
+        pData,
+        remainingLen,
+        AV_NOPTS_VALUE,
+        AV_NOPTS_VALUE,
+        AV_NOPTS_VALUE);
+
+    remainingLen -= processedLen;
+    pData += processedLen;
+
+    if (pkt.size > 0)
+    {
+      int ret = avcodec_send_packet(pCodecCtx, &pkt);
+
+      if (ret == AVERROR(EAGAIN))
+      {
+      }
+      else if (ret < 0)
+      {
+        fprintf(stderr,
+                "Error sending a packet for decoding: %d - %d\n",
+                pkt.size,
+                ret);
+
+        pthread_mutex_unlock(&decodemutex);
+        return;
+      }
+
+      int gotPicture = 1;
+
+      if (!gotPicture)
+      {
+        continue;
+      }
+      else
+      {
+        if (ret >= 0)
+        {
+          ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
+
+          if (ret == AVERROR(EAGAIN) ||
+              ret == AVERROR_EOF)
+          {
+            break;
+          }
+
+          if (ret == AVERROR_EOF)
+          {
+            fprintf(stderr,
+                    "Error during decoding: EOF\n");
+            break;
+          }
+          else if (ret < 0)
+          {
+            fprintf(stderr,
+                    "Error during decoding - fatal: %d\n",
+                    ret);
+            break;
+          }
+
+          int w = pFrameYUV->width;
+          int h = pFrameYUV->height;
+
+          if (nullptr == pSwsCtx)
+          {
+            pSwsCtx = sws_getContext(
+                w,
+                h,
+                pCodecCtx->pix_fmt,
+                w,
+                h,
+                AV_PIX_FMT_RGB24,
+                4,
+                nullptr,
+                nullptr,
+                nullptr);
+          }
+
+          if (nullptr == rgbBuf)
+          {
+            bufSize = av_image_get_buffer_size(
+                AV_PIX_FMT_RGB24,
+                w,
+                h,
+                1);
+
+            rgbBuf = (uint8_t *)av_malloc(bufSize);
+
+            av_image_fill_arrays(
+                pFrameRGB->data,
+                pFrameRGB->linesize,
+                rgbBuf,
+                AV_PIX_FMT_RGB24,
+                w,
+                h,
+                1);
+          }
+
+          if (nullptr != pSwsCtx &&
+              nullptr != rgbBuf)
+          {
+            sws_scale(
+                pSwsCtx,
+                (uint8_t const *const *)pFrameYUV->data,
+                pFrameYUV->linesize,
+                0,
+                pFrameYUV->height,
+                pFrameRGB->data,
+                pFrameRGB->linesize);
+
+            pFrameRGB->height = h;
+            pFrameRGB->width = w;
+
+            decodedImageHandler.writeNewImageWithLock(
+                pFrameRGB->data[0],
+                bufSize,
+                w,
+                h);
+          }
+        }
+      }
+    }
+  }
+
+  pthread_mutex_unlock(&decodemutex);
+
+#endif
+}
+
+#if 0
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
     const uint8_t *pData = buf;
