@@ -187,7 +187,8 @@ void DJICameraStreamDecoder::callbackThreadFunc()
         }
     }
 }
-
+#if 0
+// debugging version - might come back to it at some point
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
   const uint8_t *pData = buf;
@@ -463,7 +464,8 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #endif
 }
-#if 0
+#endif
+#if 1
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
     const uint8_t *pData = buf;
