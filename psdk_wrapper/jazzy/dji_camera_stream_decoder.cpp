@@ -284,6 +284,8 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 #endif
 }
 #endif
+
+
 void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 {
   const uint8_t *pData = buf;
@@ -294,8 +296,6 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
   AVPacket pkt;
   av_init_packet(&pkt);
-  pkt.data = nullptr;
-  pkt.size = 0;
 
   pthread_mutex_lock(&decodemutex);
 
@@ -315,118 +315,147 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
         AV_NOPTS_VALUE,
         AV_NOPTS_VALUE);
 
-    if (processedLen <= 0)
-      break;
-
     remainingLen -= processedLen;
     pData += processedLen;
 
     if (pkt.size <= 0)
       continue;
 
+    //------------------------------------------------------------------
+    // Wait until an IDR NAL (type 5) has been seen.
+    //------------------------------------------------------------------
+
+    if (!m_receivedFirstKeyFrame)
+    {
+      for (int i = 0; i < pkt.size - 4; i++)
+      {
+        if ((pkt.data[i] == 0x00 &&
+             pkt.data[i + 1] == 0x00 &&
+             pkt.data[i + 2] == 0x01) ||
+
+            (pkt.data[i] == 0x00 &&
+             pkt.data[i + 1] == 0x00 &&
+             pkt.data[i + 2] == 0x00 &&
+             pkt.data[i + 3] == 0x01))
+        {
+          int offset = (pkt.data[i + 2] == 0x01) ? 3 : 4;
+          uint8_t nalType = pkt.data[i + offset] & 0x1F;
+
+          if (nalType == 5)
+          {
+            fprintf(stderr, "First IDR detected.\n");
+            m_receivedFirstKeyFrame = true;
+            break;
+          }
+        }
+      }
+
+      if (!m_receivedFirstKeyFrame)
+        continue;
+    }
+
+    //------------------------------------------------------------------
+
     int ret = avcodec_send_packet(pCodecCtx, &pkt);
 
     if (ret == AVERROR(EAGAIN))
-      continue;
-
-    if (ret < 0)
+    {
+      // keep original behaviour
+    }
+    else if (ret < 0)
     {
       fprintf(stderr,
-              "Error sending packet for decoding: %d\n",
+              "Error sending packet for decoding: %d - %d\n",
+              pkt.size,
               ret);
-      break;
+      continue;
     }
 
-    while (true)
+    int gotPicture = 1;
+
+    if (!gotPicture)
     {
-      ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
-
-      if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-        break;
-
-      if (ret < 0)
+      continue;
+    }
+    else
+    {
+      if (ret >= 0)
       {
-        fprintf(stderr,
-                "Error receiving frame: %d\n",
-                ret);
-        break;
-      }
+        ret = avcodec_receive_frame(pCodecCtx, pFrameYUV);
 
-      //--------------------------------------------------
-      // Wait until the first keyframe arrives.
-      //--------------------------------------------------
-
-      if (!m_receivedFirstKeyFrame)
-      {
-        if (!pFrameYUV->key_frame)
+        if (ret == AVERROR(EAGAIN) ||
+            ret == AVERROR_EOF)
         {
-          av_frame_unref(pFrameYUV);
-          continue;
+          break;
         }
 
-        fprintf(stderr, "First keyframe received.\n");
-        m_receivedFirstKeyFrame = true;
+        if (ret < 0)
+        {
+          fprintf(stderr,
+                  "Error during decoding: %d\n",
+                  ret);
+          break;
+        }
+
+        int w = pFrameYUV->width;
+        int h = pFrameYUV->height;
+
+        if (nullptr == pSwsCtx)
+        {
+          pSwsCtx = sws_getContext(
+              w,
+              h,
+              (AVPixelFormat)pFrameYUV->format,
+              w,
+              h,
+              AV_PIX_FMT_RGB24,
+              SWS_BILINEAR,
+              nullptr,
+              nullptr,
+              nullptr);
+        }
+
+        if (nullptr == rgbBuf)
+        {
+          bufSize = av_image_get_buffer_size(
+              AV_PIX_FMT_RGB24,
+              w,
+              h,
+              1);
+
+          rgbBuf = (uint8_t *)av_malloc(bufSize);
+
+          av_image_fill_arrays(
+              pFrameRGB->data,
+              pFrameRGB->linesize,
+              rgbBuf,
+              AV_PIX_FMT_RGB24,
+              w,
+              h,
+              1);
+        }
+
+        if (pSwsCtx && rgbBuf)
+        {
+          sws_scale(
+              pSwsCtx,
+              (const uint8_t *const *)pFrameYUV->data,
+              pFrameYUV->linesize,
+              0,
+              h,
+              pFrameRGB->data,
+              pFrameRGB->linesize);
+
+          pFrameRGB->width = w;
+          pFrameRGB->height = h;
+
+          decodedImageHandler.writeNewImageWithLock(
+              pFrameRGB->data[0],
+              bufSize,
+              w,
+              h);
+        }
       }
-
-      //--------------------------------------------------
-
-      int w = pFrameYUV->width;
-      int h = pFrameYUV->height;
-
-      if (pSwsCtx == nullptr)
-      {
-        pSwsCtx = sws_getContext(
-            w,
-            h,
-            (AVPixelFormat)pFrameYUV->format,
-            w,
-            h,
-            AV_PIX_FMT_RGB24,
-            SWS_BILINEAR,
-            nullptr,
-            nullptr,
-            nullptr);
-      }
-
-      if (rgbBuf == nullptr)
-      {
-        bufSize = av_image_get_buffer_size(
-            AV_PIX_FMT_RGB24,
-            w,
-            h,
-            1);
-
-        rgbBuf = (uint8_t *)av_malloc(bufSize);
-
-        av_image_fill_arrays(
-            pFrameRGB->data,
-            pFrameRGB->linesize,
-            rgbBuf,
-            AV_PIX_FMT_RGB24,
-            w,
-            h,
-            1);
-      }
-
-      sws_scale(
-          pSwsCtx,
-          (const uint8_t *const *)pFrameYUV->data,
-          pFrameYUV->linesize,
-          0,
-          h,
-          pFrameRGB->data,
-          pFrameRGB->linesize);
-
-      pFrameRGB->width = w;
-      pFrameRGB->height = h;
-
-      decodedImageHandler.writeNewImageWithLock(
-          pFrameRGB->data[0],
-          bufSize,
-          w,
-          h);
-
-      av_frame_unref(pFrameYUV);
     }
   }
 
@@ -434,6 +463,8 @@ void DJICameraStreamDecoder::decodeBuffer(const uint8_t *buf, int bufLen)
 
 #endif
 }
+
+
 bool DJICameraStreamDecoder::registerCallback(CameraImageCallback f, void *param)
 {
     cb = f;
