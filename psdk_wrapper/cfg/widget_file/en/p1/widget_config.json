@@ -31,8 +31,8 @@
         "widget_type": "scale",
         "widget_name": "Jpeg compression Level",
         "icon_file_set": {
-          "icon_file_name_selected": "stream_on.png",
-          "icon_file_name_unselected": "stream_on.png"
+          "icon_file_name_selected": "jpeg.png",
+          "icon_file_name_unselected": "jpeg.png"
         },
         "customize_rc_buttons_config": {
           "is_enable": true,
