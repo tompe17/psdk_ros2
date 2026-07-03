@@ -63,7 +63,8 @@ LiveviewModule::get_camera_info(E_DjiCameraType camera_type,
     // all required files are loaded
     if (camera_infos_.size() == kCameraCalibrationFiles.size())
     {
-      if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_WIDE || source == DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT)
+      if (source == DJI_LIVEVIEW_CAMERA_SOURCE_H20N_WIDE ||
+          source == DJI_LIVEVIEW_CAMERA_SOURCE_DEFAULT)
       {
         camera_info = camera_infos_[CAMERA_INFO_H20T_WIDE];
       }
@@ -350,16 +351,20 @@ LiveviewModule::init()
     return true;
   }
 
+  RCLCPP_INFO(get_logger(), "Initiating liveview module");
+
   declare_parameter<int>("main_camera_width", -1);
-  get_parameter("main_camera_width", wanted_image_width);
+  get_parameter("main_camera_width", main_camera_image_width);
   declare_parameter<int>("main_camera_height", -1);
-  get_parameter("main_camera_height", wanted_image_height);
+  get_parameter("main_camera_height", main_camera_image_height);
   declare_parameter<int>("main_camera_jpeg_quality", 80);
-  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
+  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
   declare_parameter<int>("image_time_offset_ms", 0);
   get_parameter("image_time_offset_ms", image_time_offset_ms);
 
-  RCLCPP_INFO(get_logger(), "Initiating liveview module");
+  parameter_callback_handle_ = add_on_set_parameters_callback(std::bind(
+      &LiveviewModule::parametersCallback, this, std::placeholders::_1));
+
   T_DjiReturnCode return_code = DjiLiveview_Init();
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
@@ -379,6 +384,36 @@ LiveviewModule::init()
   //  payload_index_ = DJI_LIVEVIEW_CAMERA_POSITION_NO_1;
   is_module_initialized_ = true;
   return true;
+}
+
+rcl_interfaces::msg::SetParametersResult
+LiveviewModule::parametersCallback(
+    const std::vector<rclcpp::Parameter> &parameters)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+
+  for (const auto &parameter : parameters)
+  {
+    if (parameter.get_name() == "main_camera_jpeg_quality")
+    {
+      int quality = parameter.as_int();
+
+      if (quality < 1 || quality > 100)
+      {
+        result.successful = false;
+        result.reason = "jpeg_quality must be between 1 and 100";
+        return result;
+      }
+
+      main_camera_jpeg_quality = quality;
+
+      RCLCPP_INFO(get_logger(), "JPEG quality changed to %d",
+                  main_camera_jpeg_quality);
+    }
+  }
+
+  return result;
 }
 
 bool
@@ -514,12 +549,19 @@ LiveviewModule::is_streaming() const
 }
 
 int
-LiveviewModule::get_image_jpeg_compression() const {return wanted_image_jpeg_quality;}
+LiveviewModule::get_image_jpeg_quality() const
+{
+  return main_camera_jpeg_quality;
+}
 
 void
-LiveviewModule::set_image_jpeg_compression(const int &jpeg_quality){wanted_image_jpeg_quality = jpeg_quality;}
+LiveviewModule::set_image_jpeg_quality(const int &jpeg_quality)
+{
+  main_camera_jpeg_quality = jpeg_quality;
+}
 
-std::string LiveviewModule::get_camera_lens_name()
+std::string
+LiveviewModule::get_camera_lens_name()
 {
   switch (stream_state_.camera_source)
   {
@@ -583,12 +625,6 @@ LiveviewModule::start_camera_stream(CameraImageCallback callback,
       return false;
     }
   }
-
-//  get_parameter("main_camera_width", wanted_image_width);
-//  get_parameter("main_camera_height", wanted_image_height);
-//  get_parameter("main_camera_jpeg_quality", wanted_image_jpeg_quality);
-//  get_parameter("image_time_offset_ms", image_time_offset_ms);
-
 
   //  RCLCPP_INFO(rclcpp::get_logger("liveview"), "start_camera_stream: %d %d",
   //              payload_index, camera_source);
@@ -711,14 +747,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   int cols = img.cols;
   int rows = img.rows;
 
-  //  RCLCPP_INFO_STREAM(get_logger(),
-  //                     "wanted_image_jpeg_quality " <<
-  //                     wanted_image_jpeg_quality);
-  //
-  if ((wanted_image_width > 0) && (wanted_image_height > 0))
+  if ((main_camera_image_width > 0) && (main_camera_image_height > 0))
   {
-    cols = wanted_image_width;
-    rows = wanted_image_height;
+    cols = main_camera_image_width;
+    rows = main_camera_image_height;
   }
 
   cv::Mat img_bgr;
@@ -730,7 +762,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   // ---- Compress with lower JPEG quality ----
   std::vector<uchar> buffer;
   std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY,
-                             wanted_image_jpeg_quality};
+                             main_camera_jpeg_quality};
 
   cv::imencode(".jpg", outimg, buffer, params);
 

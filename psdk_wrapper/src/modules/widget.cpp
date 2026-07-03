@@ -369,7 +369,7 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
     case 2:
     case 3:
 //      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
-      psdk_ros2::global_liveview_ptr_->set_image_jpeg_compression(value);
+      psdk_ros2::global_liveview_ptr_->set_image_jpeg_quality(value);
       break;
 
     default:
@@ -409,7 +409,7 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     case 2:
     case 3:
     {
-      *value = psdk_ros2::global_liveview_ptr_->get_image_jpeg_compression();
+      *value = psdk_ros2::global_liveview_ptr_->get_image_jpeg_quality();
 
       break;
     }

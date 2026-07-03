@@ -40,7 +40,7 @@ namespace psdk_ros2
 typedef enum
 {
   CAMERA_INFO_H20T_ZOOM_2X,
-  CAMERA_INFO_H20T_ZOOM_5X ,
+  CAMERA_INFO_H20T_ZOOM_5X,
   CAMERA_INFO_H20T_ZOOM_10X,
   CAMERA_INFO_H20T_WIDE,
   CAMERA_INFO_P1,
@@ -136,12 +136,13 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
                               bool decoded_output);
 
   bool is_streaming() const;
-  int get_image_jpeg_compression() const;
-  void  set_image_jpeg_compression(const int &jpeg_quality);
+  int get_image_jpeg_quality() const;
+  void set_image_jpeg_quality(const int& jpeg_quality);
 
   std::string get_camera_lens_name();
   int get_camera_source_index() const;
-  inline double lerp(double a, double b, double t)
+  inline double
+  lerp(double a, double b, double t)
   {
     return a + t * (b - a);
   }
@@ -252,10 +253,10 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool is_module_initialized_{false};
   //  E_DjiLiveViewCameraPosition payload_index_;
 
-  int wanted_image_width;
-  int wanted_image_height;
-  int wanted_image_jpeg_quality;
-  long image_time_offset_ms=0;
+  int main_camera_image_width;
+  int main_camera_image_height;
+  int main_camera_jpeg_quality;
+  long image_time_offset_ms = 0;
 
   StreamState stream_state_;
 
@@ -265,15 +266,20 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   std::deque<rclcpp::Time> timestamps_;
 
   std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
-  std::map<CameraInfoType, sensor_msgs::msg::CameraInfo>
-      camera_infos_;
+  std::map<CameraInfoType, sensor_msgs::msg::CameraInfo> camera_infos_;
   sensor_msgs::msg::CameraInfo get_camera_info(E_DjiCameraType camera_type,
                                                E_DjiLiveViewCameraSource source,
                                                uint32_t image_width,
-                                               uint32_t image_height, float zoom_factor);
+                                               uint32_t image_height,
+                                               float zoom_factor);
   sensor_msgs::msg::CameraInfo get_camera_info_zoom(double zoom_factor);
   bool load_camera_info_files(const std::string& folder);
 
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr
+      parameter_callback_handle_;
+
+  rcl_interfaces::msg::SetParametersResult parametersCallback(
+      const std::vector<rclcpp::Parameter>& parameters);
 };
 
 extern std::shared_ptr<LiveviewModule> global_liveview_ptr_;

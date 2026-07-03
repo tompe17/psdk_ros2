@@ -178,6 +178,7 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
                 std::placeholders::_1, std::placeholders::_2),
       qos_profile_);
 
+
   // Camera action servers
   camera_download_file_by_index_server_ =
       std::make_unique<utils::ActionServer<CameraDownloadFileByIndex>>(
@@ -191,6 +192,7 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
           get_node_logging_interface(), get_node_waitables_interface(),
           "psdk_ros2/camera_delete_file_by_index",
           std::bind(&CameraModule::execute_delete_file_by_index, this));
+
 
   camera_info_pub_ = create_publisher<std_msgs::msg::String>(
       "psdk_ros2/main_camera_stream/camera_status", 10);
@@ -383,7 +385,7 @@ CameraModule::publish_camera_information()
   std_msgs::msg::String msg;
   auto lens=psdk_ros2::global_liveview_ptr_->get_camera_lens_name();
   auto streaming=psdk_ros2::global_liveview_ptr_->is_streaming();
-  auto jpeg=psdk_ros2::global_liveview_ptr_->get_image_jpeg_compression();
+  auto jpeg=psdk_ros2::global_liveview_ptr_->get_image_jpeg_quality();
 
   std::ostringstream oss;
   oss << "{"
@@ -392,7 +394,7 @@ CameraModule::publish_camera_information()
       << "\"zoom_factor\":" << zoom_factor_.load() << ","
       << "\"max_zoom_factor\":" << max_zoom_factor_.load() << ","
       << "\"streaming\":\"" << streaming << "\","
-      << "\"jpeg\":\"" << jpeg << "\","
+      << "\"main_camera_jpeg_quality\":\"" << jpeg << "\","
       << "}";
 
   msg.data = oss.str();
