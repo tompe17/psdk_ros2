@@ -392,7 +392,7 @@ CameraModule::publish_camera_information()
   oss << "{"
       << "\"camera\":\"" << camera_type_str_ << "\","
       << "\"lens\":\"" << lens << "\","
-      << "\"zoom_factor2\":" << zoom_factor_.load() << ","
+      << "\"zoom_factor\":" << zoom_factor_.load() << ","
       << "\"max_zoom_factor\":" << max_zoom_factor_.load() << ","
       << "\"streaming\":\"" << streaming << "\","
       << "\"main_camera_jpeg_quality\":\"" << jpeg << "\","
