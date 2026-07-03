@@ -801,7 +801,7 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   auto camera_info = get_camera_info(camera_type, stream_state_.camera_source,
                                      cols, rows, zoom_factor);
   camera_info.header = msg.header;
-  camera_info.header.stamp = stamp_now;
+//  camera_info.header.stamp = stamp_now-offset;
   camera_info_pub_->publish(camera_info);
 #if 0
   auto t1 = this->now();
