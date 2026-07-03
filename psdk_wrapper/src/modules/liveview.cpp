@@ -406,10 +406,18 @@ LiveviewModule::parametersCallback(
         return result;
       }
 
-      main_camera_jpeg_quality = quality;
+      set_main_camera_jpeg_quality(quality);
 
-      RCLCPP_INFO(get_logger(), "JPEG quality changed to %d",
-                  main_camera_jpeg_quality);
+
+    }
+    if (parameter.get_name() == "image_time_offset_ms")
+    {
+      int quality = parameter.as_int();
+
+      image_time_offset_ms = quality;
+
+      RCLCPP_INFO(get_logger(), "Image time offset set to %d",
+                  image_time_offset_ms);
     }
   }
 
@@ -549,19 +557,22 @@ LiveviewModule::is_streaming() const
 }
 
 int
-LiveviewModule::get_image_jpeg_quality() const
+LiveviewModule::get_main_camera_jpeg_quality() const
 {
   return main_camera_jpeg_quality;
 }
 
 void
-LiveviewModule::set_image_jpeg_quality(const int &jpeg_quality)
+LiveviewModule::set_main_camera_jpeg_quality(const int &jpeg_quality)
 {
+  RCLCPP_INFO(get_logger(), "Main camera JPEG quality changed to %d",
+              main_camera_jpeg_quality);
+
   main_camera_jpeg_quality = jpeg_quality;
 }
 
 std::string
-LiveviewModule::get_camera_lens_name()
+LiveviewModule::get_camera_lens_name() const
 {
   switch (stream_state_.camera_source)
   {
