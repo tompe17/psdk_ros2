@@ -388,6 +388,7 @@ CameraModule::publish_camera_information()
   auto jpeg= psdk_ros2::global_liveview_ptr_->get_main_camera_jpeg_quality();
 
   std::ostringstream oss;
+  oss << std::fixed << std::setprecision(2);
   oss << "{"
       << "\"camera\":\"" << camera_type_str_ << "\","
       << "\"lens\":\"" << lens << "\","
