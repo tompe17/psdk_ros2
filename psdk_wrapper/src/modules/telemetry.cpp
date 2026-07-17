@@ -2758,7 +2758,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
 
     // body -> gimbal
-    tf2::Quaternion q_body_gimbal = q_body.inverse() * q_gimbal;
+    tf2::Quaternion q_body_gimbal = q_body.inverse() * q_gimbal.inverse();
 
     double roll, pitch, yaw;
     tf2::Matrix3x3(q_body_gimbal).getRPY(
