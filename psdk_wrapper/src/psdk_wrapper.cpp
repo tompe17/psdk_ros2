@@ -25,6 +25,7 @@ std::shared_ptr<psdk_ros2::LiveviewModule> psdk_ros2::global_liveview_ptr_;
 std::shared_ptr<psdk_ros2::HmsModule> psdk_ros2::global_hms_ptr_;
 std::shared_ptr<psdk_ros2::PerceptionModule> psdk_ros2::global_perception_ptr_;
 std::shared_ptr<psdk_ros2::WidgetModule> psdk_ros2::global_widget_ptr_;
+std::shared_ptr<psdk_ros2::CoordModule> psdk_ros2::global_coord_ptr_;
 
 using namespace std::placeholders;  // NOLINT
 
@@ -57,6 +58,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("mandatory_modules.perception",
                     rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.widget",
+                    rclcpp::ParameterValue(false));
+  declare_parameter("mandatory_modules.coord",
                     rclcpp::ParameterValue(false));
   declare_parameter("tf_frame_prefix", rclcpp::ParameterValue(""));
   declare_parameter("imu_frame", rclcpp::ParameterValue("psdk_imu_link"));
@@ -105,6 +108,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                 is_perception_module_mandatory_);
   get_parameter("mandatory_modules.widget",
                 is_widget_module_mandatory_);
+  get_parameter("mandatory_modules.coord",
+                is_coord_module_mandatory_);
 
 
   create_module(is_telemetry_module_mandatory_, telemetry_module_,
@@ -129,6 +134,10 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_widget_module_mandatory_, widget_module_,
                 widget_thread_, "widget_node",
                 psdk_ros2::global_widget_ptr_);
+  create_module(is_coord_module_mandatory_, coord_module_,
+                coord_thread_, "coord_node",
+                psdk_ros2::global_coord_ptr_);
+
 }
 
 PSDKWrapper::~PSDKWrapper()
@@ -247,7 +256,9 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
       (is_perception_module_mandatory_ && perception_module_ &&
        !perception_module_->deinit())||
       (is_widget_module_mandatory_ && widget_module_ &&
-       !widget_module_->deinit()))
+       !widget_module_->deinit()) ||
+      (is_coord_module_mandatory_ && coord_module_ &&
+       !coord_module_->deinit()))
   {
     RCLCPP_ERROR(get_logger(), "Failed to deinitialize one or more modules.");
     return CallbackReturn::FAILURE;
@@ -285,6 +296,8 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
                           perception_thread_);
   stop_and_destroy_module(is_widget_module_mandatory_, widget_module_,
                           widget_thread_);
+  stop_and_destroy_module(is_coord_module_mandatory_, coord_module_,
+                          coord_thread_);
 
   rclcpp::shutdown();
   return CallbackReturn::SUCCESS;
@@ -532,6 +545,10 @@ PSDKWrapper::load_parameters()
   {
 
   }
+  if (is_coord_module_mandatory_)
+  {
+
+  }
   if (is_hms_module_mandatory_)
   {
     get_non_mandatory_param("hms_return_codes_path",
@@ -731,7 +748,8 @@ PSDKWrapper::initialize_psdk_modules()
       !initialize_module(is_hms_module_mandatory_, hms_module_) ||
       !initialize_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_) ||
       !initialize_module(is_perception_module_mandatory_, perception_module_) ||
-      !initialize_module(is_widget_module_mandatory_, widget_module_))
+      !initialize_module(is_widget_module_mandatory_, widget_module_) ||
+      !initialize_module(is_coord_module_mandatory_, widget_module_))
   {
     return false;
   }
@@ -839,6 +857,7 @@ PSDKWrapper::transition_modules_to_state(LifecycleState state)
   transition_if_mandatory(is_hms_module_mandatory_, hms_module_);
   transition_if_mandatory(is_perception_module_mandatory_, perception_module_);
   transition_if_mandatory(is_widget_module_mandatory_, widget_module_);
+  transition_if_mandatory(is_coord_module_mandatory_, coord_module_);
 
   return all_transitions_successful;
 }

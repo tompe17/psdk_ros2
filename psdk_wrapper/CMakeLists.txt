@@ -37,6 +37,7 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(camera_info_manager REQUIRED)
+find_package(lrs_common REQUIRED)
 
 # FetchContent module
 include(FetchContent)
@@ -154,6 +155,7 @@ set(dependencies
   cv_bridge
   image_transport
   camera_info_manager
+  lrs_common
 )
 
 add_executable(psdk_wrapper_node
@@ -171,6 +173,7 @@ add_library(psdk_wrapper_libs SHARED
   src/modules/hms.cpp
   src/modules/perception.cpp
   src/modules/widget.cpp
+  src/modules/coord.cpp
   src/utils/node_thread.cpp
   ${DJI_OSAL_PATH}/osal_fs.c
   ${DJI_OSAL_PATH}/osal_socket.c
