@@ -182,9 +182,15 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   params_.imu_frame = add_tf_prefix(params_.imu_frame);
   params_.body_frame = add_tf_prefix(params_.body_frame);
   params_.horbody_frame = add_tf_prefix(params_.horbody_frame);
-  params_.map_frame = add_tf_prefix(params_.map_frame);
+  // pioru: we want map to be top level frame
+  // params_.map_frame = add_tf_prefix(params_.map_frame);
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
+
+  RCLCPP_INFO(get_logger(), "map_frame: %s", params_.map_frame.c_str());
+  RCLCPP_INFO(get_logger(), "body_frame: %s", params_.body_frame.c_str());
+  RCLCPP_INFO(get_logger(), "horbody_frame: %s", params_.horbody_frame.c_str());
+
 
   if (params_.publish_transforms)
   {
