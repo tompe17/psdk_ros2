@@ -38,6 +38,7 @@ find_package(OpenCV REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(lrs_common REQUIRED)
+find_package(lrs_common_msgs REQUIRED)
 
 # FetchContent module
 include(FetchContent)
@@ -156,6 +157,7 @@ set(dependencies
   image_transport
   camera_info_manager
   lrs_common
+  lrs_common_msgs
 )
 
 add_executable(psdk_wrapper_node

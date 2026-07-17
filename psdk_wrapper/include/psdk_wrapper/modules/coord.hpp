@@ -17,6 +17,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <string>
+#include "coordtrans.h"
+
+// #include "lrs_m300_msgs/msg/takeoff_info.hpp"
+
 
 namespace psdk_ros2
 {
@@ -44,8 +48,9 @@ class CoordModule : public rclcpp_lifecycle::LifecycleNode
   bool deinit();
 
  private:
-
- private:
+  std::string location_;
+  CoordTrans *ct_;
+  double world_origin_elevation_;
 
 };
 
