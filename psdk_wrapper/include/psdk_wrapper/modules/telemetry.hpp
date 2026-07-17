@@ -58,6 +58,9 @@
 #include "psdk_interfaces/msg/rtk_yaw.hpp"
 #include "psdk_interfaces/msg/single_battery_info.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
+#include <tf2/utils.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace psdk_ros2
 {
@@ -374,6 +377,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   {
     std::string imu_frame;
     std::string body_frame;
+    std::string horbody_frame;
     std::string map_frame;
     std::string gimbal_frame;
     std::string gimbal_base_frame;
@@ -402,8 +406,12 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   {
     psdk_interfaces::msg::PositionFused local_position;
     sensor_msgs::msg::NavSatFix gps_position;
+    sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
+    std_msgs::msg::Float32 altitude_sl_fused;
+    std_msgs::msg::Float32 home_point_altitude;
+
 
     void
     initialize_state()
@@ -1069,7 +1077,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   /**
    * @brief Method which publishes the dynamic transforms for a given copter
    */
-  void publish_dynamic_transforms(const T_DjiDataTimestamp* timestamp);
+  void publish_dynamic_gimbal_transforms(const T_DjiDataTimestamp* timestamp);
+  void publish_dynamic_body_transforms() const;
 
   /**
    * @brief Method which computes the yaw angle difference between the gimbal

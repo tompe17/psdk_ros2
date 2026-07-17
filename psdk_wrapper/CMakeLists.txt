@@ -30,6 +30,7 @@ find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(psdk_interfaces REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -148,6 +149,7 @@ set(dependencies
   tf2
   tf2_ros
   sensor_msgs
+  tf2_geometry_msgs
   geometry_msgs
   std_msgs
   nav_msgs

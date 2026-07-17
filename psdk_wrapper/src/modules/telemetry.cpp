@@ -16,6 +16,8 @@
  */
 
 #include "psdk_wrapper/modules/telemetry.hpp"
+
+#include "psdk_wrapper/modules/coord.hpp"
 namespace psdk_ros2
 {
 
@@ -186,6 +188,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
 
   params_.imu_frame = add_tf_prefix(params_.imu_frame);
   params_.body_frame = add_tf_prefix(params_.body_frame);
+  params_.horbody_frame = add_tf_prefix(params_.horbody_frame);
   params_.map_frame = add_tf_prefix(params_.map_frame);
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
@@ -1082,6 +1085,17 @@ TelemetryModule::gps_fused_callback(const uint8_t *data, uint16_t data_size,
   // Altitude, WGS 84 reference ellipsoid, unit: m.
   gps_position_fused_msg.altitude = gps_fused->altitude;
   gps_fused_pub_->publish(gps_position_fused_msg);
+
+  if (params_.publish_transforms)
+  {
+    /* Save gimbal angles for TF publishing and publish dynamic transform */
+    {
+      std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+      current_state_.gps_fused = gps_position_fused_msg;
+    }
+    publish_dynamic_body_transforms();
+  }
+
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1434,7 +1448,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
       std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
       current_state_.gimbal_angles = gimbal_angles_msg;
     }
-    publish_dynamic_transforms(timestamp);
+    publish_dynamic_gimbal_transforms(timestamp);
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -1807,6 +1821,8 @@ TelemetryModule::altitude_sl_callback(const uint8_t *data, uint16_t data_size,
   std_msgs::msg::Float32 altitude_sl_fused_msg;
   altitude_sl_fused_msg.data = *altitude_sl_fused;
   altitude_sl_pub_->publish(altitude_sl_fused_msg);
+  std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+  current_state_.altitude_sl_fused = altitude_sl_fused_msg;
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1946,6 +1962,8 @@ TelemetryModule::home_point_altitude_callback(
   std_msgs::msg::Float32 home_point_altitude_msg;
   home_point_altitude_msg.data = *home_point_altitude;
   home_point_altitude_pub_->publish(home_point_altitude_msg);
+  std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+  current_state_.home_point_altitude = home_point_altitude_msg;
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -2717,7 +2735,7 @@ TelemetryModule::publish_static_transforms()
 }
 
 void
-TelemetryModule::publish_dynamic_transforms(const T_DjiDataTimestamp *timestamp)
+TelemetryModule::publish_dynamic_gimbal_transforms(const T_DjiDataTimestamp *timestamp)
 {
   if (aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
       aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)
@@ -2740,6 +2758,48 @@ TelemetryModule::publish_dynamic_transforms(const T_DjiDataTimestamp *timestamp)
     tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal.getZ();
     tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
+  }
+}
+
+
+void
+TelemetryModule::publish_dynamic_body_transforms() const
+{
+  if (aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
+      aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)
+  {
+
+    std::shared_ptr<psdk_ros2::CoordModule> coord = psdk_ros2::global_coord_ptr_;
+
+    const double height_above_takeoff =
+      current_state_.altitude_sl_fused.data - current_state_.home_point_altitude.data;
+
+    double cx, cy, cz;
+    double alt = height_above_takeoff + coord->get_world_origin_elevation();
+    double lat = current_state_.gps_fused.latitude;
+    double lon = current_state_.gps_fused.longitude;
+
+    coord->wgs84_to_world(lon, lat, alt, cx, cy, cz);
+
+    geometry_msgs::msg::TransformStamped t;
+    t.header.stamp = current_state_.gps_fused.header.stamp;
+    t.header.frame_id = params_.map_frame;
+    t.child_frame_id = params_.body_frame;
+
+    t.transform.translation.x = cx;
+    t.transform.translation.y = cy;
+    t.transform.translation.z = cz;
+    t.transform.rotation = tf2::toMsg(current_state_.attitude);
+    tf_broadcaster_->sendTransform(t);
+
+    t.child_frame_id = params_.horbody_frame;
+
+    // tf2::Quaternion tf_q = current_state_.attitude;
+    tf2::Quaternion tf_q_flat_yaw;
+    tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
+    t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
+    tf_broadcaster_->sendTransform(t);
+
   }
 }
 

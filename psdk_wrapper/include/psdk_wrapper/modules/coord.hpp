@@ -13,14 +13,13 @@
 #ifndef PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_COORD_HPP_
 #define PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_COORD_HPP_
 
+
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <string>
+
 #include "coordtrans.h"
-
-// #include "lrs_m300_msgs/msg/takeoff_info.hpp"
-
 
 namespace psdk_ros2
 {
@@ -47,11 +46,17 @@ class CoordModule : public rclcpp_lifecycle::LifecycleNode
   bool init();
   bool deinit();
 
+  void wgs84_to_world(double lon, double lat, double alt, double &x, double &y,
+                      double &z) const;
+  double get_world_origin_elevation() const
+  {
+    return world_origin_elevation_;
+  }
+
  private:
   std::string location_;
   CoordTrans *ct_;
   double world_origin_elevation_;
-
 };
 
 extern std::shared_ptr<CoordModule> global_coord_ptr_;
