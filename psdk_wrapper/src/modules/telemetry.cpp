@@ -1423,6 +1423,13 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E - psdk_utils::deg_to_rad(gimbal_angles->z);
 
+  RCLCPP_INFO(get_logger(),
+              "---> Gimbal RPY: %f, y:%f, z:%f",
+              gimbal_angles->x,
+              gimbal_angles->y,
+              gimbal_angles->z);
+
+
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
   {
