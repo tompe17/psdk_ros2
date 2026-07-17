@@ -566,6 +566,8 @@ PSDKWrapper::load_parameters()
     get_non_mandatory_param("imu_frame", telemetry_module_->params_.imu_frame);
     get_non_mandatory_param("body_frame",
                             telemetry_module_->params_.body_frame);
+    get_non_mandatory_param("horbody_frame",
+                            telemetry_module_->params_.horbody_frame);
     get_non_mandatory_param("map_frame", telemetry_module_->params_.map_frame);
     get_non_mandatory_param("gimbal_frame",
                             telemetry_module_->params_.gimbal_frame);
