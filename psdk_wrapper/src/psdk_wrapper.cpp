@@ -63,7 +63,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                     rclcpp::ParameterValue(false));
   declare_parameter("tf_frame_prefix", rclcpp::ParameterValue(""));
   declare_parameter("imu_frame", rclcpp::ParameterValue("psdk_imu_link"));
-  declare_parameter("body_frame", rclcpp::ParameterValue("psdk_base_link"));
+  declare_parameter("body_frame", rclcpp::ParameterValue("psdk_body_link"));
+  declare_parameter("horbody_frame", rclcpp::ParameterValue("psdk_horbody_link"));
   declare_parameter("map_frame", rclcpp::ParameterValue("psdk_map_enu"));
   declare_parameter("gimbal_base_frame",
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
