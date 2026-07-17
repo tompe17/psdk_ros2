@@ -187,11 +187,6 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
 
-  RCLCPP_INFO(get_logger(), "map_frame: %s", params_.map_frame.c_str());
-  RCLCPP_INFO(get_logger(), "body_frame: %s", params_.body_frame.c_str());
-  RCLCPP_INFO(get_logger(), "horbody_frame: %s", params_.horbody_frame.c_str());
-
-
   if (params_.publish_transforms)
   {
     publish_static_transforms();
@@ -2757,6 +2752,26 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal.getY();
     tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal.getZ();
     tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal.getW();
+
+    tf2::Quaternion q_body = current_state_.attitude;
+
+    tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
+
+    // body -> gimbal
+    tf2::Quaternion q_body_gimbal = q_body.inverse() * q_gimbal;
+
+    double roll, pitch, yaw;
+    tf2::Matrix3x3(q_body_gimbal).getRPY(
+        roll,
+        pitch,
+        yaw);
+
+    RCLCPP_INFO(
+        get_logger(),
+        "Gimbal body-relative RPY: roll=%.1f pitch=%.1f yaw=%.1f deg",
+        roll * 180.0 / M_PI,
+        pitch * 180.0 / M_PI,
+        yaw * 180.0 / M_PI);
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
   }
 }
