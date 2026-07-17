@@ -21,6 +21,8 @@
 #include <dji_fc_subscription.h>  //NOLINT
 #include <dji_typedef.h>          //NOLINT
 #include <math.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/utils.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 
@@ -43,6 +45,7 @@
 #include <std_msgs/msg/u_int8.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <string>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include "psdk_interfaces/msg/control_mode.hpp"
 #include "psdk_interfaces/msg/display_mode.hpp"
@@ -58,9 +61,6 @@
 #include "psdk_interfaces/msg/rtk_yaw.hpp"
 #include "psdk_interfaces/msg/single_battery_info.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
-#include <tf2/utils.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace psdk_ros2
 {
@@ -94,8 +94,7 @@ class FcClockSynchronizer
   update(uint64_t fc64_us, const rclcpp::Time& ros_now)
   {
     const int64_t measured =
-        ros_now.nanoseconds() / 1000 -
-        static_cast<int64_t>(fc64_us);
+        ros_now.nanoseconds() / 1000 - static_cast<int64_t>(fc64_us);
 
     if (!initialized_)
     {
@@ -115,11 +114,9 @@ class FcClockSynchronizer
   rclcpp::Time
   toRosTime(uint64_t fc64_us) const
   {
-    if (!initialized_)
-      return rclcpp::Time(0);
+    if (!initialized_) return rclcpp::Time(0);
 
-    return rclcpp::Time(
-        static_cast<uint64_t>(fc64_us + offset_us_) * 1000ULL);
+    return rclcpp::Time(static_cast<uint64_t>(fc64_us + offset_us_) * 1000ULL);
   }
 
   bool
@@ -411,7 +408,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
     std_msgs::msg::Float32 altitude_sl_fused;
     std_msgs::msg::Float32 home_point_altitude;
-
 
     void
     initialize_state()
@@ -1210,9 +1206,12 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   mutable std::shared_mutex current_state_mutex_;
   mutable std::shared_mutex global_ptr_mutex_;
+
+  void print_angles(const std::string &text, const tf2::Quaternion &q);
 };
 
 extern std::shared_ptr<TelemetryModule> global_telemetry_ptr_;
+
 
 }  // namespace psdk_ros2
 
