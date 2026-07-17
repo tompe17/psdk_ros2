@@ -144,11 +144,8 @@ WidgetModule::init()
 
   for (auto &handler : widget_handlers_) {
     handler.userData = this;
-    // Use handler
   }
 
-  // widget_handlers_[0].userData = this;
-  // widget_handlers_[1].userData = this;
 
   std::string widget_path =
       ament_index_cpp::get_package_share_directory("psdk_wrapper") +

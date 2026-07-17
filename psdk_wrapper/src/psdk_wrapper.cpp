@@ -749,7 +749,7 @@ PSDKWrapper::initialize_psdk_modules()
       !initialize_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_) ||
       !initialize_module(is_perception_module_mandatory_, perception_module_) ||
       !initialize_module(is_widget_module_mandatory_, widget_module_) ||
-      !initialize_module(is_coord_module_mandatory_, widget_module_))
+      !initialize_module(is_coord_module_mandatory_, coord_module_))
   {
     return false;
   }
