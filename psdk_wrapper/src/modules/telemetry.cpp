@@ -1489,6 +1489,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_corr_msg.vector.z -= body_gimbal_offset_deg_;
   gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
 
+  RCLCPP_INFO(get_logger(), "---> Gimbal CORR RPY: %f, y:%f, z:%f ",
+            gimbal_angles_corr_msg.vector.x, gimbal_angles_corr_msg.vector.y, gimbal_angles_corr_msg.vector.z);
+
   if (params_.publish_transforms)
   {
     /* Save gimbal angles for TF publishing and publish dynamic transform */
