@@ -94,7 +94,7 @@ def generate_launch_description():
             {
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
-                "tf_frame_prefix": declare_frame_prefix_cmd,
+                "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
             },
         ],
     )
