@@ -107,9 +107,6 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
       create_publisher<psdk_interfaces::msg::EscData>("psdk_ros2/esc_data", 1);
   gimbal_angles_pub_ = create_publisher<geometry_msgs::msg::Vector3Stamped>(
       "psdk_ros2/gimbal_angles", 10);
-  gimbal_angles_corr_pub_ =
-      create_publisher<geometry_msgs::msg::Vector3Stamped>(
-          "psdk_ros2/gimbal_angles_corr", 10);
   gimbal_status_pub_ = create_publisher<psdk_interfaces::msg::GimbalStatus>(
       "psdk_ros2/gimbal_status", 10);
   flight_status_pub_ = create_publisher<psdk_interfaces::msg::FlightStatus>(
@@ -238,7 +235,6 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_->on_activate();
   altitude_barometric_pub_->on_activate();
   gimbal_angles_pub_->on_activate();
-  gimbal_angles_corr_pub_->on_activate();
   gimbal_status_pub_->on_activate();
 
   return CallbackReturn::SUCCESS;
@@ -291,7 +287,6 @@ TelemetryModule::on_deactivate(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_->on_deactivate();
   altitude_barometric_pub_->on_deactivate();
   gimbal_angles_pub_->on_deactivate();
-  gimbal_angles_corr_pub_->on_deactivate();
   gimbal_status_pub_->on_deactivate();
 
   return CallbackReturn::SUCCESS;
@@ -351,7 +346,6 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_.reset();
   altitude_barometric_pub_.reset();
   gimbal_angles_pub_.reset();
-  gimbal_angles_corr_pub_.reset();
   gimbal_status_pub_.reset();
 
   // Reset global variables
@@ -1669,6 +1663,9 @@ TelemetryModule::battery_callback(const uint8_t *data, uint16_t data_size,
       static_cast<_Float32>(battery_info->percentage) /
       100;  // convert to 0-1 scale
   battery_pub_->publish(battery_info_msg);
+
+  // pioru: hacky - but it is called at 1 HZ
+  save_body_gimbal_offset();
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
