@@ -185,9 +185,11 @@ GimbalModule::gimbal_reset_cb(
     bool stable = false;
     do {
       stable = global_telemetry_ptr_->current_state_.gimbal_angle_history.stable(0.1);
-      RCLCPP_INFO(get_logger(), "stable: %d", stable);
-      std::this_thread::sleep_for(std::chrono::milliseconds(25));
+      RCLCPP_INFO(get_logger(), "Waiting for gimbal stable: %d", stable);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while (!stable);
+
+    global_telemetry_ptr_->save_body_gimbal_offset();
 
     RCLCPP_INFO(get_logger(), "Gimbal reset done");
     response->success = true;
