@@ -839,6 +839,16 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   tf2::Matrix3x3 current_quat_FRD2NED;
   tf2::Quaternion current_quat_FLU2ENU;
 
+
+  double roll, pitch, yaw;
+  tf2::Matrix3x3(tf2::Quaternion(
+      quaternion->q1, quaternion->q2, quaternion->q3, quaternion->q0)).getRPY(roll, pitch, yaw);
+  RCLCPP_INFO(get_logger(),
+            "---> Body RPY: %f, y:%f, z:%f",
+            psdk_utils::rad_to_deg(roll),
+            psdk_utils::rad_to_deg(pitch),
+            psdk_utils::rad_to_deg(yaw));
+
   current_quat_FRD2NED.setRotation(tf2::Quaternion(
       quaternion->q1, quaternion->q2, quaternion->q3, quaternion->q0));
   tf2::Matrix3x3 R_FLU2ENU =
