@@ -1409,17 +1409,12 @@ TelemetryModule::rc_connection_status_callback(
 }
 
 // pioru: there seems to be an offset between the aircraft attitude angles and
-// the gimbal angles this saves the offset - the method should be used when the
+// the gimbal angles. This saves the offset - the method should be used when the
 // gimbal is re-centered
 void
 TelemetryModule::save_body_gimbal_offset()
 {
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
-  // tf2::Matrix3x3 rotation_mat(current_state_.attitude);
-  // double current_roll;
-  // double current_pitch;
-  // double current_yaw;
-  // rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
 
   double roll, pitch, yaw;
   tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
@@ -1462,11 +1457,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
       psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
-
-  // double corrected_z = gimbal_angles->z - body_gimbal_offset_deg_;
-  // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ",
-  //             gimbal_angles->x, gimbal_angles->y, gimbal_angles->z,
-  //             corrected_z);
+  // gimbal_angles_msg.vector.z =
+  //     psdk_utils::SHIFT_N2E -
+  //     psdk_utils::deg_to_rad(gimbal_angles->z);
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
@@ -1478,15 +1471,12 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     gimbal_angles_msg.vector.z -= 2 * psdk_utils::C_PI;
   }
 
-  // auto gimbal_angles_corr_msg = gimbal_angles_msg;
-  // gimbal_angles_corr_msg.vector.z = corrected_z;
 
   gimbal_angles_pub_->publish(gimbal_angles_msg);
-  // gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
 
-  // RCLCPP_INFO(get_logger(), "---> Gimbal CORR RPY: %f, y:%f, z:%f ",
-  // gimbal_angles_corr_msg.vector.x, gimbal_angles_corr_msg.vector.y,
-  // gimbal_angles_corr_msg.vector.z);
+  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
+  gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
+  gimbal_angles_msg.vector.z);
 
   if (params_.publish_transforms)
   {
