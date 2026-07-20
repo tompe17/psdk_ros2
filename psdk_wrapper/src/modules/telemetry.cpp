@@ -1494,7 +1494,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   }
 
-  RCLCPP_INFO(get_logger(), "---> STABLE: %d", current_state_.gimbal_angle_history.stable(0.1));
+  // RCLCPP_INFO(get_logger(), "---> STABLE: %d", current_state_.gimbal_angle_history.stable(0.1));
 
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;

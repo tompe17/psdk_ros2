@@ -16,6 +16,8 @@
  */
 
 #include "psdk_wrapper/modules/gimbal.hpp"
+
+#include "psdk_wrapper/modules/telemetry.hpp"
 namespace psdk_ros2
 {
 
@@ -178,8 +180,16 @@ GimbalModule::gimbal_reset_cb(
   else
   {
     RCLCPP_INFO(get_logger(), "Gimbal resetting...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    RCLCPP_INFO(get_logger(), "Gimbal done");
+    global_telemetry_ptr_->current_state_.gimbal_angle_history.clear();
+
+    bool stable = false;
+    do {
+      stable = global_telemetry_ptr_->current_state_.gimbal_angle_history.stable(0.1);
+      RCLCPP_INFO(get_logger(), "stable: %d", stable);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    } while (!stable);
+
+    RCLCPP_INFO(get_logger(), "Gimbal reset done");
     response->success = true;
     return;
   }

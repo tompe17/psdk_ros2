@@ -83,6 +83,11 @@ class GimbalAngleHistory
   {
     return history_.size() == max_size_;
   }
+  void
+  clear()
+  {
+    history_.clear();
+  }
 
   bool
   stable(double tolerance_deg) const
