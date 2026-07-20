@@ -2828,7 +2828,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
 }
 
 void
-TelemetryModule::print_angles(const std::string &text, const tf2::Quaternion &q)
+TelemetryModule::print_angles(const std::string &text, const tf2::Quaternion &q) const
 {
   double roll, pitch, yaw;
   tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);

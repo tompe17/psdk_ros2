@@ -1212,7 +1212,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   mutable std::shared_mutex current_state_mutex_;
   mutable std::shared_mutex global_ptr_mutex_;
 
-  void print_angles(const std::string &text, const tf2::Quaternion &q);
+  void print_angles(const std::string &text, const tf2::Quaternion &q) const;
   double body_gimbal_offset_deg_;
 
 
