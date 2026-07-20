@@ -1504,12 +1504,12 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 }
 
 bool TelemetryModule::wait_for_first_gimbal_sample(
-    std::chrono::milliseconds timeout)
+    std::chrono::milliseconds timeout) const
 {
   return wait_for_first_sample(received_first_gimbal_sample_, timeout);
 }
 bool TelemetryModule::wait_for_first_attitude_sample(
-    std::chrono::milliseconds timeout)
+    std::chrono::milliseconds timeout) const
 {
   return wait_for_first_sample(received_first_attitude_sample_, timeout);
 }

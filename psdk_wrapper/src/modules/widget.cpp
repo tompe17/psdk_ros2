@@ -317,8 +317,6 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       {
         bool streaming = psdk_ros2::global_liveview_ptr_->is_streaming();
 
-        psdk_ros2::global_telemetry_ptr_->save_body_gimbal_offset();
-
         RCLCPP_INFO(self->get_logger(), "Currently streaming: %d", streaming);
 
         std::thread(

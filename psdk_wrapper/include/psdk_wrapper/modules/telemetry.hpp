@@ -485,8 +485,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   CopterState current_state_;
   TelemetryParams params_;
   void save_body_gimbal_offset();
-  bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout);
-  bool wait_for_first_attitude_sample(std::chrono::milliseconds timeout);
+  bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout) const;
+  bool wait_for_first_attitude_sample(std::chrono::milliseconds timeout) const;
   static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
  private:
   /*C++ type DJI topic subscriber callbacks*/
