@@ -75,6 +75,12 @@ def generate_launch_description():
         [FindPackageShare("psdk_wrapper"), "cfg", hms_return_codes_file]
     )
 
+    declare_frame_prefix_cmd = DeclareLaunchArgument(
+        "tf_frame_prefix",
+        default_value=LaunchConfiguration("namespace"),
+        description="TF frame prefix",
+    )
+
     # Prepare the wrapper node
     wrapper_node = LifecycleNode(
         package="psdk_wrapper",
@@ -88,6 +94,9 @@ def generate_launch_description():
                 "hms_return_codes_path": hms_return_codes_path,
             },
             psdk_params_file_path,
+            {
+                "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
+            },
         ],
     )
 
@@ -128,6 +137,7 @@ def generate_launch_description():
 
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_frame_prefix_cmd)
     ld.add_action(declare_psdk_params_cmd)
     ld.add_action(declare_link_config_cmd)
     ld.add_action(declare_hms_codes_cmd)
