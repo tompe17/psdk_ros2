@@ -564,6 +564,9 @@ PSDKWrapper::load_parameters()
   {
     get_non_mandatory_param("tf_frame_prefix",
                             telemetry_module_->params_.tf_frame_prefix);
+
+    RCLCPP_INFO(get_logger(), "!! tf prefix: %s", telemetry_module_->params_.tf_frame_prefix.c_str());
+
     get_non_mandatory_param("imu_frame", telemetry_module_->params_.imu_frame);
     get_non_mandatory_param("body_frame",
                             telemetry_module_->params_.body_frame);
