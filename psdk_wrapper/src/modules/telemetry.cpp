@@ -841,7 +841,8 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   tf2::Quaternion current_quat_FLU2ENU;
 
   // double roll, pitch, yaw;
-  // tf2::Matrix3x3(tf2::Quaternion(quaternion->q1, quaternion->q2, quaternion->q3,
+  // tf2::Matrix3x3(tf2::Quaternion(quaternion->q1, quaternion->q2,
+  // quaternion->q3,
   //                                quaternion->q0))
   //     .getRPY(roll, pitch, yaw);
   // RCLCPP_INFO(get_logger(), "---> Body RPY: %f, y:%f, z:%f",
@@ -1471,12 +1472,11 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     gimbal_angles_msg.vector.z -= 2 * psdk_utils::C_PI;
   }
 
-
   gimbal_angles_pub_->publish(gimbal_angles_msg);
 
-  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
-  gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
-  gimbal_angles_msg.vector.z);
+  // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
+              // gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
+              // gimbal_angles_msg.vector.z);
 
   if (params_.publish_transforms)
   {
@@ -1491,11 +1491,10 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.gimbal_angles_raw = *gimbal_angles;
     current_state_.gimbal_angle_history.add(gimbal_angles_msg.vector);
-
   }
 
-  // RCLCPP_INFO(get_logger(), "---> STABLE: %d", current_state_.gimbal_angle_history.stable(0.1));
-
+  // RCLCPP_INFO(get_logger(), "---> STABLE: %d",
+  // current_state_.gimbal_angle_history.stable(0.1));
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -2812,12 +2811,12 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
     // print_angles("Body ", q_body);
     // print_angles("Gimbal ", q_gimbal);
-
   }
 }
 
 void
-TelemetryModule::print_angles(const std::string &text, const tf2::Quaternion &q) const
+TelemetryModule::print_angles(const std::string &text,
+                              const tf2::Quaternion &q) const
 {
   double roll, pitch, yaw;
   tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);
