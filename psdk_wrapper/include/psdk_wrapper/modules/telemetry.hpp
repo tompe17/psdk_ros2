@@ -406,6 +406,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
+    T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw; //from the vehicle
     std_msgs::msg::Float32 altitude_sl_fused;
     std_msgs::msg::Float32 home_point_altitude;
 
@@ -430,6 +431,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   CopterState current_state_;
   TelemetryParams params_;
+  void save_body_gimbal_offset();
 
  private:
   /*C++ type DJI topic subscriber callbacks*/
@@ -1208,6 +1210,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   mutable std::shared_mutex global_ptr_mutex_;
 
   void print_angles(const std::string &text, const tf2::Quaternion &q);
+  double body_gimbal_offset_deg_;
+
+
 };
 
 extern std::shared_ptr<TelemetryModule> global_telemetry_ptr_;
