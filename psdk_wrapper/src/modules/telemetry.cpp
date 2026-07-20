@@ -186,6 +186,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   // pioru: we want map to be top level frame
   // params_.map_frame = add_tf_prefix(params_.map_frame);
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
+  params_.gimbal_frame = add_tf_prefix(params_.gimbal_base_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
 
   if (params_.publish_transforms)
@@ -2715,7 +2716,7 @@ TelemetryModule::publish_static_transforms()
     tf_base_link_gimbal.header.stamp = this->get_clock()->now();
     // tf_base_link_gimbal.header.frame_id = params_.body_frame;
     tf_base_link_gimbal.header.frame_id = params_.horbody_frame;
-    tf_base_link_gimbal.child_frame_id = add_tf_prefix(params_.gimbal_base_frame);
+    tf_base_link_gimbal.child_frame_id = params_.gimbal_base_frame;
     tf_base_link_gimbal.transform.translation.x =
         psdk_utils::T_M300_BASE_GIMBAL[0];
     tf_base_link_gimbal.transform.translation.y =
