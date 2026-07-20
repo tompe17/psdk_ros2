@@ -2788,7 +2788,7 @@ TelemetryModule::publish_static_transforms()
       tf_gimbal.header.frame_id = params_.gimbal_frame;
       tf_gimbal.child_frame_id = params_.camera_frame;
       // assuming it's the same for H20 and H20T
-      tf_gimbal.transform.translation.x = 0;
+      tf_gimbal.transform.translation.x = 0.03;
       tf_gimbal.transform.translation.y = 0;
       tf_gimbal.transform.translation.z = 0;
       // tf_gimbal.transform.translation.x = psdk_utils::T_M300_GIMBAL_H20[0];
