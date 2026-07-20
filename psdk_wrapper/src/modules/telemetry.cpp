@@ -867,6 +867,7 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   /* Save current attitude */
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   current_state_.attitude = current_quat_FLU2ENU;
+  current_state_.attitude_q_raw = *quaternion;
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1413,13 +1414,19 @@ void
 TelemetryModule::save_body_gimbal_offset()
 {
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
-  tf2::Matrix3x3 rotation_mat(current_state_.attitude);
-  double current_roll;
-  double current_pitch;
-  double current_yaw;
-  rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
+  // tf2::Matrix3x3 rotation_mat(current_state_.attitude);
+  // double current_roll;
+  // double current_pitch;
+  // double current_yaw;
+  // rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
 
-  body_gimbal_offset_deg_ = current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(current_yaw);
+  double roll, pitch, yaw;
+  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1, current_state_.attitude_q_raw.q2, current_state_.attitude_q_raw.q3,
+                                 current_state_.attitude_q_raw.q0))
+      .getRPY(roll, pitch, yaw);
+
+  body_gimbal_offset_deg_ = current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
+  RCLCPP_INFO(get_logger(), "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ", current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw), body_gimbal_offset_deg_);
 
 }
 

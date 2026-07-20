@@ -405,6 +405,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     sensor_msgs::msg::NavSatFix gps_position;
     sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
+    T_DjiFcSubscriptionQuaternion attitude_q_raw;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
     T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw; //from the vehicle
     std_msgs::msg::Float32 altitude_sl_fused;
