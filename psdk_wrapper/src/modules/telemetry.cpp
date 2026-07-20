@@ -846,13 +846,13 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   tf2::Matrix3x3 current_quat_FRD2NED;
   tf2::Quaternion current_quat_FLU2ENU;
 
-  double roll, pitch, yaw;
-  tf2::Matrix3x3(tf2::Quaternion(quaternion->q1, quaternion->q2, quaternion->q3,
-                                 quaternion->q0))
-      .getRPY(roll, pitch, yaw);
-  RCLCPP_INFO(get_logger(), "---> Body RPY: %f, y:%f, z:%f",
-              psdk_utils::rad_to_deg(roll), psdk_utils::rad_to_deg(pitch),
-              psdk_utils::rad_to_deg(yaw));
+  // double roll, pitch, yaw;
+  // tf2::Matrix3x3(tf2::Quaternion(quaternion->q1, quaternion->q2, quaternion->q3,
+  //                                quaternion->q0))
+  //     .getRPY(roll, pitch, yaw);
+  // RCLCPP_INFO(get_logger(), "---> Body RPY: %f, y:%f, z:%f",
+  //             psdk_utils::rad_to_deg(roll), psdk_utils::rad_to_deg(pitch),
+  //             psdk_utils::rad_to_deg(yaw));
 
   current_quat_FRD2NED.setRotation(tf2::Quaternion(
       quaternion->q1, quaternion->q2, quaternion->q3, quaternion->q0));
@@ -1466,12 +1466,13 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
   gimbal_angles_msg.vector.z =
-      psdk_utils::SHIFT_N2E - psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
+      psdk_utils::SHIFT_N2E -
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
 
-  double corrected_z = gimbal_angles->z - body_gimbal_offset_deg_;
-  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ",
-              gimbal_angles->x, gimbal_angles->y, gimbal_angles->z,
-              corrected_z);
+  // double corrected_z = gimbal_angles->z - body_gimbal_offset_deg_;
+  // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ",
+  //             gimbal_angles->x, gimbal_angles->y, gimbal_angles->z,
+  //             corrected_z);
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
@@ -1483,15 +1484,15 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     gimbal_angles_msg.vector.z -= 2 * psdk_utils::C_PI;
   }
 
-  auto gimbal_angles_corr_msg = gimbal_angles_msg;
-  gimbal_angles_corr_msg.vector.z = corrected_z;
+  // auto gimbal_angles_corr_msg = gimbal_angles_msg;
+  // gimbal_angles_corr_msg.vector.z = corrected_z;
 
   gimbal_angles_pub_->publish(gimbal_angles_msg);
-  gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
+  // gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
 
-  RCLCPP_INFO(get_logger(), "---> Gimbal CORR RPY: %f, y:%f, z:%f ",
-              gimbal_angles_corr_msg.vector.x, gimbal_angles_corr_msg.vector.y,
-              gimbal_angles_corr_msg.vector.z);
+  // RCLCPP_INFO(get_logger(), "---> Gimbal CORR RPY: %f, y:%f, z:%f ",
+  // gimbal_angles_corr_msg.vector.x, gimbal_angles_corr_msg.vector.y,
+  // gimbal_angles_corr_msg.vector.z);
 
   if (params_.publish_transforms)
   {
@@ -2818,28 +2819,11 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
-    tf2::Quaternion q_body = current_state_.attitude;
+    // tf2::Quaternion q_body = current_state_.attitude;
+    // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
+    // print_angles("Body ", q_body);
+    // print_angles("Gimbal ", q_gimbal);
 
-    tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
-
-    // body -> gimbal
-    tf2::Quaternion q_body_gimbal = q_body.inverse() * q_gimbal;
-
-    print_angles("Body ", q_body);
-    print_angles("Gimbal ", q_gimbal);
-
-    // double roll, pitch, yaw;
-    // tf2::Matrix3x3(q_body_gimbal).getRPY(
-    // roll,
-    // pitch,
-    // yaw);
-
-    // RCLCPP_INFO(
-    // get_logger(),
-    // "Gimbal body-relative RPY: roll=%.1f pitch=%.1f yaw=%.1f deg",
-    // roll * 180.0 / M_PI,
-    // pitch * 180.0 / M_PI,
-    // yaw * 180.0 / M_PI);
   }
 }
 
