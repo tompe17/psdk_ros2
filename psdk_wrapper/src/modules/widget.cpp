@@ -32,8 +32,7 @@ T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {2, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr},
     {3, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
-     WidgetModule::widget_state_get, nullptr}
-};
+     WidgetModule::widget_state_get, nullptr}};
 
 /*****************************************************************************/
 /* Constructor / Destructor                                                  */
@@ -143,10 +142,10 @@ WidgetModule::init()
     return false;
   }
 
-  for (auto &handler : widget_handlers_) {
+  for (auto &handler : widget_handlers_)
+  {
     handler.userData = this;
   }
-
 
   std::string widget_path =
       ament_index_cpp::get_package_share_directory("psdk_wrapper") +
@@ -154,17 +153,17 @@ WidgetModule::init()
 
   auto camera_type = psdk_ros2::global_camera_ptr_->get_attached_camera_type();
 
-  switch (camera_type){
+  switch (camera_type)
+  {
     case DJI_CAMERA_TYPE_H20T:
-      widget_path+="/h20t";
+      widget_path += "/h20t";
       break;
     case DJI_CAMERA_TYPE_P1:
-      widget_path+="/p1";
+      widget_path += "/p1";
       break;
     default:
       RCLCPP_INFO(get_logger(), "Widget module initialized");
       return true;
-
   }
 
   //  rc = DjiWidget_RegDefaultUiConfigByDirPath(
@@ -177,7 +176,7 @@ WidgetModule::init()
     return false;
   }
   RCLCPP_INFO(get_logger(), "Widget path: %s", widget_path.c_str());
-//  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
+  //  RCLCPP_INFO(get_logger(), "RegDefaultUiConfig returned %ld", rc);
 
   rc = DjiWidget_RegHandlerList(
       widget_handlers_, sizeof(widget_handlers_) / sizeof(widget_handlers_[0]));
@@ -333,8 +332,8 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       }
     case 2:
     case 3:
-//      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
-psdk_ros2::global_liveview_ptr_->set_main_camera_jpeg_quality(value);
+      //      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
+      psdk_ros2::global_liveview_ptr_->set_main_camera_jpeg_quality(value);
       break;
 
     default:

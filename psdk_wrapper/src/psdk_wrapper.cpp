@@ -209,8 +209,13 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
     return CallbackReturn::SUCCESS;
   }
 
+  // auto reset gimbal to get the offset
   gimbal_module_->reset_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
                                DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
+
+
+  // auto start streaming
+  liveview_module_->camera_setup_streaming(true, -1, -1, true);
 
   return CallbackReturn::SUCCESS;
 }
