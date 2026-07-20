@@ -2730,7 +2730,7 @@ TelemetryModule::publish_static_transforms()
 
   if (publish_camera_transforms_)
   {
-    if (camera_type_ == DJI_CAMERA_TYPE_H20)
+    if (camera_type_ == DJI_CAMERA_TYPE_H20 || camera_type_ == DJI_CAMERA_TYPE_H20T)
     {
       // Publish TF between Gimbal - H20
       geometry_msgs::msg::TransformStamped tf_gimbal_H20;
