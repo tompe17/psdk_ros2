@@ -22,7 +22,7 @@ import launch
 from launch.actions import RegisterEventHandler
 from launch_ros.event_handlers import OnStateTransition
 from lifecycle_msgs.msg import Transition
-
+from launch.actions import LogInfo
 #from lifecycle_msgs.msg import State
 
 def generate_launch_description():
@@ -135,6 +135,8 @@ def generate_launch_description():
 
     # Create LaunchDescription and populate
     ld = LaunchDescription()
+
+    ld.add_action(LogInfo(msg=["tf_frame_prefix=", tf_frame_prefix_arg]))
 
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
