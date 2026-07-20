@@ -33,7 +33,7 @@ def generate_launch_description():
     link_config_file_path = LaunchConfiguration("link_config_file_path")
     psdk_params_file_path = LaunchConfiguration("psdk_params_file_path")
     hms_return_codes_file = LaunchConfiguration("hms_return_codes_file")
-    tf_frame_prefix_arg = LaunchConfiguration("tf_frame_prefix")
+    # tf_frame_prefix_arg = LaunchConfiguration("tf_frame_prefix")
 
     # Declare the namespace launch argument
     declare_namespace_cmd = DeclareLaunchArgument(
@@ -78,7 +78,7 @@ def generate_launch_description():
 
     declare_frame_prefix_cmd = DeclareLaunchArgument(
         "tf_frame_prefix",
-        default_value=LaunchConfiguration("namespace"),
+        default_value=namespace,
         description="TF frame prefix",
     )
 
@@ -94,8 +94,7 @@ def generate_launch_description():
             {
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
-                "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
-
+                "tf_frame_prefix": declare_frame_prefix_cmd,
             },
         ],
     )
@@ -135,7 +134,7 @@ def generate_launch_description():
     # Create LaunchDescription and populate
     ld = LaunchDescription()
 
-    ld.add_action(LogInfo(msg=["tf_frame_prefix=", tf_frame_prefix_arg]))
+    # ld.add_action(LogInfo(msg=["tf_frame_prefix=", tf_frame_prefix_arg]))
 
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
