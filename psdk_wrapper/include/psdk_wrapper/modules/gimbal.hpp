@@ -95,6 +95,9 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
    */
   bool deinit();
 
+  bool reset_gimbal(E_DjiMountPosition index, E_DjiGimbalResetMode reset_mode);
+
+
  private:
   /**
    * @brief Callback function to control roll, pitch, yaw and time.
@@ -127,14 +130,15 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
   void gimbal_reset_cb(const std::shared_ptr<GimbalReset::Request> request,
                        const std::shared_ptr<GimbalReset::Response> response);
 
+
   rclcpp::Subscription<psdk_interfaces::msg::GimbalRotation>::SharedPtr
       gimbal_rotation_sub_;
   rclcpp::Service<GimbalSetMode>::SharedPtr gimbal_set_mode_service_;
   rclcpp::Service<GimbalReset>::SharedPtr gimbal_reset_service_;
 
-  ///const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
+  /// const rmw_qos_profile_t& qos_profile_{rmw_qos_profile_services_default};
   rclcpp::QoS qos_profile_{rclcpp::ServicesQoS()};
-  
+
   bool is_module_initialized_{false};
 };
 

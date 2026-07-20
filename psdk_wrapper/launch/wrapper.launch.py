@@ -33,7 +33,6 @@ def generate_launch_description():
     link_config_file_path = LaunchConfiguration("link_config_file_path")
     psdk_params_file_path = LaunchConfiguration("psdk_params_file_path")
     hms_return_codes_file = LaunchConfiguration("hms_return_codes_file")
-    # tf_frame_prefix_arg = LaunchConfiguration("tf_frame_prefix")
 
     # Declare the namespace launch argument
     declare_namespace_cmd = DeclareLaunchArgument(

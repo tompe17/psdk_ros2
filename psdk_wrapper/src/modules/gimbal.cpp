@@ -159,11 +159,58 @@ GimbalModule::gimbal_set_mode_cb(
   }
 }
 
+bool
+GimbalModule::reset_gimbal(E_DjiMountPosition index,
+                           E_DjiGimbalResetMode reset_mode)
+{
+  T_DjiReturnCode return_code = DjiGimbalManager_Reset(index, reset_mode);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(), "Reset gimbal failed, error code: %ld",
+                 return_code);
+    return false;
+  }
+
+  RCLCPP_INFO(get_logger(), "Gimbal resetting...");
+
+  global_telemetry_ptr_->current_state_.gimbal_angle_history.clear();
+
+  const bool yaw_reset =
+      reset_mode == DJI_GIMBAL_RESET_MODE_YAW ||
+      reset_mode == DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW ||
+      reset_mode == DJI_GIMBAL_RESET_MODE_YAW_ONLY ||
+      reset_mode == DJI_GIMBAL_RESET_MODE_PITCH_DOWNWARD_UPWARD_AND_YAW;
+
+  while (!global_telemetry_ptr_->current_state_.gimbal_angle_history.stable())
+  {
+    RCLCPP_INFO(get_logger(), "Waiting for gimbal to stabilize...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  if (yaw_reset)
+  {
+    global_telemetry_ptr_->save_body_gimbal_offset();
+  }
+  else
+  {
+    RCLCPP_WARN(get_logger(), "Gimbal yaw (pan) not included in gimbal reset.");
+  }
+
+  RCLCPP_INFO(get_logger(), "Gimbal reset complete.");
+
+  return true;
+}
+
 void
 GimbalModule::gimbal_reset_cb(
     const std::shared_ptr<GimbalReset::Request> request,
     const std::shared_ptr<GimbalReset::Response> response)
 {
+  response->success =
+      reset_gimbal(static_cast<E_DjiMountPosition>(request->payload_index),
+                   static_cast<E_DjiGimbalResetMode>(request->reset_mode));
+#if 0
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
@@ -210,7 +257,7 @@ GimbalModule::gimbal_reset_cb(
 
   RCLCPP_INFO(get_logger(), "Gimbal reset done");
   response->success = true;
-  return;
+#endif
 }
 
 void

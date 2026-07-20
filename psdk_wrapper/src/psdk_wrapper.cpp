@@ -202,6 +202,12 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
   }
   telemetry_module_->subscribe_psdk_topics();
 
+  // check if callbacks work
+
+  gimbal_module_->reset_gimbal(
+    DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+    DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
+
   return CallbackReturn::SUCCESS;
 }
 
