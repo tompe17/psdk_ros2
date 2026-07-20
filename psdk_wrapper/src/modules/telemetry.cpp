@@ -2745,8 +2745,8 @@ TelemetryModule::publish_static_transforms()
   {
     geometry_msgs::msg::TransformStamped tf_base_link_gimbal;
     tf_base_link_gimbal.header.stamp = this->get_clock()->now();
-    // tf_base_link_gimbal.header.frame_id = params_.body_frame;
-    tf_base_link_gimbal.header.frame_id = params_.horbody_frame;
+    tf_base_link_gimbal.header.frame_id = params_.body_frame;
+    // tf_base_link_gimbal.header.frame_id = params_.horbody_frame;
     tf_base_link_gimbal.child_frame_id = params_.gimbal_base_frame;
     tf_base_link_gimbal.transform.translation.x =
         psdk_utils::T_M300_BASE_GIMBAL[0];
