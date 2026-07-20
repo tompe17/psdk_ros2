@@ -186,7 +186,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   // pioru: we want map to be top level frame
   // params_.map_frame = add_tf_prefix(params_.map_frame);
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
-  params_.gimbal_frame = add_tf_prefix(params_.gimbal_base_frame);
+  params_.gimbal_base_frame = add_tf_prefix(params_.gimbal_base_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
 
   if (params_.publish_transforms)
