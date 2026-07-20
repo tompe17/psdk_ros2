@@ -50,21 +50,21 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                     rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.flight_control",
                     rclcpp::ParameterValue(true));
-  declare_parameter("mandatory_modules.waypoint_flying", rclcpp::ParameterValue(true));
+  declare_parameter("mandatory_modules.waypoint_flying",
+                    rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.camera", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.gimbal", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.liveview", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.hms", rclcpp::ParameterValue(true));
   declare_parameter("mandatory_modules.perception",
                     rclcpp::ParameterValue(true));
-  declare_parameter("mandatory_modules.widget",
-                    rclcpp::ParameterValue(false));
-  declare_parameter("mandatory_modules.coord",
-                    rclcpp::ParameterValue(false));
+  declare_parameter("mandatory_modules.widget", rclcpp::ParameterValue(false));
+  declare_parameter("mandatory_modules.coord", rclcpp::ParameterValue(false));
   declare_parameter("tf_frame_prefix", rclcpp::ParameterValue(""));
   declare_parameter("imu_frame", rclcpp::ParameterValue("psdk_imu_link"));
   declare_parameter("body_frame", rclcpp::ParameterValue("psdk_body_link"));
-  declare_parameter("horbody_frame", rclcpp::ParameterValue("psdk_horbody_link"));
+  declare_parameter("horbody_frame",
+                    rclcpp::ParameterValue("psdk_horbody_link"));
   declare_parameter("map_frame", rclcpp::ParameterValue("psdk_map_enu"));
   declare_parameter("gimbal_base_frame",
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
@@ -107,11 +107,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   get_parameter("mandatory_modules.hms", is_hms_module_mandatory_);
   get_parameter("mandatory_modules.perception",
                 is_perception_module_mandatory_);
-  get_parameter("mandatory_modules.widget",
-                is_widget_module_mandatory_);
-  get_parameter("mandatory_modules.coord",
-                is_coord_module_mandatory_);
-
+  get_parameter("mandatory_modules.widget", is_widget_module_mandatory_);
+  get_parameter("mandatory_modules.coord", is_coord_module_mandatory_);
 
   create_module(is_telemetry_module_mandatory_, telemetry_module_,
                 telemetry_thread_, "telemetry_node",
@@ -132,13 +129,10 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_perception_module_mandatory_, perception_module_,
                 perception_thread_, "perception_node",
                 psdk_ros2::global_perception_ptr_);
-  create_module(is_widget_module_mandatory_, widget_module_,
-                widget_thread_, "widget_node",
-                psdk_ros2::global_widget_ptr_);
-  create_module(is_coord_module_mandatory_, coord_module_,
-                coord_thread_, "coord_node",
-                psdk_ros2::global_coord_ptr_);
-
+  create_module(is_widget_module_mandatory_, widget_module_, widget_thread_,
+                "widget_node", psdk_ros2::global_widget_ptr_);
+  create_module(is_coord_module_mandatory_, coord_module_, coord_thread_,
+                "coord_node", psdk_ros2::global_coord_ptr_);
 }
 
 PSDKWrapper::~PSDKWrapper()
@@ -202,11 +196,21 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
   }
   telemetry_module_->subscribe_psdk_topics();
 
-  // check if callbacks work
+  if (!telemetry_module_->wait_for_first_gimbal_sample(std::chrono::seconds(5)))
+  {
+    RCLCPP_ERROR(get_logger(), "Timed out waiting for first gimbal sample.");
+    return CallbackReturn::SUCCESS;
+  }
 
-  gimbal_module_->reset_gimbal(
-    DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
-    DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
+  if (!telemetry_module_->wait_for_first_attitude_sample(
+          std::chrono::seconds(5)))
+  {
+    RCLCPP_ERROR(get_logger(), "Timed out waiting for first gimbal sample.");
+    return CallbackReturn::SUCCESS;
+  }
+
+  gimbal_module_->reset_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+                               DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
 
   return CallbackReturn::SUCCESS;
 }
@@ -252,7 +256,7 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
       (is_flight_control_module_mandatory_ && flight_control_module_ &&
        !flight_control_module_->deinit()) ||
       (is_waypoint_flying_module_mandatory_ && waypoint_flying_module_ &&
-       !waypoint_flying_module_->deinit() ) ||
+       !waypoint_flying_module_->deinit()) ||
       (is_camera_module_mandatory_ && camera_module_ &&
        !camera_module_->deinit()) ||
       (is_gimbal_module_mandatory_ && gimbal_module_ &&
@@ -261,11 +265,10 @@ PSDKWrapper::on_shutdown(const rclcpp_lifecycle::State &state)
        !liveview_module_->deinit()) ||
       (is_hms_module_mandatory_ && hms_module_ && !hms_module_->deinit()) ||
       (is_perception_module_mandatory_ && perception_module_ &&
-       !perception_module_->deinit())||
+       !perception_module_->deinit()) ||
       (is_widget_module_mandatory_ && widget_module_ &&
        !widget_module_->deinit()) ||
-      (is_coord_module_mandatory_ && coord_module_ &&
-       !coord_module_->deinit()))
+      (is_coord_module_mandatory_ && coord_module_ && !coord_module_->deinit()))
   {
     RCLCPP_ERROR(get_logger(), "Failed to deinitialize one or more modules.");
     return CallbackReturn::FAILURE;
@@ -550,11 +553,9 @@ PSDKWrapper::load_parameters()
   }
   if (is_widget_module_mandatory_)
   {
-
   }
   if (is_coord_module_mandatory_)
   {
-
   }
   if (is_hms_module_mandatory_)
   {
@@ -571,7 +572,8 @@ PSDKWrapper::load_parameters()
     get_non_mandatory_param("tf_frame_prefix",
                             telemetry_module_->params_.tf_frame_prefix);
 
-    RCLCPP_INFO(get_logger(), "!! tf prefix: %s", telemetry_module_->params_.tf_frame_prefix.c_str());
+    RCLCPP_INFO(get_logger(), "!! tf prefix: %s",
+                telemetry_module_->params_.tf_frame_prefix.c_str());
 
     get_non_mandatory_param("imu_frame", telemetry_module_->params_.imu_frame);
     get_non_mandatory_param("body_frame",
@@ -758,14 +760,14 @@ PSDKWrapper::initialize_psdk_modules()
       !initialize_module(is_gimbal_module_mandatory_, gimbal_module_) ||
       !initialize_module(is_liveview_module_mandatory_, liveview_module_) ||
       !initialize_module(is_hms_module_mandatory_, hms_module_) ||
-      !initialize_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_) ||
+      !initialize_module(is_waypoint_flying_module_mandatory_,
+                         waypoint_flying_module_) ||
       !initialize_module(is_perception_module_mandatory_, perception_module_) ||
       !initialize_module(is_widget_module_mandatory_, widget_module_) ||
       !initialize_module(is_coord_module_mandatory_, coord_module_))
   {
     return false;
   }
-
 
   return true;
 }

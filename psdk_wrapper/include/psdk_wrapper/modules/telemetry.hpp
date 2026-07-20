@@ -485,7 +485,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   CopterState current_state_;
   TelemetryParams params_;
   void save_body_gimbal_offset();
-
+  bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout);
+  bool wait_for_first_attitude_sample(std::chrono::milliseconds timeout);
+  static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
  private:
   /*C++ type DJI topic subscriber callbacks*/
   /**
@@ -1264,6 +1266,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   void print_angles(const std::string& text, const tf2::Quaternion& q) const;
   double body_gimbal_offset_deg_;
+
+  std::atomic<bool> received_first_gimbal_sample_{false};
+  std::atomic<bool> received_first_attitude_sample_{false};
 };
 
 extern std::shared_ptr<TelemetryModule> global_telemetry_ptr_;

@@ -870,6 +870,8 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   current_state_.attitude = current_quat_FLU2ENU;
   current_state_.attitude_q_raw = *quaternion;
+  received_first_attitude_sample_ = true;
+
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1496,8 +1498,37 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   // RCLCPP_INFO(get_logger(), "---> STABLE: %d",
   // current_state_.gimbal_angle_history.stable(0.1));
+  received_first_gimbal_sample_ = true;
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+bool TelemetryModule::wait_for_first_gimbal_sample(
+    std::chrono::milliseconds timeout)
+{
+  return wait_for_first_sample(received_first_gimbal_sample_, timeout);
+}
+bool TelemetryModule::wait_for_first_attitude_sample(
+    std::chrono::milliseconds timeout)
+{
+  return wait_for_first_sample(received_first_attitude_sample_, timeout);
+}
+
+
+bool TelemetryModule::wait_for_first_sample(const  std::atomic<bool> &test,
+    std::chrono::milliseconds timeout)
+{
+  auto start = std::chrono::steady_clock::now();
+
+  while (!test)
+  {
+    if (std::chrono::steady_clock::now() - start > timeout)
+      return false;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  return true;
 }
 
 T_DjiReturnCode
