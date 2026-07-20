@@ -1466,7 +1466,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
   gimbal_angles_msg.vector.z =
-      psdk_utils::SHIFT_N2E - psdk_utils::deg_to_rad(gimbal_angles->z);
+      psdk_utils::SHIFT_N2E - psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
 
   double corrected_z = gimbal_angles->z - body_gimbal_offset_deg_;
   RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ",
@@ -1486,8 +1486,8 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   auto gimbal_angles_corr_msg = gimbal_angles_msg;
   gimbal_angles_corr_msg.vector.z = corrected_z;
 
-  gimbal_angles_pub_->publish(gimbal_angles_corr_msg);
-  gimbal_angles_corr_pub_->publish(gimbal_angles_msg);
+  gimbal_angles_pub_->publish(gimbal_angles_msg);
+  gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
 
   RCLCPP_INFO(get_logger(), "---> Gimbal CORR RPY: %f, y:%f, z:%f ",
               gimbal_angles_corr_msg.vector.x, gimbal_angles_corr_msg.vector.y,
