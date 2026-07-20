@@ -23,6 +23,7 @@
 
 namespace psdk_ros2
 {
+
 class CoordModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:

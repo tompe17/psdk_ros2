@@ -177,8 +177,8 @@ GimbalModule::gimbal_reset_cb(
   }
   else
   {
-    RCLCPP_INFO(get_logger(), "Gimbal reseting...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+    RCLCPP_INFO(get_logger(), "Gimbal resetting...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     RCLCPP_INFO(get_logger(), "Gimbal done");
     response->success = true;
     return;

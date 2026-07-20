@@ -1490,7 +1490,12 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.gimbal_angles_raw = *gimbal_angles;
+    current_state_.gimbal_angle_history.add(gimbal_angles_msg.vector);
+
   }
+
+  RCLCPP_INFO(get_logger(), "---> STABLE: %d", current_state_.gimbal_angle_history.stable(0.1));
+
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }

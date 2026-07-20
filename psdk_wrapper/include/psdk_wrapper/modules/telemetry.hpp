@@ -64,6 +64,50 @@
 
 namespace psdk_ros2
 {
+
+class GimbalAngleHistory
+{
+ public:
+  explicit GimbalAngleHistory(std::size_t max_size) : max_size_(max_size) {}
+
+  void
+  add(const geometry_msgs::msg::Vector3& angles)
+  {
+    history_.push_back(angles);
+
+    if (history_.size() > max_size_) history_.pop_front();
+  }
+
+  bool
+  full() const
+  {
+    return history_.size() == max_size_;
+  }
+
+  bool
+  stable(double tolerance_deg) const
+  {
+    if (!full()) return false;
+
+    const auto& first = history_.front();
+
+    for (const auto& s : history_)
+    {
+      if (std::abs(s.x - first.x) > tolerance_deg) return false;
+
+      if (std::abs(s.y - first.y) > tolerance_deg) return false;
+
+      if (std::abs(s.z - first.z) > tolerance_deg) return false;
+    }
+
+    return true;
+  }
+
+ private:
+  std::deque<geometry_msgs::msg::Vector3> history_;
+  std::size_t max_size_;
+};
+
 class FcClockSynchronizer
 {
  public:
@@ -407,7 +451,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     tf2::Quaternion attitude;
     T_DjiFcSubscriptionQuaternion attitude_q_raw;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
-    T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw; //from the vehicle
+    GimbalAngleHistory gimbal_angle_history;
+    T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw;  // from the vehicle
     std_msgs::msg::Float32 altitude_sl_fused;
     std_msgs::msg::Float32 home_point_altitude;
 
@@ -427,7 +472,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       gimbal_angles.vector.x = 0.0;
       gimbal_angles.vector.y = 0.0;
       gimbal_angles.vector.z = 0.0;
+      gimbal_angle_history = GimbalAngleHistory(20);
     }
+
   };
 
   CopterState current_state_;
@@ -1210,14 +1257,11 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   mutable std::shared_mutex current_state_mutex_;
   mutable std::shared_mutex global_ptr_mutex_;
 
-  void print_angles(const std::string &text, const tf2::Quaternion &q) const;
+  void print_angles(const std::string& text, const tf2::Quaternion& q) const;
   double body_gimbal_offset_deg_;
-
-
 };
 
 extern std::shared_ptr<TelemetryModule> global_telemetry_ptr_;
-
 
 }  // namespace psdk_ros2
 
