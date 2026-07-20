@@ -2788,9 +2788,12 @@ TelemetryModule::publish_static_transforms()
       tf_gimbal.header.frame_id = params_.gimbal_frame;
       tf_gimbal.child_frame_id = params_.camera_frame;
       // assuming it's the same for H20 and H20T
-      tf_gimbal.transform.translation.x = psdk_utils::T_M300_GIMBAL_H20[0];
-      tf_gimbal.transform.translation.y = psdk_utils::T_M300_GIMBAL_H20[1];
-      tf_gimbal.transform.translation.z = psdk_utils::T_M300_GIMBAL_H20[2];
+      tf_gimbal.transform.translation.x = 0;
+      tf_gimbal.transform.translation.y = 0;
+      tf_gimbal.transform.translation.z = 0;
+      // tf_gimbal.transform.translation.x = psdk_utils::T_M300_GIMBAL_H20[0];
+      // tf_gimbal.transform.translation.y = psdk_utils::T_M300_GIMBAL_H20[1];
+      // tf_gimbal.transform.translation.z = psdk_utils::T_M300_GIMBAL_H20[2];
 
       tf2::Quaternion q_gimbal_h20;
       q_gimbal_h20.setRPY(current_state_.gimbal_angles.vector.x,
@@ -2832,9 +2835,9 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.header.stamp = get_measurement_time(timestamp);
     tf_gimbal_base_gimbal.header.frame_id = params_.gimbal_base_frame;
     tf_gimbal_base_gimbal.child_frame_id = params_.gimbal_frame;
-    tf_gimbal_base_gimbal.transform.translation.x = 0.0;
+    tf_gimbal_base_gimbal.transform.translation.x = 0.04;
     tf_gimbal_base_gimbal.transform.translation.y = 0.0;
-    tf_gimbal_base_gimbal.transform.translation.z = 0.0;
+    tf_gimbal_base_gimbal.transform.translation.z = -0.10;
 
     tf2::Quaternion q_gimbal;
     q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
