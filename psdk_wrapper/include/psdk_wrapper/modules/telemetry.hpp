@@ -90,7 +90,7 @@ class GimbalAngleHistory
   }
 
   bool
-  stable(double tolerance_deg) const
+  stable(double tolerance_deg=0.1) const
   {
     if (!full()) return false;
 
