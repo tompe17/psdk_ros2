@@ -472,9 +472,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       gimbal_angles.vector.x = 0.0;
       gimbal_angles.vector.y = 0.0;
       gimbal_angles.vector.z = 0.0;
-      gimbal_angle_history = GimbalAngleHistory(20);
     }
 
+    CopterState() : gimbal_angle_history(25) {}
   };
 
   CopterState current_state_;
