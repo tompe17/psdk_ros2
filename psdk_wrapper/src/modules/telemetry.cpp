@@ -107,6 +107,9 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
       create_publisher<psdk_interfaces::msg::EscData>("psdk_ros2/esc_data", 1);
   gimbal_angles_pub_ = create_publisher<geometry_msgs::msg::Vector3Stamped>(
       "psdk_ros2/gimbal_angles", 10);
+  gimbal_angles_corr_pub_ =
+      create_publisher<geometry_msgs::msg::Vector3Stamped>(
+          "psdk_ros2/gimbal_angles_corr", 10);
   gimbal_status_pub_ = create_publisher<psdk_interfaces::msg::GimbalStatus>(
       "psdk_ros2/gimbal_status", 10);
   flight_status_pub_ = create_publisher<psdk_interfaces::msg::FlightStatus>(
@@ -235,6 +238,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_->on_activate();
   altitude_barometric_pub_->on_activate();
   gimbal_angles_pub_->on_activate();
+  gimbal_angles_corr_pub_->on_activate();
   gimbal_status_pub_->on_activate();
 
   return CallbackReturn::SUCCESS;
@@ -287,6 +291,7 @@ TelemetryModule::on_deactivate(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_->on_deactivate();
   altitude_barometric_pub_->on_deactivate();
   gimbal_angles_pub_->on_deactivate();
+  gimbal_angles_corr_pub_->on_deactivate();
   gimbal_status_pub_->on_deactivate();
 
   return CallbackReturn::SUCCESS;
@@ -346,6 +351,7 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   altitude_sl_pub_.reset();
   altitude_barometric_pub_.reset();
   gimbal_angles_pub_.reset();
+  gimbal_angles_corr_pub_.reset();
   gimbal_status_pub_.reset();
 
   // Reset global variables
@@ -1408,8 +1414,9 @@ TelemetryModule::rc_connection_status_callback(
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
-// pioru: there seems to be an offset between the aircraft attitude angles and the gimbal angles
-// this saves the offset - the method should be used when the gimbal is re-centered
+// pioru: there seems to be an offset between the aircraft attitude angles and
+// the gimbal angles this saves the offset - the method should be used when the
+// gimbal is re-centered
 void
 TelemetryModule::save_body_gimbal_offset()
 {
@@ -1421,13 +1428,19 @@ TelemetryModule::save_body_gimbal_offset()
   // rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
 
   double roll, pitch, yaw;
-  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1, current_state_.attitude_q_raw.q2, current_state_.attitude_q_raw.q3,
+  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
+                                 current_state_.attitude_q_raw.q2,
+                                 current_state_.attitude_q_raw.q3,
                                  current_state_.attitude_q_raw.q0))
       .getRPY(roll, pitch, yaw);
 
-  body_gimbal_offset_deg_ = current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
-  RCLCPP_INFO(get_logger(), "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ", current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw), body_gimbal_offset_deg_);
-
+  body_gimbal_offset_deg_ =
+      current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
+  RCLCPP_INFO(
+      get_logger(),
+      "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
+      current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw),
+      body_gimbal_offset_deg_);
 }
 
 T_DjiReturnCode
@@ -1456,8 +1469,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
       psdk_utils::SHIFT_N2E - psdk_utils::deg_to_rad(gimbal_angles->z);
 
   double corrected_z = gimbal_angles->z - body_gimbal_offset_deg_;
-  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ", gimbal_angles->x,
-              gimbal_angles->y, gimbal_angles->z,  corrected_z);
+  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f (corr: %f) ",
+              gimbal_angles->x, gimbal_angles->y, gimbal_angles->z,
+              corrected_z);
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
@@ -1470,6 +1484,11 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   }
 
   gimbal_angles_pub_->publish(gimbal_angles_msg);
+
+  auto gimbal_angles_corr_msg = gimbal_angles_msg;
+  gimbal_angles_corr_msg.vector.z -= body_gimbal_offset_deg_;
+  gimbal_angles_corr_pub_->publish(gimbal_angles_corr_msg);
+
   if (params_.publish_transforms)
   {
     /* Save gimbal angles for TF publishing and publish dynamic transform */
