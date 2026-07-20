@@ -2951,7 +2951,7 @@ TelemetryModule::get_yaw_gimbal()
 
   /* Get current gimbal yaw wrt to East */
   double current_gimbal_yaw = current_state_.gimbal_angles.vector.z;
-  return current_gimbal_yaw - current_yaw;
+  return current_gimbal_yaw - psdk_utils::rad_to_deg(current_yaw);
 }
 
 std::string
