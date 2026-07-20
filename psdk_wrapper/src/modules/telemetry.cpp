@@ -2732,7 +2732,7 @@ TelemetryModule::publish_static_transforms()
 
   if (publish_camera_transforms_)
   {
-    if (camera_type_ == DJI_CAMERA_TYPE_H20 || camera_type_ == DJI_CAMERA_TYPE_H20T)
+    if (camera_type_ == DJI_CAMERA_TYPE_H20)
     {
       // Publish TF between Gimbal - H20
       geometry_msgs::msg::TransformStamped tf_gimbal_H20;
@@ -2779,6 +2779,42 @@ TelemetryModule::publish_static_transforms()
       tf_H20_wide.transform.rotation.z = psdk_utils::Q_FLU2OPTIC.getZ();
       tf_H20_wide.transform.rotation.w = psdk_utils::Q_FLU2OPTIC.getW();
       tf_static_broadcaster_->sendTransform(tf_H20_wide);
+    }
+    if (camera_type_ == DJI_CAMERA_TYPE_H20T || camera_type_ == DJI_CAMERA_TYPE_P1)
+    {
+      // Publish TF between Gimbal - H20 / P1
+      geometry_msgs::msg::TransformStamped tf_gimbal;
+      tf_gimbal.header.stamp = this->get_clock()->now();
+      tf_gimbal.header.frame_id = params_.gimbal_frame;
+      tf_gimbal.child_frame_id = params_.camera_frame;
+      // assuming it's the same for H20 and H20T
+      tf_gimbal.transform.translation.x = psdk_utils::T_M300_GIMBAL_H20[0];
+      tf_gimbal.transform.translation.y = psdk_utils::T_M300_GIMBAL_H20[1];
+      tf_gimbal.transform.translation.z = psdk_utils::T_M300_GIMBAL_H20[2];
+
+      tf2::Quaternion q_gimbal_h20;
+      q_gimbal_h20.setRPY(current_state_.gimbal_angles.vector.x,
+                          current_state_.gimbal_angles.vector.y,
+                          get_yaw_gimbal());
+      tf_gimbal.transform.rotation.x = psdk_utils::Q_NO_ROTATION.getX();
+      tf_gimbal.transform.rotation.y = psdk_utils::Q_NO_ROTATION.getY();
+      tf_gimbal.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
+      tf_gimbal.transform.rotation.w = psdk_utils::Q_NO_ROTATION.getW();
+      tf_static_broadcaster_->sendTransform(tf_gimbal);
+
+      // this could be subdivided as above (zoom/wide/tele) or wide
+      geometry_msgs::msg::TransformStamped tf_image;
+      tf_image.header.stamp = this->get_clock()->now();
+      tf_image.header.frame_id = params_.camera_frame;
+      tf_image.child_frame_id = add_tf_prefix("camera0/image_frame");
+      tf_image.transform.translation.x = 0.0;
+      tf_image.transform.translation.y = 0.0;
+      tf_image.transform.translation.z = 0.0;
+      tf_image.transform.rotation.x = psdk_utils::Q_FLU2OPTIC.getX();
+      tf_image.transform.rotation.y = psdk_utils::Q_FLU2OPTIC.getY();
+      tf_image.transform.rotation.z = psdk_utils::Q_FLU2OPTIC.getZ();
+      tf_image.transform.rotation.w = psdk_utils::Q_FLU2OPTIC.getW();
+      tf_static_broadcaster_->sendTransform(tf_image);
     }
   }
 }
