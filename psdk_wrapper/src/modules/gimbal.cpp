@@ -188,28 +188,29 @@ GimbalModule::gimbal_reset_cb(
         reset_mode == DJI_GIMBAL_RESET_MODE_YAW_ONLY ||
         reset_mode == DJI_GIMBAL_RESET_MODE_PITCH_DOWNWARD_UPWARD_AND_YAW;
 
+    bool stable = false;
+    do
+    {
+      stable =
+          global_telemetry_ptr_->current_state_.gimbal_angle_history.stable();
+      RCLCPP_INFO(get_logger(), "Waiting for gimbal stable: %d", stable);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (!stable);
+
     if (yaw_reset)
     {
-      bool stable = false;
-      do
-      {
-        stable =
-            global_telemetry_ptr_->current_state_.gimbal_angle_history.stable();
-        RCLCPP_INFO(get_logger(), "Waiting for gimbal stable: %d", stable);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      } while (!stable);
-
       global_telemetry_ptr_->save_body_gimbal_offset();
     }
     else
     {
-      RCLCPP_WARN(get_logger(), "Gimbal yaw (pan) not included in gimbal reset.");
+      RCLCPP_WARN(get_logger(),
+                  "Gimbal yaw (pan) not included in gimbal reset.");
     }
-
-    RCLCPP_INFO(get_logger(), "Gimbal reset done");
-    response->success = true;
-    return;
   }
+
+  RCLCPP_INFO(get_logger(), "Gimbal reset done");
+  response->success = true;
+  return;
 }
 
 void
