@@ -90,13 +90,13 @@ def generate_launch_description():
         output="screen",
         namespace=namespace,
         parameters=[
+            psdk_params_file_path,
             {
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
                 "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
 
             },
-            psdk_params_file_path,
         ],
     )
 
