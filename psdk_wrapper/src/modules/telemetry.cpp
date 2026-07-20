@@ -1664,9 +1664,6 @@ TelemetryModule::battery_callback(const uint8_t *data, uint16_t data_size,
       100;  // convert to 0-1 scale
   battery_pub_->publish(battery_info_msg);
 
-  // pioru: hacky - but it is called at 1 HZ
-  save_body_gimbal_offset();
-
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
