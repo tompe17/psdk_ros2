@@ -2879,10 +2879,10 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
-    // tf2::Quaternion q_body = current_state_.attitude;
-    // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
-    // print_angles("Body ", q_body);
-    // print_angles("Gimbal ", q_gimbal);
+    tf2::Quaternion q_body = current_state_.attitude;
+    tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
+    print_angles("Body ", q_body);
+    print_angles("Gimbal ", q_gimbal);
   }
 }
 
