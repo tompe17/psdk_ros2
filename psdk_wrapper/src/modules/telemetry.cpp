@@ -34,7 +34,7 @@ TelemetryModule::TelemetryModule(const std::string &name)
   initialize_aircraft_base_info();
   camera_type_ = DJI_CAMERA_TYPE_UNKNOWN;
   body_gimbal_offset_deg_ = 0.0;
-  body_yaw_at_reset_offset_deg_ = 0.0;
+  body_yaw_at_reset_offset_rad_ = 0.0;
 }
 
 TelemetryModule::~TelemetryModule()
@@ -1421,20 +1421,20 @@ TelemetryModule::save_body_gimbal_offset()
 {
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
 
-  double roll, pitch, yaw;
+  double roll_raw_rad, pitch_raw_rad, yaw_raw_rad;
   tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
                                  current_state_.attitude_q_raw.q2,
                                  current_state_.attitude_q_raw.q3,
                                  current_state_.attitude_q_raw.q0))
-      .getRPY(roll, pitch, yaw);
+      .getRPY(roll_raw_rad, pitch_raw_rad, yaw_raw_rad);
 
   body_gimbal_offset_deg_ =
-      current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
-  body_yaw_at_reset_offset_rad_ = yaw;
+      current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw_raw_rad);
+  body_yaw_at_reset_offset_rad_ = yaw_raw_rad;
   RCLCPP_INFO(
       get_logger(),
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
-      current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw),
+      current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw_raw_rad),
       body_gimbal_offset_deg_);
 
 }
