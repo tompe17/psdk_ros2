@@ -146,8 +146,8 @@ def generate_launch_description():
     # Create LaunchDescription and populate
     ld = LaunchDescription()
 
-    ld.add_action(LogInfo(msg=["tf_frame_prefix=", declare_frame_prefix_arg]))
-    ld.add_action(LogInfo(msg=["location=", declare_location_arg]))
+    ld.add_action(LogInfo(msg=["tf_frame_prefix=", LaunchConfiguration("tf_frame_prefix")]))
+    ld.add_action(LogInfo(msg=["location=", LaunchConfiguration("location")]))
 
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
