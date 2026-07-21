@@ -132,6 +132,17 @@ GimbalModule::deinit()
   return true;
 }
 
+bool GimbalModule::set_mode_follow()
+{
+  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_YAW_FOLLOW);
+}
+
+bool GimbalModule::set_mode_free()
+{
+  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_FREE);
+}
+
+
 void
 GimbalModule::gimbal_set_mode_cb(
     const std::shared_ptr<GimbalSetMode::Request> request,

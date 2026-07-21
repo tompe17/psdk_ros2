@@ -39,6 +39,19 @@
           "mapping_config_display_order": 2,
           "button_value_step_length": 5
         }
+      },
+      {
+        "widget_index": 4,
+        "widget_type": "gimbalmode",
+        "widget_name": "Gimbal mode",
+        "icon_file_set": {
+          "icon_file_name_selected": "free.png",
+          "icon_file_name_unselected": "follow.png"
+        },
+        "customize_rc_buttons_config": {
+          "is_enable": true,
+          "mapping_config_display_order": 2
+        }
       }
     ]
   },

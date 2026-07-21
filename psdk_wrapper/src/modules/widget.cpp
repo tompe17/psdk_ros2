@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "psdk_wrapper/modules/camera.hpp"
+#include "psdk_wrapper/modules/gimbal.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
 #include "psdk_wrapper/modules/telemetry.hpp"
 
@@ -332,9 +333,26 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       }
     case 2:
     case 3:
+    {
       //      RCLCPP_INFO(self->get_logger(), "Setting jpeg %d", value);
       psdk_ros2::global_liveview_ptr_->set_main_camera_jpeg_quality(value);
       break;
+    }
+    case 4:
+    {
+      auto is_follow = psdk_ros2::global_gimbal_ptr_->gimbal_mode_is_follow();
+      std::thread(
+          [gimbal = psdk_ros2::global_gimbal_ptr_, is_follow]
+          {
+            if (is_follow)
+              gimbal->set_mode_free();
+            else
+              gimbal->set_mode_follow();
+          })
+          .detach();
+
+      break;
+    }
 
     default:
 
@@ -377,6 +395,13 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
 
       break;
     }
+    case 4:
+    {
+      *value = global_gimbal_ptr_->gimbal_mode_is_follow();
+
+      break;
+    }
+
     default:
       RCLCPP_INFO(self->get_logger(),
                   "widget_state_get: unknown widget index: %d", index);
