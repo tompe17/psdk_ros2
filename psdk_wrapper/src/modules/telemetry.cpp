@@ -34,6 +34,7 @@ TelemetryModule::TelemetryModule(const std::string &name)
   initialize_aircraft_base_info();
   camera_type_ = DJI_CAMERA_TYPE_UNKNOWN;
   body_gimbal_offset_deg_ = 0.0;
+  body_yaw_at_reset_offset_deg_ = 0.0;
 }
 
 TelemetryModule::~TelemetryModule()
@@ -1429,11 +1430,13 @@ TelemetryModule::save_body_gimbal_offset()
 
   body_gimbal_offset_deg_ =
       current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
+  body_yaw_at_reset_offset_deg_ = psdk_utils::rad_to_deg(yaw);
   RCLCPP_INFO(
       get_logger(),
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
       current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw),
       body_gimbal_offset_deg_);
+
 }
 
 T_DjiReturnCode
@@ -1462,9 +1465,12 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.header.frame_id = params_.gimbal_base_frame;
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
+
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_-body_yaw_at_reset_offset_deg_);
+
+
   // gimbal_angles_msg.vector.z =
   //     psdk_utils::SHIFT_N2E -
   //     psdk_utils::deg_to_rad(gimbal_angles->z);
