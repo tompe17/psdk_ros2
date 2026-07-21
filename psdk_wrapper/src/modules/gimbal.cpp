@@ -288,8 +288,8 @@ GimbalModule::gimbal_rotation_cb(
 
   rotation_deg.time = msg->time;
 
-  return_code = DjiGimbalManager_SetMode(index, DJI_GIMBAL_MODE_YAW_FOLLOW);
-  // return_code = DjiGimbalManager_SetMode(index, DJI_GIMBAL_MODE_FREE);
+  // return_code = DjiGimbalManager_SetMode(index, DJI_GIMBAL_MODE_YAW_FOLLOW);
+  return_code = DjiGimbalManager_SetMode(index, DJI_GIMBAL_MODE_FREE);
 
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
