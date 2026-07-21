@@ -489,6 +489,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout) const;
   bool wait_for_first_attitude_sample(std::chrono::milliseconds timeout) const;
   static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
+  double body_gimbal_offset_raw_deg_;
+
  private:
   /*C++ type DJI topic subscriber callbacks*/
   /**
@@ -1270,7 +1272,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   mutable std::shared_mutex global_ptr_mutex_;
 
   void print_angles(const std::string& text, const tf2::Quaternion& q) const;
-  double body_gimbal_offset_raw_deg_;
   double body_yaw_raw_at_reset_rad_;
 
   std::atomic<bool> received_first_gimbal_sample_{false};
