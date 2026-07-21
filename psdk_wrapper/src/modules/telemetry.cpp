@@ -1495,9 +1495,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   gimbal_angles_pub_->publish(gimbal_angles_msg);
 
-  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
-              gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
-              psdk_utils::rad_to_deg(gimbal_angles_msg.vector.z));
+  // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
+              // gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
+              // psdk_utils::rad_to_deg(gimbal_angles_msg.vector.z));
 
   if (params_.publish_transforms)
   {
@@ -2909,11 +2909,11 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.rotation.w = q_body_to_gimbal.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
-    tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
-    print_angles("Body ", q_body);
-    print_angles("Gimbal ", q_gimbal);
+    // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
+    // print_angles("Body ", q_body);
+    // print_angles("Gimbal ", q_gimbal);
 
-    print_angles("Gimbal in body ", q_body_to_gimbal);
+    // print_angles("Gimbal in body ", q_body_to_gimbal);
   }
 }
 
