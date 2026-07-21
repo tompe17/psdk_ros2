@@ -134,8 +134,8 @@ GimbalModule::deinit()
 
 bool GimbalModule::set_mode_follow()
 {
-  // auto telem = global_telemetry_ptr_;
-  // telem->body_yaw_raw_at_reset_rad_ = telem->get_body_yaw_raw_rad();
+  auto telem = global_telemetry_ptr_;
+  telem->body_yaw_raw_at_reset_rad_ -= telem->offset_due_to_yaw;
 
   return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_YAW_FOLLOW);
 }
