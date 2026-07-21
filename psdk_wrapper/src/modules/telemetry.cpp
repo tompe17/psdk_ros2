@@ -1460,7 +1460,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_) + get_body_yaw_rad();
   // gimbal_angles_msg.vector.z =
   //     psdk_utils::SHIFT_N2E -
   //     psdk_utils::deg_to_rad(gimbal_angles->z);
@@ -2946,6 +2946,9 @@ TelemetryModule::publish_dynamic_body_transforms() const
   }
 }
 
+
+
+
 double
 TelemetryModule::get_yaw_gimbal() const
 {
@@ -2961,6 +2964,21 @@ TelemetryModule::get_yaw_gimbal() const
   double current_gimbal_yaw = current_state_.gimbal_angles.vector.z;
   return (-current_yaw + current_gimbal_yaw );
 }
+
+double
+TelemetryModule::get_body_yaw_rad() const
+{
+  /* Get current copter yaw wrt. to East */
+  std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+  tf2::Matrix3x3 rotation_mat(current_state_.attitude);
+  double current_roll;
+  double current_pitch;
+  double current_yaw;
+  rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
+  return current_yaw;
+
+}
+
 
 std::string
 TelemetryModule::add_tf_prefix(const std::string &frame_name) const
