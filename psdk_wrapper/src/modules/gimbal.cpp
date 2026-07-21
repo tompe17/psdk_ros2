@@ -283,7 +283,7 @@ GimbalModule::gimbal_rotation_cb(
   {
     rotation_deg.yaw =
         psdk_ros2::psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - msg->yaw);
-    // rotation_deg.yaw += global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
+    rotation_deg.yaw += global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
   }
 
   rotation_deg.time = msg->time;
