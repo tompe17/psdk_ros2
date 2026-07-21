@@ -1459,7 +1459,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   //  gimbal_angles_msg.header.stamp = this->get_clock()->now();
 
   // only in sim because gimbal is not simulated
-  auto body_yaw_rad = get_body_yaw_rad();
+  auto body_yaw_rad = get_body_yaw_raw_rad();
 
   gimbal_angles_msg.header.stamp = get_measurement_time(timestamp);
   gimbal_angles_msg.header.frame_id = params_.gimbal_base_frame;
@@ -1468,9 +1468,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_+body_yaw_at_reset_offset_deg_)+body_yaw_rad;
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
 
-
+  gimbal_angles_msg.vector.z += -psdk_utils::deg_to_rad(body_yaw_at_reset_offset_deg_) + body_yaw_rad;
   // gimbal_angles_msg.vector.z =
   //     psdk_utils::SHIFT_N2E -
   //     psdk_utils::deg_to_rad(gimbal_angles->z);
@@ -2989,6 +2989,20 @@ TelemetryModule::get_body_yaw_rad() const
 
 }
 
+double
+TelemetryModule::get_body_yaw_raw_rad() const
+{
+  /* Get current copter yaw wrt. to East */
+  std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+  double roll_raw, pitch_raw, yaw_raw;
+  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
+                                 current_state_.attitude_q_raw.q2,
+                                 current_state_.attitude_q_raw.q3,
+                                 current_state_.attitude_q_raw.q0))
+      .getRPY(roll_raw, pitch_raw, yaw_raw);
+  return yaw_raw;
+
+}
 
 std::string
 TelemetryModule::add_tf_prefix(const std::string &frame_name) const

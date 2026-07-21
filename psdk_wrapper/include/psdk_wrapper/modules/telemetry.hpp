@@ -1142,6 +1142,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double get_yaw_gimbal() const;
 
   double get_body_yaw_rad() const;
+
+  double get_body_yaw_raw_rad() const;
+
   /**
    * @brief Method to generate a tf adding the tf_prefix to the frame name
    * @param frame_name name of the frame to be transformed
