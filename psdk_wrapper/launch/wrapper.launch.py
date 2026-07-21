@@ -75,18 +75,18 @@ def generate_launch_description():
         [FindPackageShare("psdk_wrapper"), "cfg", hms_return_codes_file]
     )
 
-    declare_frame_prefix_cmd = DeclareLaunchArgument(
+    declare_frame_prefix_arg = DeclareLaunchArgument(
         "tf_frame_prefix",
         default_value=namespace,
         description="TF frame prefix",
     )
 
-    declare_location_cmd = DeclareLaunchArgument(
+    declare_location_arg = DeclareLaunchArgument(
         "location",
         default_value="granso",
         description="Location to use for local coordinate system",
     )
-    declare_sim_cmd = DeclareLaunchArgument(
+    declare_sim_arg = DeclareLaunchArgument(
         "sim",
         default_value=False,
         description="Is simulation used for the platform",
@@ -104,9 +104,9 @@ def generate_launch_description():
             {
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
-                "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
-                "location": LaunchConfiguration("location"),
-                "sim": LaunchConfiguration("sim"),
+                "tf_frame_prefix": declare_frame_prefix_arg,
+                "location": declare_location_arg,
+                "sim": declare_sim_arg,
             },
         ],
     )
@@ -150,9 +150,9 @@ def generate_launch_description():
 
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
-    ld.add_action(declare_frame_prefix_cmd)
-    ld.add_action(declare_location_cmd)
-    ld.add_action(declare_sim_cmd)
+    ld.add_action(declare_frame_prefix_arg)
+    ld.add_action(declare_location_arg)
+    ld.add_action(declare_sim_arg)
     ld.add_action(declare_psdk_params_cmd)
     ld.add_action(declare_link_config_cmd)
     ld.add_action(declare_hms_codes_cmd)
