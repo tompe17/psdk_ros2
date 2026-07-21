@@ -1477,9 +1477,9 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   gimbal_angles_pub_->publish(gimbal_angles_msg);
 
-  // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
-              // gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
-              // gimbal_angles_msg.vector.z);
+  RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
+              gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
+              gimbal_angles_msg.vector.z);
 
   if (params_.publish_transforms)
   {
@@ -1503,27 +1503,28 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
-bool TelemetryModule::wait_for_first_gimbal_sample(
+bool
+TelemetryModule::wait_for_first_gimbal_sample(
     std::chrono::milliseconds timeout) const
 {
   return wait_for_first_sample(received_first_gimbal_sample_, timeout);
 }
-bool TelemetryModule::wait_for_first_attitude_sample(
+bool
+TelemetryModule::wait_for_first_attitude_sample(
     std::chrono::milliseconds timeout) const
 {
   return wait_for_first_sample(received_first_attitude_sample_, timeout);
 }
 
-
-bool TelemetryModule::wait_for_first_sample(const  std::atomic<bool> &test,
-    std::chrono::milliseconds timeout)
+bool
+TelemetryModule::wait_for_first_sample(const std::atomic<bool> &test,
+                                       std::chrono::milliseconds timeout)
 {
   auto start = std::chrono::steady_clock::now();
 
   while (!test)
   {
-    if (std::chrono::steady_clock::now() - start > timeout)
-      return false;
+    if (std::chrono::steady_clock::now() - start > timeout) return false;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -2776,8 +2777,8 @@ TelemetryModule::publish_static_transforms()
 
       tf2::Quaternion q_gimbal_h20;
       // q_gimbal_h20.setRPY(current_state_.gimbal_angles.vector.x,
-                          // current_state_.gimbal_angles.vector.y,
-                          // get_yaw_gimbal());
+      // current_state_.gimbal_angles.vector.y,
+      // get_yaw_gimbal());
       tf_gimbal_H20.transform.rotation.x = psdk_utils::Q_NO_ROTATION.getX();
       tf_gimbal_H20.transform.rotation.y = psdk_utils::Q_NO_ROTATION.getY();
       tf_gimbal_H20.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
@@ -2811,7 +2812,8 @@ TelemetryModule::publish_static_transforms()
       tf_H20_wide.transform.rotation.w = psdk_utils::Q_FLU2OPTIC.getW();
       tf_static_broadcaster_->sendTransform(tf_H20_wide);
     }
-    if (camera_type_ == DJI_CAMERA_TYPE_H20T || camera_type_ == DJI_CAMERA_TYPE_P1)
+    if (camera_type_ == DJI_CAMERA_TYPE_H20T ||
+        camera_type_ == DJI_CAMERA_TYPE_P1)
     {
       // Publish TF between Gimbal - H20 / P1
       geometry_msgs::msg::TransformStamped tf_gimbal;
@@ -2885,10 +2887,8 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     print_angles("Body ", q_body);
     print_angles("Gimbal ", q_gimbal);
 
-    tf2::Quaternion q_body_to_gimbal =
-    q_body.inverse() * q_gimbal;
+    tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
     print_angles("Gimbal in body ", q_body_to_gimbal);
-
   }
 }
 
