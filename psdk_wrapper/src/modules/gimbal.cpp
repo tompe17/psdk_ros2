@@ -132,28 +132,31 @@ GimbalModule::deinit()
   return true;
 }
 
-bool GimbalModule::set_mode_follow()
+bool
+GimbalModule::set_mode_follow()
 {
   // auto telem = global_telemetry_ptr_;
   // telem->body_yaw_raw_at_reset_rad_ -= telem->offset_due_to_yaw;
 
-  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_YAW_FOLLOW);
+  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+                         DJI_GIMBAL_MODE_YAW_FOLLOW);
 }
 
-bool GimbalModule::set_mode_free()
+bool
+GimbalModule::set_mode_free()
 {
-  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_FREE);
+  return set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+                         DJI_GIMBAL_MODE_FREE);
 }
-
 
 void
 GimbalModule::gimbal_set_mode_cb(
     const std::shared_ptr<GimbalSetMode::Request> request,
     const std::shared_ptr<GimbalSetMode::Response> response)
 {
-  response->success = set_gimbal_mode(
-    static_cast<E_DjiMountPosition>(request->payload_index),
-    static_cast<E_DjiGimbalMode>(request->gimbal_mode));
+  response->success =
+      set_gimbal_mode(static_cast<E_DjiMountPosition>(request->payload_index),
+                      static_cast<E_DjiGimbalMode>(request->gimbal_mode));
 #if 0
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
@@ -177,26 +180,22 @@ GimbalModule::gimbal_set_mode_cb(
     return;
   }
 #endif
-
 }
 
-bool GimbalModule::set_gimbal_mode(
-    E_DjiMountPosition index,
-    E_DjiGimbalMode gimbal_mode)
+bool
+GimbalModule::set_gimbal_mode(E_DjiMountPosition index,
+                              E_DjiGimbalMode gimbal_mode)
 {
-  T_DjiReturnCode return_code =
-      DjiGimbalManager_SetMode(index, gimbal_mode);
+  T_DjiReturnCode return_code = DjiGimbalManager_SetMode(index, gimbal_mode);
 
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(),
-                 "Setting gimbal mode failed, error code: %ld",
+    RCLCPP_ERROR(get_logger(), "Setting gimbal mode failed, error code: %ld",
                  return_code);
     return false;
   }
 
-  RCLCPP_INFO(get_logger(),
-              "Setting gimbal mode successfully to %d",
+  RCLCPP_INFO(get_logger(), "Setting gimbal mode successfully to %d",
               static_cast<int>(gimbal_mode));
 
   gimbal_mode_ = gimbal_mode;
@@ -255,60 +254,59 @@ GimbalModule::gimbal_reset_cb(
   response->success =
       reset_gimbal(static_cast<E_DjiMountPosition>(request->payload_index),
                    static_cast<E_DjiGimbalResetMode>(request->reset_mode));
-#if 0
-  T_DjiReturnCode return_code;
-  E_DjiMountPosition index =
-      static_cast<E_DjiMountPosition>(request->payload_index);
-  E_DjiGimbalResetMode reset_mode =
-      static_cast<E_DjiGimbalResetMode>(request->reset_mode);
-  return_code = DjiGimbalManager_Reset(index, reset_mode);
-  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+}
+
+bool
+GimbalModule::rotate_gimbal(E_DjiMountPosition index,
+                            E_DjiGimbalRotationMode rotation_mode, double roll,
+                            double pitch, double yaw, double time)
+{
+  T_DjiGimbalManagerRotation rotation_deg;
+
+  rotation_deg.rotationMode = rotation_mode;
+
+  // DJI PSDK expects FRD. Convert from ROS FLU.
+  rotation_deg.pitch = psdk_utils::rad_to_deg(-pitch);
+  rotation_deg.roll = psdk_utils::rad_to_deg(roll);
+
+  if (rotation_mode == DJI_GIMBAL_ROTATION_MODE_RELATIVE_ANGLE)
   {
-    RCLCPP_ERROR(get_logger(), "Reset gimbal failed, error code: %ld",
-                 return_code);
-    response->success = false;
-    return;
+    rotation_deg.yaw = psdk_utils::rad_to_deg(-yaw);
   }
   else
   {
-    RCLCPP_INFO(get_logger(), "Gimbal resetting...");
-    global_telemetry_ptr_->current_state_.gimbal_angle_history.clear();
+    rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
 
-    auto yaw_reset =
-        reset_mode == DJI_GIMBAL_RESET_MODE_YAW ||
-        reset_mode == DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW ||
-        reset_mode == DJI_GIMBAL_RESET_MODE_YAW_ONLY ||
-        reset_mode == DJI_GIMBAL_RESET_MODE_PITCH_DOWNWARD_UPWARD_AND_YAW;
-
-    bool stable = false;
-    do
-    {
-      stable =
-          global_telemetry_ptr_->current_state_.gimbal_angle_history.stable();
-      RCLCPP_INFO(get_logger(), "Waiting for gimbal stable: %d", stable);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    } while (!stable);
-
-    if (yaw_reset)
-    {
-      global_telemetry_ptr_->save_body_gimbal_offset();
-    }
-    else
-    {
-      RCLCPP_WARN(get_logger(),
-                  "Gimbal yaw (pan) not included in gimbal reset.");
-    }
+    // pioru: test if needed
+    rotation_deg.yaw += global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
   }
 
-  RCLCPP_INFO(get_logger(), "Gimbal reset done");
-  response->success = true;
-#endif
+  rotation_deg.time = time;
+
+  if (!set_gimbal_mode(index, DJI_GIMBAL_MODE_FREE))
+  {
+    return false;
+  }
+
+  T_DjiReturnCode return_code = DjiGimbalManager_Rotate(index, rotation_deg);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(
+        get_logger(),
+        "Target gimbal RPY = (%.1f, %.1f, %.1f) failed, error code: %ld",
+        rotation_deg.pitch, rotation_deg.roll, rotation_deg.yaw, return_code);
+    return false;
+  }
+
+  return true;
 }
 
 void
 GimbalModule::gimbal_rotation_cb(
     const psdk_interfaces::msg::GimbalRotation::SharedPtr msg)
 {
+#if 0
   (void)msg;
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
@@ -353,6 +351,10 @@ GimbalModule::gimbal_rotation_cb(
         rotation_deg.pitch, rotation_deg.roll, rotation_deg.yaw, return_code);
     return;
   }
+#endif
+  rotate_gimbal(static_cast<E_DjiMountPosition>(msg->payload_index),
+                static_cast<E_DjiGimbalRotationMode>(msg->rotation_mode),
+                msg->roll, msg->pitch, msg->yaw, msg->time);
 }
 
 }  // namespace psdk_ros2

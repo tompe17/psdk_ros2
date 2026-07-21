@@ -103,6 +103,13 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
 
   bool set_mode_follow();
   bool set_mode_free();
+  bool rotate_gimbal(
+    E_DjiMountPosition index,
+    E_DjiGimbalRotationMode rotation_mode,
+    double roll,
+    double pitch,
+    double yaw,
+    double time);
  private:
   /**
    * @brief Callback function to control roll, pitch, yaw and time.
