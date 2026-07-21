@@ -1270,7 +1270,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   void print_angles(const std::string& text, const tf2::Quaternion& q) const;
   double body_gimbal_offset_deg_;
-  double body_yaw_at_reset_offset_deg_;
+  double body_yaw_at_reset_offset_rad_;
 
   std::atomic<bool> received_first_gimbal_sample_{false};
   std::atomic<bool> received_first_attitude_sample_{false};

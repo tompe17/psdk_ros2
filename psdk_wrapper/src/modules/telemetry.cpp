@@ -1430,7 +1430,7 @@ TelemetryModule::save_body_gimbal_offset()
 
   body_gimbal_offset_deg_ =
       current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
-  body_yaw_at_reset_offset_deg_ = psdk_utils::rad_to_deg(yaw);
+  body_yaw_at_reset_offset_rad_ = yaw;
   RCLCPP_INFO(
       get_logger(),
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
@@ -1474,7 +1474,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   // only in sim because gimbal is not simulated in sim
   // yaw of the vehicle is used to update the gimbal yaw
-  gimbal_angles_msg.vector.z += psdk_utils::deg_to_rad(body_yaw_at_reset_offset_deg_) - get_body_yaw_raw_rad();;
+  gimbal_angles_msg.vector.z += body_yaw_at_reset_offset_rad_ - get_body_yaw_raw_rad();;
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
