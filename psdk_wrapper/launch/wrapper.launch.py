@@ -88,7 +88,7 @@ def generate_launch_description():
     )
     declare_sim_arg = DeclareLaunchArgument(
         "sim",
-        default_value=False,
+        default_value="false",
         description="Is simulation used for the platform",
     )
 
