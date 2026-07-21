@@ -101,6 +101,7 @@ def generate_launch_description():
                 "hms_return_codes_path": hms_return_codes_path,
                 "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
                 "location": LaunchConfiguration("location"),
+                "sim": LaunchConfiguration("sim"),
             },
         ],
     )
