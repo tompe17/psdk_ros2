@@ -27,11 +27,11 @@ CoordModule::CoordModule(const std::string &name)
 {
   RCLCPP_INFO(get_logger(), "Creating CoordModule");
 
-  declare_parameter("location", "granso");
+  // declare_parameter("location", "granso");
 
-  get_parameter("location", location_);
+  // get_parameter("location", location_);
 
-  RCLCPP_INFO(get_logger(), "Location: %s", location_.c_str());
+  // RCLCPP_INFO(get_logger(), "Location: %s", location_.c_str());
 }
 
 CoordModule::~CoordModule()

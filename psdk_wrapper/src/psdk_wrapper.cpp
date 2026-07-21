@@ -73,9 +73,11 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("perception_camera_frame",
                     rclcpp::ParameterValue("psdk_perception_camera_link"));
   declare_parameter("publish_transforms", rclcpp::ParameterValue(true));
-  declare_parameter("sim", rclcpp::ParameterValue(false));
   declare_parameter("hms_return_codes_path", rclcpp::ParameterValue(""));
   declare_parameter("file_path", rclcpp::ParameterValue("/logs/media/"));
+  declare_parameter("sim", rclcpp::ParameterValue(false));
+  declare_parameter("location", "granso");
+
 
   declare_parameter("data_frequency.imu", 1);
   declare_parameter("data_frequency.timestamp", 1);
@@ -562,6 +564,10 @@ PSDKWrapper::load_parameters()
   }
   if (is_coord_module_mandatory_)
   {
+    get_parameter("location",
+              coord_module_->location_);
+    RCLCPP_INFO(get_logger(), "location: %s",
+            coord_module_->location_.c_str());
   }
   if (is_hms_module_mandatory_)
   {

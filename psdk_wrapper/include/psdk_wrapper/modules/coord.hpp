@@ -53,9 +53,9 @@ class CoordModule : public rclcpp_lifecycle::LifecycleNode
   {
     return world_origin_elevation_;
   }
+  std::string location_;
 
  private:
-  std::string location_;
   CoordTrans *ct_;
   double world_origin_elevation_;
 };
