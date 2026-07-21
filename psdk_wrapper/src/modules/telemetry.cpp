@@ -1485,7 +1485,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
       // body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
 
       auto diff = get_body_yaw_raw_rad(false) - get_body_yaw_raw_rad(true);
-      RCLCPP_INFO(get_logger(), "Angle diff: %f ", diff);
+      RCLCPP_INFO(get_logger(), "Angle diff: %f ", psdk_utils::rad_to_deg(diff);
       gimbal_angles_msg.vector.z += diff*10;
 
       // body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
