@@ -1139,14 +1139,14 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    * attached to the gimbal).
    * @return the yaw angle difference between these two frames.
    */
-  double get_yaw_gimbal();
+  double get_yaw_gimbal() const;
 
   /**
    * @brief Method to generate a tf adding the tf_prefix to the frame name
    * @param frame_name name of the frame to be transformed
    * @return string with the tf name
    */
-  std::string add_tf_prefix(const std::string& frame_name);
+  std::string add_tf_prefix(const std::string& frame_name) const;
 
   /**
    * @brief Set default unknown values for the aircraft base info

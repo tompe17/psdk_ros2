@@ -2945,7 +2945,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
 }
 
 double
-TelemetryModule::get_yaw_gimbal()
+TelemetryModule::get_yaw_gimbal() const
 {
   /* Get current copter yaw wrt. to East */
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
@@ -2957,11 +2957,11 @@ TelemetryModule::get_yaw_gimbal()
 
   /* Get current gimbal yaw wrt to East */
   double current_gimbal_yaw = current_state_.gimbal_angles.vector.z;
-  return current_gimbal_yaw + current_yaw;
+  return current_gimbal_yaw - current_yaw;
 }
 
 std::string
-TelemetryModule::add_tf_prefix(const std::string &frame_name)
+TelemetryModule::add_tf_prefix(const std::string &frame_name) const
 {
   return params_.tf_frame_prefix + "/" + frame_name;
 }
