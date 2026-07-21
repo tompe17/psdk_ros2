@@ -2896,7 +2896,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     print_angles("Body ", q_body);
     print_angles("Gimbal ", q_gimbal);
 
-    tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
+    // tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
     print_angles("Gimbal in body ", q_body_to_gimbal);
   }
 }
