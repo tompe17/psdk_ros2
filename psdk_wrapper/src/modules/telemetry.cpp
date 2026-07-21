@@ -1468,7 +1468,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_-body_yaw_at_reset_offset_deg_);
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_-body_yaw_at_reset_offset_deg_)+body_yaw_rad;
 
 
   // gimbal_angles_msg.vector.z =
