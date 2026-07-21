@@ -1514,8 +1514,6 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     current_state_.gimbal_angle_history.add(gimbal_angles_msg.vector);
   }
 
-  // RCLCPP_INFO(get_logger(), "---> STABLE: %d",
-  // current_state_.gimbal_angle_history.stable(0.1));
   received_first_gimbal_sample_ = true;
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -2890,23 +2888,23 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.translation.y = 0.0;
     tf_gimbal_base_gimbal.transform.translation.z = -0.10;
 
-    tf2::Quaternion q_body = current_state_.attitude;
+    tf2::Quaternion q_body_w = current_state_.attitude;
 
 
     auto yaw_gimbal = get_yaw_gimbal();
-    tf2::Quaternion q_gimbal;
+    tf2::Quaternion q_gimbal_w;
     // q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
                     // current_state_.gimbal_angles.vector.y, yaw_gimbal);
-    q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
+    q_gimbal_w.setRPY(current_state_.gimbal_angles.vector.x,
                     current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
 
-    tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
+    // calculate gimbal angles in body - since we want this in gimbal_base frame
+    tf2::Quaternion q_gimbal_b = q_body_w.inverse() * q_gimbal_w;
 
-
-    tf_gimbal_base_gimbal.transform.rotation.x = q_body_to_gimbal.getX();
-    tf_gimbal_base_gimbal.transform.rotation.y = q_body_to_gimbal.getY();
-    tf_gimbal_base_gimbal.transform.rotation.z = q_body_to_gimbal.getZ();
-    tf_gimbal_base_gimbal.transform.rotation.w = q_body_to_gimbal.getW();
+    tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal_b.getX();
+    tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal_b.getY();
+    tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal_b.getZ();
+    tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal_b.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
