@@ -26,6 +26,7 @@ std::shared_ptr<psdk_ros2::HmsModule> psdk_ros2::global_hms_ptr_;
 std::shared_ptr<psdk_ros2::PerceptionModule> psdk_ros2::global_perception_ptr_;
 std::shared_ptr<psdk_ros2::WidgetModule> psdk_ros2::global_widget_ptr_;
 std::shared_ptr<psdk_ros2::CoordModule> psdk_ros2::global_coord_ptr_;
+std::shared_ptr<psdk_ros2::GimbalModule> psdk_ros2::global_gimbal_ptr_;
 
 using namespace std::placeholders;  // NOLINT
 
@@ -123,7 +124,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_camera_module_mandatory_, camera_module_, camera_thread_,
                 "camera_node", psdk_ros2::global_camera_ptr_);
   create_module(is_gimbal_module_mandatory_, gimbal_module_, gimbal_thread_,
-                "gimbal_node");
+                "gimbal_node", global_gimbal_ptr_);
   create_module(is_liveview_module_mandatory_, liveview_module_,
                 liveview_thread_, "liveview_node",
                 psdk_ros2::global_liveview_ptr_);

@@ -18,6 +18,7 @@
 #include "psdk_wrapper/modules/telemetry.hpp"
 
 #include "psdk_wrapper/modules/coord.hpp"
+#include "psdk_wrapper/modules/gimbal.hpp"
 namespace psdk_ros2
 {
 
@@ -1476,9 +1477,11 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   if (params_.sim)
   {
     // only in follow mode?
-
-    gimbal_angles_msg.vector.z +=
-        body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+    if (global_gimbal_ptr_->gimbal_mode_==DJI_GIMBAL_MODE_YAW_FOLLOW)
+    {
+      gimbal_angles_msg.vector.z +=
+          body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+    }
   }
 
   /* Keep the yaw angle bounded within PI, - PI*/

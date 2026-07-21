@@ -142,7 +142,7 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
 
   bool is_module_initialized_{false};
 };
-
+extern std::shared_ptr<GimbalModule> global_gimbal_ptr_;
 }  // namespace psdk_ros2
 
 #endif  // PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_GIMBAL_HPP_
