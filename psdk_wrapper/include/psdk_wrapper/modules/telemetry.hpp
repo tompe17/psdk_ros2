@@ -430,6 +430,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     std::string camera_frame;
     std::string tf_frame_prefix;
     bool publish_transforms;
+    bool sim;
     int imu_frequency;
     int attitude_frequency;
     int acceleration_frequency;

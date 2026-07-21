@@ -81,6 +81,12 @@ def generate_launch_description():
         description="TF frame prefix",
     )
 
+    declare_location_cmd = DeclareLaunchArgument(
+        "location",
+        default_value="granso",
+        description="Location to use for local coordinate system",
+    )
+
     # Prepare the wrapper node
     wrapper_node = LifecycleNode(
         package="psdk_wrapper",
@@ -94,6 +100,7 @@ def generate_launch_description():
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
                 "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
+                "location": LaunchConfiguration("location"),
             },
         ],
     )
@@ -138,6 +145,7 @@ def generate_launch_description():
     # Declare Launch options
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_frame_prefix_cmd)
+    ld.add_action(declare_location_cmd)
     ld.add_action(declare_psdk_params_cmd)
     ld.add_action(declare_link_config_cmd)
     ld.add_action(declare_hms_codes_cmd)
