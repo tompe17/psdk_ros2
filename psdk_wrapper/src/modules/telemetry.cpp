@@ -2956,8 +2956,8 @@ TelemetryModule::get_yaw_gimbal()
   rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
 
   /* Get current gimbal yaw wrt to East */
-  double current_gimbal_yaw = -current_state_.gimbal_angles.vector.z;
-  return current_gimbal_yaw + current_yaw;
+  double current_gimbal_yaw = current_state_.gimbal_angles.vector.z;
+  return -(current_gimbal_yaw - current_yaw);
 }
 
 std::string
