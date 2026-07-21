@@ -2775,9 +2775,9 @@ TelemetryModule::publish_static_transforms()
       tf_gimbal_H20.transform.translation.z = psdk_utils::T_M300_GIMBAL_H20[2];
 
       tf2::Quaternion q_gimbal_h20;
-      q_gimbal_h20.setRPY(current_state_.gimbal_angles.vector.x,
-                          current_state_.gimbal_angles.vector.y,
-                          get_yaw_gimbal());
+      // q_gimbal_h20.setRPY(current_state_.gimbal_angles.vector.x,
+                          // current_state_.gimbal_angles.vector.y,
+                          // get_yaw_gimbal());
       tf_gimbal_H20.transform.rotation.x = psdk_utils::Q_NO_ROTATION.getX();
       tf_gimbal_H20.transform.rotation.y = psdk_utils::Q_NO_ROTATION.getY();
       tf_gimbal_H20.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
