@@ -1481,15 +1481,17 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     // only in follow mode?
     if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     {
-      gimbal_angles_msg.vector.z +=
-      body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
+      // gimbal_angles_msg.vector.z +=
+      offset_due_to_yaw =
+          body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
 
       // auto diff = get_body_yaw_raw_rad(false) - get_body_yaw_raw_rad(true);
-      // RCLCPP_INFO(get_logger(), "Angle diff: %f ", psdk_utils::rad_to_deg(diff));
-      // gimbal_angles_msg.vector.z += diff;
+      // RCLCPP_INFO(get_logger(), "Angle diff: %f ",
+      // psdk_utils::rad_to_deg(diff)); gimbal_angles_msg.vector.z += diff;
 
       // body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
     }
+    gimbal_angles_msg.vector.z += offset_due_to_yaw;
   }
 
   /* Keep the yaw angle bounded within PI, - PI*/

@@ -492,6 +492,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
   double body_gimbal_offset_raw_deg_;
   double body_yaw_raw_at_reset_rad_;
+  double offset_due_to_yaw;
   double get_body_yaw_raw_rad(bool prev);
 
  private:
