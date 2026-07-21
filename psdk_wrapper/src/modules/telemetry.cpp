@@ -2888,10 +2888,9 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.translation.y = 0.0;
     tf_gimbal_base_gimbal.transform.translation.z = -0.10;
 
-    tf2::Quaternion q_body_w = current_state_.attitude;
+    tf2::Quaternion q_platform_w = current_state_.attitude;
 
-
-    auto yaw_gimbal = get_yaw_gimbal();
+    // auto yaw_gimbal = get_yaw_gimbal();
     tf2::Quaternion q_gimbal_w;
     // q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
                     // current_state_.gimbal_angles.vector.y, yaw_gimbal);
@@ -2899,12 +2898,13 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
                     current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
 
     // calculate gimbal angles in body - since we want this in gimbal_base frame
-    tf2::Quaternion q_gimbal_b = q_body_w.inverse() * q_gimbal_w;
+    tf2::Quaternion q_gimbal_b = q_platform_w.inverse() * q_gimbal_w;
 
-    tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal_b.getX();
-    tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal_b.getY();
-    tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal_b.getZ();
-    tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal_b.getW();
+    tf_gimbal_base_gimbal.transform.rotation = tf2::toMsg(q_gimbal_b);
+    // tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal_b.getX();
+    // tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal_b.getY();
+    // tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal_b.getZ();
+    // tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal_b.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
@@ -2947,6 +2947,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
     coord->wgs84_to_world(lon, lat, alt, cx, cy, cz);
 
     geometry_msgs::msg::TransformStamped t;
+    // body
     t.header.stamp = current_state_.gps_fused.header.stamp;
     t.header.frame_id = params_.map_frame;
     t.child_frame_id = params_.body_frame;
@@ -2957,9 +2958,8 @@ TelemetryModule::publish_dynamic_body_transforms() const
     t.transform.rotation = tf2::toMsg(current_state_.attitude);
     tf_broadcaster_->sendTransform(t);
 
+    // hor body
     t.child_frame_id = params_.horbody_frame;
-
-    // tf2::Quaternion tf_q = current_state_.attitude;
     tf2::Quaternion tf_q_flat_yaw;
     tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
     t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
