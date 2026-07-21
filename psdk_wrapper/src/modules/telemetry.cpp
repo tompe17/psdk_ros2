@@ -871,7 +871,6 @@ TelemetryModule::attitude_callback(const uint8_t *data, uint16_t data_size,
   /* Save current attitude */
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   current_state_.attitude = current_quat_FLU2ENU;
-  current_state_.attitude_q_raw_prev = current_state_.attitude_q_raw;
   current_state_.attitude_q_raw = *quaternion;
   received_first_attitude_sample_ = true;
 
@@ -1429,7 +1428,7 @@ TelemetryModule::save_body_gimbal_offset()
   //                                current_state_.attitude_q_raw.q3,
   //                                current_state_.attitude_q_raw.q0))
   //     .getRPY(roll_raw_rad, pitch_raw_rad, yaw_raw_rad);
-  yaw_raw_rad = get_body_yaw_raw_rad(false);
+  yaw_raw_rad = get_body_yaw_raw_rad();
 
   body_gimbal_offset_raw_deg_ =
       current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw_raw_rad);
@@ -1479,16 +1478,19 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   if (params_.sim)
   {
     // only in follow mode?
-    // offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
+    // offset_due_to_yaw = body_yaw_raw_at_reset_rad_ -
+    // get_body_yaw_raw_rad(false);
     if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     {
       offset_due_to_yaw =
-          body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad(false);
-
+          body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
     }
     // else
     // {
-      // global_gimbal_ptr_->rotate_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_ROTATION_MODE_ABSOLUTE_ANGLE, 0,0,-offset_due_to_yaw,0.1);
+    // this (or similar) would be required to simulate the gimbal properly
+    // this cannot even work - rate too slow in any case
+    // global_gimbal_ptr_->rotate_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+    // DJI_GIMBAL_ROTATION_MODE_ABSOLUTE_ANGLE, 0,0,-offset_due_to_yaw,0.1);
     // }
     gimbal_angles_msg.vector.z += offset_due_to_yaw;
   }
@@ -3006,27 +3008,16 @@ TelemetryModule::get_body_yaw_rad() const
 }
 
 double
-TelemetryModule::get_body_yaw_raw_rad(bool prev)
+TelemetryModule::get_body_yaw_raw_rad()
 {
   /* Get current copter yaw wrt. to East */
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   double roll_raw, pitch_raw, yaw_raw;
-  if (prev)
-  {
-    tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw_prev.q1,
-                                   current_state_.attitude_q_raw_prev.q2,
-                                   current_state_.attitude_q_raw_prev.q3,
-                                   current_state_.attitude_q_raw_prev.q0))
-        .getRPY(roll_raw, pitch_raw, yaw_raw);
-  }
-  else
-  {
-    tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
-                                   current_state_.attitude_q_raw.q2,
-                                   current_state_.attitude_q_raw.q3,
-                                   current_state_.attitude_q_raw.q0))
-        .getRPY(roll_raw, pitch_raw, yaw_raw);
-  }
+  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
+                                 current_state_.attitude_q_raw.q2,
+                                 current_state_.attitude_q_raw.q3,
+                                 current_state_.attitude_q_raw.q0))
+      .getRPY(roll_raw, pitch_raw, yaw_raw);
 
   return yaw_raw;
 }
