@@ -1438,7 +1438,6 @@ TelemetryModule::save_body_gimbal_offset()
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
       current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw_raw_rad),
       body_gimbal_offset_raw_deg_);
-
 }
 
 T_DjiReturnCode
@@ -1460,7 +1459,6 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   geometry_msgs::msg::Vector3Stamped gimbal_angles_msg;
   //  gimbal_angles_msg.header.stamp = this->get_clock()->now();
 
-
   gimbal_angles_msg.header.stamp = get_measurement_time(timestamp);
   gimbal_angles_msg.header.frame_id = params_.gimbal_base_frame;
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
@@ -1468,7 +1466,6 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   // gimbal_angles_msg.vector.z =
   //     psdk_utils::SHIFT_N2E -
   //     psdk_utils::deg_to_rad(gimbal_angles->z);
-
 
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
@@ -1480,7 +1477,6 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   {
     gimbal_angles_msg.vector.z +=
         body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
-
   }
 
   /* Keep the yaw angle bounded within PI, - PI*/
@@ -1496,8 +1492,8 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_pub_->publish(gimbal_angles_msg);
 
   // RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
-              // gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
-              // psdk_utils::rad_to_deg(gimbal_angles_msg.vector.z));
+  // gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
+  // psdk_utils::rad_to_deg(gimbal_angles_msg.vector.z));
 
   if (params_.publish_transforms)
   {
@@ -2890,21 +2886,20 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
 
     tf2::Quaternion q_platform_w = current_state_.attitude;
 
-    // auto yaw_gimbal = get_yaw_gimbal();
     tf2::Quaternion q_gimbal_w;
+    // auto yaw_gimbal = get_yaw_gimbal();
     // q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
-                    // current_state_.gimbal_angles.vector.y, yaw_gimbal);
+    // current_state_.gimbal_angles.vector.y, yaw_gimbal);
     q_gimbal_w.setRPY(current_state_.gimbal_angles.vector.x,
-                    current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
+                      current_state_.gimbal_angles.vector.y,
+                      current_state_.gimbal_angles.vector.z);
 
     // calculate gimbal angles in body - since we want this in gimbal_base frame
+    // which already follows body
     tf2::Quaternion q_gimbal_b = q_platform_w.inverse() * q_gimbal_w;
 
     tf_gimbal_base_gimbal.transform.rotation = tf2::toMsg(q_gimbal_b);
-    // tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal_b.getX();
-    // tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal_b.getY();
-    // tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal_b.getZ();
-    // tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal_b.getW();
+
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
@@ -2967,9 +2962,6 @@ TelemetryModule::publish_dynamic_body_transforms() const
   }
 }
 
-
-
-
 double
 TelemetryModule::get_yaw_gimbal() const
 {
@@ -2983,7 +2975,7 @@ TelemetryModule::get_yaw_gimbal() const
 
   /* Get current gimbal yaw wrt to East */
   double current_gimbal_yaw = current_state_.gimbal_angles.vector.z;
-  return (-current_yaw + current_gimbal_yaw );
+  return (-current_yaw + current_gimbal_yaw);
 }
 
 double
@@ -2997,7 +2989,6 @@ TelemetryModule::get_body_yaw_rad() const
   double current_yaw;
   rotation_mat.getRPY(current_roll, current_pitch, current_yaw);
   return current_yaw;
-
 }
 
 double
@@ -3012,7 +3003,6 @@ TelemetryModule::get_body_yaw_raw_rad() const
                                  current_state_.attitude_q_raw.q0))
       .getRPY(roll_raw, pitch_raw, yaw_raw);
   return yaw_raw;
-
 }
 
 std::string
