@@ -2874,10 +2874,10 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
 
     auto yaw_gimbal = get_yaw_gimbal();
     tf2::Quaternion q_gimbal;
-    q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
-                    current_state_.gimbal_angles.vector.y, yaw_gimbal);
     // q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
-                    // current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
+                    // current_state_.gimbal_angles.vector.y, yaw_gimbal);
+    q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
+                    current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
     tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal.getX();
     tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal.getY();
     tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal.getZ();
