@@ -1464,7 +1464,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z + body_gimbal_offset_deg_) + body_yaw_rad;
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
   // gimbal_angles_msg.vector.z =
   //     psdk_utils::SHIFT_N2E -
   //     psdk_utils::deg_to_rad(gimbal_angles->z);
@@ -1483,7 +1483,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   RCLCPP_INFO(get_logger(), "---> Gimbal RPY: %f, y:%f, z:%f ",
               gimbal_angles_msg.vector.x, gimbal_angles_msg.vector.y,
-              gimbal_angles_msg.vector.z);
+              psdk_utils::rad_to_deg(gimbal_angles_msg.vector.z));
 
   if (params_.publish_transforms)
   {
