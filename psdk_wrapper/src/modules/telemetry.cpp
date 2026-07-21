@@ -2882,24 +2882,29 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.translation.y = 0.0;
     tf_gimbal_base_gimbal.transform.translation.z = -0.10;
 
+    tf2::Quaternion q_body = current_state_.attitude;
+
+
     auto yaw_gimbal = get_yaw_gimbal();
     tf2::Quaternion q_gimbal;
     // q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
                     // current_state_.gimbal_angles.vector.y, yaw_gimbal);
     q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
                     current_state_.gimbal_angles.vector.y, current_state_.gimbal_angles.vector.z);
-    tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal.getX();
-    tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal.getY();
-    tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal.getZ();
-    tf_gimbal_base_gimbal.transform.rotation.w = q_gimbal.getW();
+
+    tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
+
+
+    tf_gimbal_base_gimbal.transform.rotation.x = q_body_to_gimbal.getX();
+    tf_gimbal_base_gimbal.transform.rotation.y = q_body_to_gimbal.getY();
+    tf_gimbal_base_gimbal.transform.rotation.z = q_body_to_gimbal.getZ();
+    tf_gimbal_base_gimbal.transform.rotation.w = q_body_to_gimbal.getW();
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
-    tf2::Quaternion q_body = current_state_.attitude;
     tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
     print_angles("Body ", q_body);
     print_angles("Gimbal ", q_gimbal);
 
-    tf2::Quaternion q_body_to_gimbal = q_body.inverse() * q_gimbal;
     print_angles("Gimbal in body ", q_body_to_gimbal);
   }
 }
