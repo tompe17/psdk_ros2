@@ -2884,6 +2884,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     print_angles("Body ", q_body);
     print_angles("Gimbal ", q_gimbal);
   }
+  publish_static_transforms();
 }
 
 void
