@@ -217,6 +217,8 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
                                DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
 
 
+  gimbal_module_->set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_YAW_FOLLOW);
+
   // auto start streaming
   liveview_module_->camera_setup_streaming(true, -1, -1, true);
 
