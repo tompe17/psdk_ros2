@@ -96,7 +96,7 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
   bool deinit();
 
   bool reset_gimbal(E_DjiMountPosition index, E_DjiGimbalResetMode reset_mode);
-
+  E_DjiGimbalMode gimbal_mode_;
 
  private:
   /**
@@ -119,6 +119,8 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
   void gimbal_set_mode_cb(
       const std::shared_ptr<GimbalSetMode::Request> request,
       const std::shared_ptr<GimbalSetMode::Response> response);
+
+  bool set_gimbal_mode(E_DjiMountPosition index, E_DjiGimbalMode gimbal_mode);
   /**
    * @brief Reset gimbal orientation to neutral point.
    * @param request GimbalSetMode service request. The camera
@@ -129,7 +131,6 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
    */
   void gimbal_reset_cb(const std::shared_ptr<GimbalReset::Request> request,
                        const std::shared_ptr<GimbalReset::Response> response);
-
 
   rclcpp::Subscription<psdk_interfaces::msg::GimbalRotation>::SharedPtr
       gimbal_rotation_sub_;

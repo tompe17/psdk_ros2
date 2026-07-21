@@ -137,6 +137,10 @@ GimbalModule::gimbal_set_mode_cb(
     const std::shared_ptr<GimbalSetMode::Request> request,
     const std::shared_ptr<GimbalSetMode::Response> response)
 {
+  response->success = set_gimbal_mode(
+    static_cast<E_DjiMountPosition>(request->payload_index),
+    static_cast<E_DjiGimbalMode>(request->gimbal_mode));
+#if 0
   T_DjiReturnCode return_code;
   E_DjiMountPosition index =
       static_cast<E_DjiMountPosition>(request->payload_index);
@@ -154,9 +158,36 @@ GimbalModule::gimbal_set_mode_cb(
   {
     RCLCPP_INFO(get_logger(), "Setting gimbal mode successfully to %d",
                 request->gimbal_mode);
+    gimbal_mode_ = gimbal_mode;
     response->success = true;
     return;
   }
+#endif
+
+}
+
+bool GimbalModule::set_gimbal_mode(
+    E_DjiMountPosition index,
+    E_DjiGimbalMode gimbal_mode)
+{
+  T_DjiReturnCode return_code =
+      DjiGimbalManager_SetMode(index, gimbal_mode);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(),
+                 "Setting gimbal mode failed, error code: %ld",
+                 return_code);
+    return false;
+  }
+
+  RCLCPP_INFO(get_logger(),
+              "Setting gimbal mode successfully to %d",
+              static_cast<int>(gimbal_mode));
+
+  gimbal_mode_ = gimbal_mode;
+
+  return true;
 }
 
 bool
@@ -283,6 +314,7 @@ GimbalModule::gimbal_rotation_cb(
   {
     rotation_deg.yaw =
         psdk_ros2::psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - msg->yaw);
+    // pioru: test if needed
     rotation_deg.yaw += global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
   }
 

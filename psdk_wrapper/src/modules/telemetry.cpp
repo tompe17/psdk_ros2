@@ -1475,6 +1475,8 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   // yaw of the vehicle is used to update the gimbal yaw
   if (params_.sim)
   {
+    // only in follow mode?
+
     gimbal_angles_msg.vector.z +=
         body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
   }
