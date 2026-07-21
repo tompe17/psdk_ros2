@@ -2870,9 +2870,10 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     tf_gimbal_base_gimbal.transform.translation.y = 0.0;
     tf_gimbal_base_gimbal.transform.translation.z = -0.10;
 
+    auto yaw_gimbal = get_yaw_gimbal();
     tf2::Quaternion q_gimbal;
     q_gimbal.setRPY(current_state_.gimbal_angles.vector.x,
-                    current_state_.gimbal_angles.vector.y, get_yaw_gimbal());
+                    current_state_.gimbal_angles.vector.y, yaw_gimbal);
     tf_gimbal_base_gimbal.transform.rotation.x = q_gimbal.getX();
     tf_gimbal_base_gimbal.transform.rotation.y = q_gimbal.getY();
     tf_gimbal_base_gimbal.transform.rotation.z = q_gimbal.getZ();
