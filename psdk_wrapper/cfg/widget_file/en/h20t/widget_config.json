@@ -82,7 +82,7 @@
         },
         "customize_rc_buttons_config": {
           "is_enable": true,
-          "mapping_config_display_order": 2
+          "mapping_config_display_order": 3
         }
       }
     ]
