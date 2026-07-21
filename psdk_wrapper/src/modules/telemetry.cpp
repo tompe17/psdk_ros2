@@ -33,8 +33,8 @@ TelemetryModule::TelemetryModule(const std::string &name)
   current_state_.initialize_state();
   initialize_aircraft_base_info();
   camera_type_ = DJI_CAMERA_TYPE_UNKNOWN;
-  body_gimbal_offset_deg_ = 0.0;
-  body_yaw_at_reset_offset_rad_ = 0.0;
+  body_gimbal_offset_raw_deg_ = 0.0;
+  body_yaw_raw_at_reset_rad_ = 0.0;
 }
 
 TelemetryModule::~TelemetryModule()
@@ -1428,14 +1428,16 @@ TelemetryModule::save_body_gimbal_offset()
                                  current_state_.attitude_q_raw.q0))
       .getRPY(roll_raw_rad, pitch_raw_rad, yaw_raw_rad);
 
-  body_gimbal_offset_deg_ =
+  body_gimbal_offset_raw_deg_ =
       current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw_raw_rad);
-  body_yaw_at_reset_offset_rad_ = yaw_raw_rad;
+
+  // save the value for simulation - to use to update the gimbal yaw
+  body_yaw_raw_at_reset_rad_ = yaw_raw_rad;
   RCLCPP_INFO(
       get_logger(),
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
       current_state_.gimbal_angles_raw.z, psdk_utils::rad_to_deg(yaw_raw_rad),
-      body_gimbal_offset_deg_);
+      body_gimbal_offset_raw_deg_);
 
 }
 
@@ -1470,11 +1472,11 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
-      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
+      psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_raw_deg_);
 
   // only in sim because gimbal is not simulated in sim
   // yaw of the vehicle is used to update the gimbal yaw
-  gimbal_angles_msg.vector.z += body_yaw_at_reset_offset_rad_ - get_body_yaw_raw_rad();;
+  gimbal_angles_msg.vector.z += body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();;
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
