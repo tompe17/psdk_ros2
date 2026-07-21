@@ -1423,11 +1423,13 @@ TelemetryModule::save_body_gimbal_offset()
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
 
   double roll_raw_rad, pitch_raw_rad, yaw_raw_rad;
-  tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
-                                 current_state_.attitude_q_raw.q2,
-                                 current_state_.attitude_q_raw.q3,
-                                 current_state_.attitude_q_raw.q0))
-      .getRPY(roll_raw_rad, pitch_raw_rad, yaw_raw_rad);
+  // tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
+  //                                current_state_.attitude_q_raw.q2,
+  //                                current_state_.attitude_q_raw.q3,
+  //                                current_state_.attitude_q_raw.q0))
+  //     .getRPY(roll_raw_rad, pitch_raw_rad, yaw_raw_rad);
+  yaw_raw_rad = get_body_yaw_raw_rad();
+
 
   body_gimbal_offset_raw_deg_ =
       current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw_raw_rad);
