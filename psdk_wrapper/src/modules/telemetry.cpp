@@ -1420,7 +1420,7 @@ TelemetryModule::rc_connection_status_callback(
 void
 TelemetryModule::save_body_gimbal_offset()
 {
-  std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+  // std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
 
   double roll_raw_rad, pitch_raw_rad, yaw_raw_rad;
   // tf2::Matrix3x3(tf2::Quaternion(current_state_.attitude_q_raw.q1,
