@@ -1476,7 +1476,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
 
   // only in sim because gimbal is not simulated in sim
   // yaw of the vehicle is used to update the gimbal yaw
-  gimbal_angles_msg.vector.z += body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();;
+  // gimbal_angles_msg.vector.z += body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();;
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
