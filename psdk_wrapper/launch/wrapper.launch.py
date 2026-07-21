@@ -86,6 +86,11 @@ def generate_launch_description():
         default_value="granso",
         description="Location to use for local coordinate system",
     )
+    declare_sim_cmd = DeclareLaunchArgument(
+        "sim",
+        default_value=False,
+        description="Is simulation used for the platform",
+    )
 
     # Prepare the wrapper node
     wrapper_node = LifecycleNode(
@@ -147,6 +152,7 @@ def generate_launch_description():
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_frame_prefix_cmd)
     ld.add_action(declare_location_cmd)
+    ld.add_action(declare_sim_cmd)
     ld.add_action(declare_psdk_params_cmd)
     ld.add_action(declare_link_config_cmd)
     ld.add_action(declare_hms_codes_cmd)
