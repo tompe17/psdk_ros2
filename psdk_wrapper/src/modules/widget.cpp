@@ -33,6 +33,8 @@ T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {2, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr},
     {3, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
+     WidgetModule::widget_state_get, nullptr},
+    {4, DJI_WIDGET_TYPE_SWITCH, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr}};
 
 /*****************************************************************************/
