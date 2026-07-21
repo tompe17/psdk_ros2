@@ -64,6 +64,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WaypointV2InitSetting.msg"
   "msg/WaypointV2MissionStatePush.msg"
   "msg/WaypointV2MissionEventPush.msg"
+  "msg/MissionWaypointTask.msg"
+  "msg/MissionWaypoint.msg"
+  "msg/MissionWaypointAction.msg"
   "srv/CameraGetType.srv"
   "srv/CameraSetExposureModeEV.srv"
   "srv/CameraGetExposureModeEV.srv"
@@ -109,6 +112,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SubscribeWaypointV2State.srv"
   "srv/UploadWaypointV2Action.srv"
   "srv/UploadWaypointV2Mission.srv"
+  "srv/MissionWpAction.srv"  
   "action/CameraDeleteFileByIndex.action"
   "action/CameraDownloadFileByIndex.action"
   DEPENDENCIES std_msgs geometry_msgs action_msgs
