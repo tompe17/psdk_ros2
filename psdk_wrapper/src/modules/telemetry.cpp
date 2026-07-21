@@ -1458,22 +1458,23 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
   geometry_msgs::msg::Vector3Stamped gimbal_angles_msg;
   //  gimbal_angles_msg.header.stamp = this->get_clock()->now();
 
-  // only in sim because gimbal is not simulated
-  auto body_yaw_rad = get_body_yaw_raw_rad();
 
   gimbal_angles_msg.header.stamp = get_measurement_time(timestamp);
   gimbal_angles_msg.header.frame_id = params_.gimbal_base_frame;
   gimbal_angles_msg.vector.x = psdk_utils::deg_to_rad(gimbal_angles->y);
   gimbal_angles_msg.vector.y = psdk_utils::deg_to_rad(-gimbal_angles->x);
+  // gimbal_angles_msg.vector.z =
+  //     psdk_utils::SHIFT_N2E -
+  //     psdk_utils::deg_to_rad(gimbal_angles->z);
+
 
   gimbal_angles_msg.vector.z =
       psdk_utils::SHIFT_N2E -
       psdk_utils::deg_to_rad(gimbal_angles->z - body_gimbal_offset_deg_);
 
-  gimbal_angles_msg.vector.z -= -psdk_utils::deg_to_rad(body_yaw_at_reset_offset_deg_) + body_yaw_rad;
-  // gimbal_angles_msg.vector.z =
-  //     psdk_utils::SHIFT_N2E -
-  //     psdk_utils::deg_to_rad(gimbal_angles->z);
+  // only in sim because gimbal is not simulated in sim
+  // yaw of the vehicle is used to update the gimbal yaw
+  gimbal_angles_msg.vector.z += psdk_utils::deg_to_rad(body_yaw_at_reset_offset_deg_) - get_body_yaw_raw_rad();;
 
   /* Keep the yaw angle bounded within PI, - PI*/
   if (gimbal_angles_msg.vector.z < -psdk_utils::C_PI)
