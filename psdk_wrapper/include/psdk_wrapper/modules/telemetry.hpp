@@ -456,6 +456,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
     T_DjiFcSubscriptionQuaternion attitude_q_raw;
+    T_DjiFcSubscriptionQuaternion attitude_q_raw_prev;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
     GimbalAngleHistory gimbal_angle_history;
     T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw;  // from the vehicle
@@ -491,7 +492,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
   double body_gimbal_offset_raw_deg_;
   double body_yaw_raw_at_reset_rad_;
-  double get_body_yaw_raw_rad() const;
+  double get_body_yaw_raw_rad(bool prev);
 
  private:
   /*C++ type DJI topic subscriber callbacks*/
