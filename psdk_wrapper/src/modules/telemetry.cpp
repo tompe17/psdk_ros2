@@ -1427,8 +1427,8 @@ TelemetryModule::save_body_gimbal_offset()
                                  current_state_.attitude_q_raw.q0))
       .getRPY(roll, pitch, yaw);
 
-  body_gimbal_offset_deg_ =
-      current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw);
+  body_gimbal_offset_deg_ = -(
+      current_state_.gimbal_angles_raw.z - psdk_utils::rad_to_deg(yaw));
   RCLCPP_INFO(
       get_logger(),
       "Saving yaw offset: raw gimbal: %f, raw yaw:%f = offset (deg) %f ",
