@@ -2987,7 +2987,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
     geographic_msgs::msg::GeoPose gp;
     gp.position.latitude = lat;
     gp.position.longitude = lon;
-    gp.position.altitude = cz;
+    gp.position.altitude = alt;
     gp.orientation = t.transform.rotation;
     geo_pose_pub->publish(gp);
 
