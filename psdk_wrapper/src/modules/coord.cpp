@@ -123,6 +123,7 @@ CoordModule::wgs84_to_world(double lon, double lat, double alt, double &x,
   ct_->wgs84_to_world(lon, lat, alt, x, y, z);
 }
 
+
 #if 0
 // pioru: unused - it's in telemetry
 void

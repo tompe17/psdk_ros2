@@ -13,7 +13,6 @@
 #ifndef PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_COORD_HPP_
 #define PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_COORD_HPP_
 
-
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
@@ -49,10 +48,18 @@ class CoordModule : public rclcpp_lifecycle::LifecycleNode
 
   void wgs84_to_world(double lon, double lat, double alt, double &x, double &y,
                       double &z) const;
-  double get_world_origin_elevation() const
+  double
+  get_world_origin_elevation() const
   {
     return world_origin_elevation_;
   }
+
+  double
+  get_home_alt()
+  {
+    return ct_->get_home_alt();
+  }
+
   std::string location_;
 
  private:

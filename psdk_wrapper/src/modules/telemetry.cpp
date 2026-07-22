@@ -1214,6 +1214,13 @@ TelemetryModule::gps_position_callback(const uint8_t *data, uint16_t data_size,
   gps_position_msg.latitude = gps_position->y / pow(10, 7);
   // Transform from DJI mm to m
   gps_position_msg.altitude = gps_position->z / pow(10, 3);
+
+  // if psdk is in sim -> we add the expected home
+  if (params_.sim)
+  {
+    gps_position_msg.altitude += global_coord_ptr_->get_home_alt();
+  }
+
   gps_position_pub_->publish(gps_position_msg);
 
   {
