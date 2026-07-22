@@ -2950,7 +2950,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     {
       auto ts = tf_buffer_->lookupTransform(
           params_.map_frame,
-          params_.image_frame,
+          params_.camera_frame,
           tf2::TimePointZero);
 
       geometry_msgs::msg::PoseStamped p;
