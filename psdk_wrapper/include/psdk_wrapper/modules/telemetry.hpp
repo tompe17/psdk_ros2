@@ -479,7 +479,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
       gps_position.latitude = 40.0;
       gps_position.longitude = 2.0;
-      gps_position.altitude = 100.0;
+      gps_position.altitude = -1000.0;
 
       attitude.setRPY(0.0, 0.0, 0.0);
 

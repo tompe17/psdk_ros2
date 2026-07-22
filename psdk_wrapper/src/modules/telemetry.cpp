@@ -1150,6 +1150,13 @@ TelemetryModule::gps_position_callback(const uint8_t *data, uint16_t data_size,
   // Transform from DJI mm to m
   gps_position_msg.altitude = gps_position->z / pow(10, 3);
   gps_position_pub_->publish(gps_position_msg);
+
+
+  {
+    std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+    current_state_.gps_position = gps_position_msg;
+  }
+
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1795,6 +1802,7 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
 
   // WARNING: altitude is taken from raw gps
+  // lat and lon could be from fused
   home_point_msg.altitude = current_state_.gps_position.altitude;
   home_point_pub_->publish(home_point_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
