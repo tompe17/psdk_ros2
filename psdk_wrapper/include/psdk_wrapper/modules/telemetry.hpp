@@ -460,6 +460,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   {
     psdk_interfaces::msg::PositionFused local_position;
     sensor_msgs::msg::NavSatFix gps_position;
+    sensor_msgs::msg::NavSatFix home_point_position;
+    std_msgs::msg::Bool home_point_status;
     sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
     T_DjiFcSubscriptionQuaternion attitude_q_raw;
@@ -501,6 +503,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double body_yaw_raw_at_reset_rad_;
   double offset_due_to_yaw;
   double get_body_yaw_raw_rad();
+  bool home_point_updated(const sensor_msgs::msg::NavSatFix &new_home_point) const;
 
  private:
   /*C++ type DJI topic subscriber callbacks*/

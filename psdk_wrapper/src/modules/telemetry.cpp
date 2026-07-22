@@ -1796,16 +1796,44 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
       std::make_unique<T_DjiFcSubscriptionHomePointInfo>(
           *reinterpret_cast<const T_DjiFcSubscriptionHomePointInfo *>(data));
   sensor_msgs::msg::NavSatFix home_point_msg;
+
+
+
   //  home_point_msg.header.stamp = this->get_clock()->now();
   home_point_msg.header.stamp = get_measurement_time(timestamp);
   home_point_msg.longitude = psdk_utils::rad_to_deg(home_point->longitude);
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
 
-  // WARNING: altitude is taken from raw gps
-  // lat and lon could be from fused
-  home_point_msg.altitude = current_state_.gps_position.altitude;
+
+  if (home_point_updated(home_point_msg))
+  {
+    // WARNING: altitude is taken from raw gps
+    // lat and lon could be from fused
+    home_point_msg.altitude = current_state_.gps_position.altitude;
+    RCLCPP_INFO(get_logger(),
+                       "--------> Home point updated: gps_altitude: %f",home_point_msg.altitude);
+
+  }
   home_point_pub_->publish(home_point_msg);
+  {
+    std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+    current_state_.home_point_position = home_point_msg;
+  }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+// logic for detecting if home point has been updated
+bool TelemetryModule::home_point_updated(const sensor_msgs::msg::NavSatFix &new_home_point) const
+{
+  constexpr double kEps = 1e-9; // radians (~6 mm)
+
+  const bool changed =
+      !current_state_.home_point_status.data ||
+      std::abs(new_home_point.latitude - current_state_.home_point_position.latitude) > kEps ||
+      std::abs(new_home_point.longitude - current_state_.home_point_position.longitude) > kEps;
+
+  return changed;
+
 }
 
 T_DjiReturnCode
@@ -1830,6 +1858,14 @@ TelemetryModule::home_point_status_callback(const uint8_t *data,
     home_point_status_msg.data = true;
   }
   home_point_status_pub_->publish(home_point_status_msg);
+
+  {
+    std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+    current_state_.home_point_status = home_point_status_msg;
+  }
+
+
+
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
