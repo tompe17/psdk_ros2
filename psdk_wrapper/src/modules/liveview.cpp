@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "psdk_wrapper/modules/camera.hpp"
+#include "psdk_wrapper/modules/telemetry.hpp"
 extern "C"
 {
 #include <libavutil/log.h>
@@ -780,13 +781,16 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   rclcpp::Duration offset =
       rclcpp::Duration::from_nanoseconds(image_time_offset_ms * 1e6);
 
+
+
   // ---- Build CompressedImage
   sensor_msgs::msg::CompressedImage msg;
   auto stamp_now = this->get_clock()->now();
   msg.header.stamp = stamp_now - offset;
   std::string ns = get_namespace();
   std::string unit = ns.substr(1);
-  msg.header.frame_id = unit + "/camera0/image_frame";
+  // msg.header.frame_id = unit + "/camera0/image_frame";
+  msg.header.frame_id = global_telemetry_ptr_->params_.image_frame;
   msg.format = "jpeg";
   msg.data = std::move(buffer);
 

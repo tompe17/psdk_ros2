@@ -164,6 +164,7 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
 
   //lrs
   pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("psdk_ros2/pose", 10);
+  camera_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("psdk_ros2/camera_pose", 10);
   geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>("psdk_ros2/geopose", rclcpp::SensorDataQoS());
 
 
@@ -172,6 +173,10 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
       std::make_shared<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
   tf_broadcaster_ =
       std::make_shared<tf2_ros::TransformBroadcaster>(shared_from_this());
+  tf_buffer_ =
+      std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_listener_ =
+      std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   set_local_position_ref_srv_ = create_service<Trigger>(
       "psdk_ros2/set_local_position_ref",
@@ -195,6 +200,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   params_.gimbal_frame = add_tf_prefix(params_.gimbal_frame);
   params_.gimbal_base_frame = add_tf_prefix(params_.gimbal_base_frame);
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
+  params_.image_frame = add_tf_prefix(params_.image_frame);
 
   if (params_.publish_transforms)
   {
@@ -310,6 +316,8 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   // TF broadcasters
   tf_static_broadcaster_.reset();
   tf_broadcaster_.reset();
+  tf_listener_.reset();
+  tf_buffer_.reset();
 
   // Publishers
   attitude_pub_.reset();
@@ -355,6 +363,10 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   altitude_barometric_pub_.reset();
   gimbal_angles_pub_.reset();
   gimbal_status_pub_.reset();
+
+  pose_pub.reset();
+  camera_pose_pub.reset();
+  geo_pose_pub.reset();
 
   // Reset global variables
   {
@@ -2877,7 +2889,8 @@ TelemetryModule::publish_static_transforms()
       geometry_msgs::msg::TransformStamped tf_image;
       tf_image.header.stamp = this->get_clock()->now();
       tf_image.header.frame_id = params_.camera_frame;
-      tf_image.child_frame_id = add_tf_prefix("camera0/image_frame");
+      // tf_image.child_frame_id = add_tf_prefix("camera0/image_frame");
+      tf_image.child_frame_id = params_.image_frame;
       tf_image.transform.translation.x = 0.0;
       tf_image.transform.translation.y = 0.0;
       tf_image.transform.translation.z = 0.0;
@@ -2925,11 +2938,43 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
 
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
+
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
     // print_angles("Body ", q_body);
     // print_angles("Gimbal ", q_gimbal);
 
     // print_angles("Gimbal in body ", q_body_to_gimbal);
+
+    // camera pose
+    try
+    {
+      auto ts = tf_buffer_->lookupTransform(
+          params_.map_frame,
+          params_.image_frame,
+          tf2::TimePointZero);
+
+      geometry_msgs::msg::PoseStamped p;
+      p.header.stamp = tf_gimbal_base_gimbal.header.stamp;
+      p.header.frame_id = params_.map_frame;
+      p.pose.position.x = ts.transform.translation.x;
+      p.pose.position.y = ts.transform.translation.y;
+      p.pose.position.z = ts.transform.translation.z;
+      p.pose.orientation = ts.transform.rotation;
+      camera_pose_pub->publish(p);
+
+      // use tf.transform.translation / rotation
+
+    }
+    catch (const tf2::TransformException &ex)
+    {
+      RCLCPP_WARN_THROTTLE(
+          get_logger(),
+          *get_clock(),
+          25,
+          "TF lookup failed: %s",
+          ex.what());
+    }
+
   }
 }
 
@@ -2983,7 +3028,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
     t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
     tf_broadcaster_->sendTransform(t);
 
-    // pose and geopose
+    // geopose
     geographic_msgs::msg::GeoPose gp;
     gp.position.latitude = lat;
     gp.position.longitude = lon;
@@ -2991,6 +3036,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
     gp.orientation = t.transform.rotation;
     geo_pose_pub->publish(gp);
 
+    // pose
     geometry_msgs::msg::PoseStamped p;
     p.header.stamp = current_state_.gps_fused.header.stamp;
     p.header.frame_id = params_.map_frame;

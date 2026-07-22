@@ -23,8 +23,10 @@
 #include <math.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/utils.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.hpp>
+#include <tf2_ros/transform_broadcaster.hpp>
+#include <tf2_ros/buffer.hpp>
+#include <tf2_ros/transform_listener.hpp>
 
 #include <geometry_msgs/msg/accel_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
@@ -432,6 +434,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     std::string gimbal_frame;
     std::string gimbal_base_frame;
     std::string camera_frame;
+    std::string image_frame;
     std::string tf_frame_prefix;
     bool publish_transforms;
     bool sim;
@@ -1169,6 +1172,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   /* ROS 2 publishers */
   rclcpp_lifecycle::LifecyclePublisher<
       geometry_msgs::msg::QuaternionStamped>::SharedPtr attitude_pub_;
@@ -1263,6 +1268,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   // lrs
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_pub;
   rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geo_pose_pub;
   rclcpp::Publisher<geographic_msgs::msg::GeoPoint>::SharedPtr geo_point_pub;
 

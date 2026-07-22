@@ -71,6 +71,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
   declare_parameter("gimbal_frame", rclcpp::ParameterValue("psdk_gimbal_link"));
   declare_parameter("camera_frame", rclcpp::ParameterValue("psdk_camera_link"));
+  declare_parameter("image_frame", rclcpp::ParameterValue("psdk_image_link"));
   declare_parameter("perception_camera_frame",
                     rclcpp::ParameterValue("psdk_perception_camera_link"));
   declare_parameter("publish_transforms", rclcpp::ParameterValue(true));
@@ -602,6 +603,8 @@ PSDKWrapper::load_parameters()
                             telemetry_module_->params_.gimbal_base_frame);
     get_non_mandatory_param("camera_frame",
                             telemetry_module_->params_.camera_frame);
+    get_non_mandatory_param("image_frame",
+                            telemetry_module_->params_.image_frame);
     get_parameter("publish_transforms",
                   telemetry_module_->params_.publish_transforms);
 
