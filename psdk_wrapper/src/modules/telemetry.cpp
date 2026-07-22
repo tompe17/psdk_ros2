@@ -1809,11 +1809,13 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   {
     // WARNING: altitude is taken from raw gps
     // lat and lon could be from fused
-    home_point_msg.altitude = current_state_.gps_position.altitude;
+    current_state_.home_point_gps_raw_altitude = current_state_.gps_position.altitude;
     RCLCPP_INFO(get_logger(),
-                       "--------> Home point updated: gps_altitude: %f",home_point_msg.altitude);
+                       "--------> Home point updated: gps_altitude: %f",current_state_.home_point_gps_raw_altitude);
 
   }
+  home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
+
   home_point_pub_->publish(home_point_msg);
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
@@ -1827,6 +1829,9 @@ bool TelemetryModule::home_point_updated(const sensor_msgs::msg::NavSatFix &new_
 {
   constexpr double kEps = 1e-9; // radians (~6 mm)
 
+  // 1. psdk must say it's valid
+  // 2. it has moved comparing to the previous value
+  // ...
   const bool changed =
       !current_state_.home_point_status.data ||
       std::abs(new_home_point.latitude - current_state_.home_point_position.latitude) > kEps ||

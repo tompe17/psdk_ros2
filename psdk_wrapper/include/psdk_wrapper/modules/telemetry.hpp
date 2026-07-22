@@ -471,6 +471,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw;  // from the vehicle
     std_msgs::msg::Float32 altitude_sl_fused;
     std_msgs::msg::Float32 home_point_altitude;
+    float home_point_gps_raw_altitude;
 
     void
     initialize_state()
@@ -482,7 +483,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       gps_position.latitude = 40.0;
       gps_position.longitude = 2.0;
       gps_position.altitude = -1000.0;
-
+      home_point_gps_raw_altitude = -1000.0;
       attitude.setRPY(0.0, 0.0, 0.0);
 
       gimbal_angles.vector.x = 0.0;
