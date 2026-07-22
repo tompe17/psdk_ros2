@@ -1793,6 +1793,9 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   home_point_msg.header.stamp = get_measurement_time(timestamp);
   home_point_msg.longitude = psdk_utils::rad_to_deg(home_point->longitude);
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
+
+  // WARNING: altitude is taken from raw gps
+  home_point_msg.altitude = current_state_.gps_position.altitude;
   home_point_pub_->publish(home_point_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
