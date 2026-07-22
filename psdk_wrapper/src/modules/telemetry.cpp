@@ -2678,9 +2678,12 @@ TelemetryModule::subscribe_psdk_topics()
                    "DJI_FC_SUBSCRIPTION_TOPIC_AVOID_DATA, error %ld",
                    return_code);
     }
+
+    // be careful - this seems to work only for 1Hz
     return_code = DjiFcSubscription_SubscribeTopic(
         DJI_FC_SUBSCRIPTION_TOPIC_ALTITUDE_OF_HOMEPOINT,
-        get_frequency(params_.control_information_frequency),
+        DJI_DATA_SUBSCRIPTION_TOPIC_1_HZ,
+        // get_frequency(params_.control_information_frequency),
         c_home_point_altitude_callback);
 
     if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
