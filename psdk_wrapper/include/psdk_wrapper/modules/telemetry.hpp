@@ -46,6 +46,8 @@
 #include <std_srvs/srv/trigger.hpp>
 #include <string>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "geographic_msgs/msg/geo_pose.hpp"
+#include "geographic_msgs/msg/geo_point.hpp"
 
 #include "psdk_interfaces/msg/control_mode.hpp"
 #include "psdk_interfaces/msg/display_mode.hpp"
@@ -61,6 +63,8 @@
 #include "psdk_interfaces/msg/rtk_yaw.hpp"
 #include "psdk_interfaces/msg/single_battery_info.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
+
+
 
 namespace psdk_ros2
 {
@@ -1256,6 +1260,11 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       geometry_msgs::msg::Vector3Stamped>::SharedPtr gimbal_angles_pub_;
   rclcpp_lifecycle::LifecyclePublisher<
       psdk_interfaces::msg::GimbalStatus>::SharedPtr gimbal_status_pub_;
+
+  // lrs
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub;
+  rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geo_pose_pub;
+  rclcpp::Publisher<geographic_msgs::msg::GeoPoint>::SharedPtr geo_point_pub;
 
   /* ROS 2 services */
   rclcpp::Service<Trigger>::SharedPtr set_local_position_ref_srv_;

@@ -162,6 +162,11 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
   altitude_barometric_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/altitude_barometric", 10);
 
+  //lrs
+  pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("psdk_ros2/pose", 10);
+  geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>("psdk_ros2/geopose", rclcpp::SensorDataQoS());
+
+
   // Create TF broadcasters
   tf_static_broadcaster_ =
       std::make_shared<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
@@ -1104,6 +1109,8 @@ TelemetryModule::gps_fused_callback(const uint8_t *data, uint16_t data_size,
     }
     publish_dynamic_body_transforms();
   }
+
+
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -2975,6 +2982,24 @@ TelemetryModule::publish_dynamic_body_transforms() const
     tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
     t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
     tf_broadcaster_->sendTransform(t);
+
+    // pose and geopose
+    geographic_msgs::msg::GeoPose gp;
+    gp.position.latitude = lat;
+    gp.position.longitude = lon;
+    gp.position.altitude = cz;
+    gp.orientation = t.transform.rotation;
+    geo_pose_pub->publish(gp);
+
+    geometry_msgs::msg::PoseStamped p;
+    p.header.stamp = current_state_.gps_fused.header.stamp;
+    p.header.frame_id = params_.map_frame;
+    p.pose.position.x = cx;
+    p.pose.position.y = cy;
+    p.pose.position.z = cz;
+    p.pose.orientation = t.transform.rotation;
+    pose_pub->publish(p);
+
   }
 }
 
