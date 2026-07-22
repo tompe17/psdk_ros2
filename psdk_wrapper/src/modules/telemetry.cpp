@@ -157,6 +157,8 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
       create_publisher<std_msgs::msg::Bool>("psdk_ros2/home_point_status", 10);
   home_point_altitude_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/home_point_altitude", 10);
+  home_point_gps_altitude_pub_ = create_publisher<std_msgs::msg::Float32>(
+  "psdk_ros2/home_point_gps_altitude", 10);
   altitude_sl_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/altitude_sea_level", 10);
   altitude_barometric_pub_ = create_publisher<std_msgs::msg::Float32>(
@@ -246,10 +248,13 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   home_point_status_pub_->on_activate();
   relative_obstacle_info_pub_->on_activate();
   home_point_altitude_pub_->on_activate();
+  home_point_gps_altitude_pub_->on_activate();
   altitude_sl_pub_->on_activate();
   altitude_barometric_pub_->on_activate();
   gimbal_angles_pub_->on_activate();
   gimbal_status_pub_->on_activate();
+
+  // pose_pub->on_activate();
 
   return CallbackReturn::SUCCESS;
 }
@@ -298,6 +303,7 @@ TelemetryModule::on_deactivate(const rclcpp_lifecycle::State &state)
   home_point_status_pub_->on_deactivate();
   relative_obstacle_info_pub_->on_deactivate();
   home_point_altitude_pub_->on_deactivate();
+  home_point_gps_altitude_pub_->on_deactivate();
   altitude_sl_pub_->on_deactivate();
   altitude_barometric_pub_->on_deactivate();
   gimbal_angles_pub_->on_deactivate();
@@ -359,6 +365,7 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   home_point_status_pub_.reset();
   relative_obstacle_info_pub_.reset();
   home_point_altitude_pub_.reset();
+  home_point_gps_altitude_pub_.reset();
   altitude_sl_pub_.reset();
   altitude_barometric_pub_.reset();
   gimbal_angles_pub_.reset();
@@ -2089,6 +2096,12 @@ TelemetryModule::home_point_altitude_callback(
   std_msgs::msg::Float32 home_point_altitude_msg;
   home_point_altitude_msg.data = *home_point_altitude;
   home_point_altitude_pub_->publish(home_point_altitude_msg);
+
+  std_msgs::msg::Float32 home_point_gps_altitude_msg;
+  home_point_gps_altitude_msg.data = -1000.0;
+  home_point_gps_altitude_pub_->publish(home_point_gps_altitude_msg);
+
+
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   current_state_.home_point_altitude = home_point_altitude_msg;
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
