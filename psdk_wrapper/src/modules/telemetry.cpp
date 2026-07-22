@@ -1875,9 +1875,8 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   // this can be if it is really updated or starting for the first time
   if (home_point_changed(home_point_msg))
   {
-    // in the air or on the ground but props spinning
-    if (current_state_.flight_status.flight_status !=
-        DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_STOPED)
+    if (current_state_.flight_status.flight_status ==
+        DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
     {
       // load from file
       double altitude;
@@ -1885,7 +1884,7 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
       if (home_altitude_cache.loadAltitude(
               "/tmp/home_altitude.txt", home_point_msg,
               1.0,      // Maximum distance from cached point (m)
-              60 * 60,  // Maximum age (seconds) = 24 hours
+              60 * 60,  // Maximum age (seconds)
               altitude))
 
       {
