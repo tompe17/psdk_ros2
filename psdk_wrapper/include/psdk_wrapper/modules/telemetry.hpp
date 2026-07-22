@@ -23,15 +23,15 @@
 #include <math.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/utils.h>
-#include <tf2_ros/static_transform_broadcaster.hpp>
-#include <tf2_ros/transform_broadcaster.hpp>
-#include <tf2_ros/buffer.hpp>
-#include <tf2_ros/transform_listener.hpp>
 
+#include <cmath>
+#include <ctime>
+#include <fstream>
 #include <geometry_msgs/msg/accel_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <geometry_msgs/msg/vector3_stamped.hpp>
+#include <iomanip>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
@@ -48,9 +48,13 @@
 #include <std_srvs/srv/trigger.hpp>
 #include <string>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include "geographic_msgs/msg/geo_pose.hpp"
-#include "geographic_msgs/msg/geo_point.hpp"
+#include <tf2_ros/buffer.hpp>
+#include <tf2_ros/static_transform_broadcaster.hpp>
+#include <tf2_ros/transform_broadcaster.hpp>
+#include <tf2_ros/transform_listener.hpp>
 
+#include "geographic_msgs/msg/geo_point.hpp"
+#include "geographic_msgs/msg/geo_pose.hpp"
 #include "psdk_interfaces/msg/control_mode.hpp"
 #include "psdk_interfaces/msg/display_mode.hpp"
 #include "psdk_interfaces/msg/esc_data.hpp"
@@ -66,35 +70,72 @@
 #include "psdk_interfaces/msg/single_battery_info.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
-
-#include <cmath>
-#include <ctime>
-#include <fstream>
-#include <iomanip>
-
 namespace psdk_ros2
 {
 
+class FlightStatusHistory
+{
+ public:
+  explicit FlightStatusHistory(std::size_t max_size) : max_size_(max_size) {}
+
+  void
+  add(uint8_t status)
+  {
+    history_.push_back(status);
+
+    while (history_.size() > max_size_)
+    {
+      history_.pop_front();
+    }
+  }
+
+  void
+  clear()
+  {
+    history_.clear();
+  }
+
+  bool
+  takeoff() const
+  {
+    if (history_.empty()) return false;
+
+    for (uint8_t status : history_)
+    {
+      if (status != 2)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool
+  full() const
+  {
+    return history_.size() == max_size_;
+  }
+
+ private:
+  std::size_t max_size_;
+  std::deque<uint8_t> history_;
+};
+
 class CachedHomeAltitude
 {
-public:
-  bool save(
-      const std::string &filename,
-      const sensor_msgs::msg::NavSatFix &fix) const;
+ public:
+  bool save(const std::string& filename,
+            const sensor_msgs::msg::NavSatFix& fix) const;
 
-  bool loadAltitude(
-      const std::string &filename,
-      const sensor_msgs::msg::NavSatFix &fix,
-      double max_distance_m,
-      double max_age_sec,
-      double &altitude) const;
+  bool loadAltitude(const std::string& filename,
+                    const sensor_msgs::msg::NavSatFix& fix,
+                    double max_distance_m, double max_age_sec,
+                    double& altitude) const;
 
-private:
-  static double distanceMeters(
-      double lat1,
-      double lon1,
-      double lat2,
-      double lon2);
+ private:
+  static double distanceMeters(double lat1, double lon1, double lat2,
+                               double lon2);
 };
 
 class GimbalAngleHistory
@@ -122,7 +163,7 @@ class GimbalAngleHistory
   }
 
   bool
-  stable(double tolerance_deg=0.1) const
+  stable(double tolerance_deg = 0.1) const
   {
     if (!full()) return false;
 
@@ -499,7 +540,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     std_msgs::msg::Float32 home_point_altitude;
     float home_point_gps_raw_altitude;
     psdk_interfaces::msg::FlightStatus flight_status;
-
+    FlightStatusHistory flight_status_history;
     void
     initialize_state()
     {
@@ -520,7 +561,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       gimbal_angles.vector.z = 0.0;
     }
 
-    CopterState() : gimbal_angle_history(25) {}
+    CopterState() : gimbal_angle_history(25), flight_status_history(25) {}
   };
 
   CopterState current_state_;
@@ -529,12 +570,14 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   void save_body_gimbal_offset();
   bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout) const;
   bool wait_for_first_attitude_sample(std::chrono::milliseconds timeout) const;
-  static bool wait_for_first_sample(const  std::atomic<bool> &test,  std::chrono::milliseconds timeout);
+  static bool wait_for_first_sample(const std::atomic<bool>& test,
+                                    std::chrono::milliseconds timeout);
   double body_gimbal_offset_raw_deg_;
   double body_yaw_raw_at_reset_rad_;
   double offset_due_to_yaw;
   double get_body_yaw_raw_rad();
-  bool home_point_changed(const sensor_msgs::msg::NavSatFix &new_home_point) const;
+  bool home_point_changed(
+      const sensor_msgs::msg::NavSatFix& new_home_point) const;
 
  private:
   /*C++ type DJI topic subscriber callbacks*/
@@ -1190,7 +1233,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double get_yaw_gimbal() const;
 
   double get_body_yaw_rad() const;
-
 
   /**
    * @brief Method to generate a tf adding the tf_prefix to the frame name

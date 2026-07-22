@@ -1707,6 +1707,7 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.flight_status = flight_status_msg;
+    current_state_.flight_status_history.add(flight_status_msg.flight_status);
   }
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -1876,8 +1877,9 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
     RCLCPP_INFO(get_logger(), "Flight status: %d", current_state_.flight_status.flight_status);
   if (home_point_changed(home_point_msg))
   {
-    if (current_state_.flight_status.flight_status ==
-        DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
+    // if (current_state_.flight_status.flight_status ==
+        // DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
+    if (!current_state_.flight_status_history.takeoff())
     {
       // load from file
       double altitude;
