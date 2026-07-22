@@ -1882,7 +1882,7 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
         // DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
 
     // check if there's anything else in recent history other than in the air
-    // this would mean that a takeoff was perfomed
+    // this would mean that a takeoff was performed
     if (!current_state_.flight_status_history.takeoff())
     {
       // load from file
