@@ -158,27 +158,27 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
   home_point_altitude_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/home_point_altitude", 10);
   home_point_gps_altitude_pub_ = create_publisher<std_msgs::msg::Float32>(
-  "psdk_ros2/home_point_gps_altitude", 10);
+      "psdk_ros2/home_point_gps_altitude", 10);
   altitude_sl_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/altitude_sea_level", 10);
   altitude_barometric_pub_ = create_publisher<std_msgs::msg::Float32>(
       "psdk_ros2/altitude_barometric", 10);
 
-  //lrs
-  pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("psdk_ros2/pose", 10);
-  camera_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("psdk_ros2/camera_pose", 10);
-  geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>("psdk_ros2/geopose", rclcpp::SensorDataQoS());
-
+  // lrs
+  pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+      "psdk_ros2/pose", 10);
+  camera_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+      "psdk_ros2/camera_pose", 10);
+  geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>(
+      "psdk_ros2/geopose", rclcpp::SensorDataQoS());
 
   // Create TF broadcasters
   tf_static_broadcaster_ =
       std::make_shared<tf2_ros::StaticTransformBroadcaster>(shared_from_this());
   tf_broadcaster_ =
       std::make_shared<tf2_ros::TransformBroadcaster>(shared_from_this());
-  tf_buffer_ =
-      std::make_shared<tf2_ros::Buffer>(get_clock());
-  tf_listener_ =
-      std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   set_local_position_ref_srv_ = create_service<Trigger>(
       "psdk_ros2/set_local_position_ref",
@@ -1129,8 +1129,6 @@ TelemetryModule::gps_fused_callback(const uint8_t *data, uint16_t data_size,
     publish_dynamic_body_transforms();
   }
 
-
-
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1508,8 +1506,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     // get_body_yaw_raw_rad(false);
     if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     {
-      offset_due_to_yaw =
-          body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+      offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
     }
     // else
     // {
@@ -1814,12 +1811,12 @@ TelemetryModule::home_point_status_callback(const uint8_t *data,
   std_msgs::msg::Bool home_point_status_msg;
   if (*home_point_status == DJI_FC_SUBSCRIPTION_HOME_POINT_SET_STATUS_FAILED)
   {
-    home_point_status_msg.data = 0;
+    home_point_status_msg.data = false;
   }
   else if (*home_point_status ==
            DJI_FC_SUBSCRIPTION_HOME_POINT_SET_STATUS_SUCCESS)
   {
-    home_point_status_msg.data = 1;
+    home_point_status_msg.data = true;
   }
   home_point_status_pub_->publish(home_point_status_msg);
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
@@ -2100,7 +2097,6 @@ TelemetryModule::home_point_altitude_callback(
   std_msgs::msg::Float32 home_point_gps_altitude_msg;
   home_point_gps_altitude_msg.data = -1000.0;
   home_point_gps_altitude_pub_->publish(home_point_gps_altitude_msg);
-
 
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
   current_state_.home_point_altitude = home_point_altitude_msg;
@@ -2607,6 +2603,10 @@ TelemetryModule::subscribe_psdk_topics()
           return_code);
     }
   }
+  RCLCPP_INFO(get_logger(),
+              "Subscribing to topics, control_information_frequency %d",
+              params_.control_information_frequency);
+
   if (params_.control_information_frequency > 0)
   {
     return_code = DjiFcSubscription_SubscribeTopic(
@@ -2637,7 +2637,6 @@ TelemetryModule::subscribe_psdk_topics()
         DJI_FC_SUBSCRIPTION_TOPIC_HOME_POINT_INFO,
         get_frequency(params_.control_information_frequency),
         c_home_point_callback);
-
     if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
     {
       RCLCPP_ERROR(get_logger(),
@@ -2645,6 +2644,15 @@ TelemetryModule::subscribe_psdk_topics()
                    "DJI_FC_SUBSCRIPTION_TOPIC_HOME_POINT_INFO, error %ld",
                    return_code);
     }
+    else
+    {
+      RCLCPP_INFO(get_logger(),
+                  "Subscribed to DJI_FC_SUBSCRIPTION_TOPIC_HOME_POINT_INFO at "
+                  "frequency %d (%d)",
+                  params_.control_information_frequency,
+                  get_frequency(params_.control_information_frequency));
+    }
+
     return_code = DjiFcSubscription_SubscribeTopic(
         DJI_FC_SUBSCRIPTION_TOPIC_HOME_POINT_SET_STATUS,
         get_frequency(params_.control_information_frequency),
@@ -2951,7 +2959,6 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
 
     tf_broadcaster_->sendTransform(tf_gimbal_base_gimbal);
 
-
     // tf2::fromMsg(tf_gimbal_base_gimbal.transform.rotation, q_gimbal);
     // print_angles("Body ", q_body);
     // print_angles("Gimbal ", q_gimbal);
@@ -2962,9 +2969,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     try
     {
       auto ts = tf_buffer_->lookupTransform(
-          params_.map_frame,
-          params_.camera_frame,
-          tf2::TimePointZero);
+          params_.map_frame, params_.camera_frame, tf2::TimePointZero);
 
       geometry_msgs::msg::PoseStamped p;
       p.header.stamp = tf_gimbal_base_gimbal.header.stamp;
@@ -2976,18 +2981,12 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
       camera_pose_pub->publish(p);
 
       // use tf.transform.translation / rotation
-
     }
     catch (const tf2::TransformException &ex)
     {
-      RCLCPP_WARN_THROTTLE(
-          get_logger(),
-          *get_clock(),
-          25,
-          "TF lookup failed: %s",
-          ex.what());
+      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 25,
+                           "TF lookup failed: %s", ex.what());
     }
-
   }
 }
 
@@ -3058,7 +3057,6 @@ TelemetryModule::publish_dynamic_body_transforms() const
     p.pose.position.z = cz;
     p.pose.orientation = t.transform.rotation;
     pose_pub->publish(p);
-
   }
 }
 
