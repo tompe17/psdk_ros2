@@ -1873,9 +1873,9 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
 
   // this can be if it is really updated or starting for the first time
+    RCLCPP_INFO(get_logger(), "Flight status: %d", current_state_.flight_status.flight_status);
   if (home_point_changed(home_point_msg))
   {
-    RCLCPP_INFO(get_logger(), "Flight status: %d", current_state_.flight_status.flight_status);
     if (current_state_.flight_status.flight_status ==
         DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
     {
