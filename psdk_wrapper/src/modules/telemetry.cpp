@@ -22,6 +22,71 @@
 namespace psdk_ros2
 {
 
+bool
+CachedHomeAltitude::save(const std::string &filename,
+                         const sensor_msgs::msg::NavSatFix &fix) const
+{
+  std::ofstream out(filename);
+  if (!out) return false;
+
+  out << std::time(nullptr) << '\n';
+  out << std::setprecision(16) << fix.latitude << '\n';
+  out << std::setprecision(16) << fix.longitude << '\n';
+  out << std::setprecision(16) << fix.altitude << '\n';
+
+  return true;
+}
+
+bool
+CachedHomeAltitude::loadAltitude(const std::string &filename,
+                                 const sensor_msgs::msg::NavSatFix &fix,
+                                 double max_distance_m, double max_age_sec,
+                                 double &altitude) const
+{
+  std::ifstream in(filename);
+  if (!in) return false;
+
+  std::time_t timestamp;
+  double lat, lon, alt;
+
+  if (!(in >> timestamp >> lat >> lon >> alt)) return false;
+
+  if (std::difftime(std::time(nullptr), timestamp) > max_age_sec) return false;
+
+  if (distanceMeters(lat, lon, fix.latitude, fix.longitude) > max_distance_m)
+  {
+    return false;
+  }
+
+  altitude = alt;
+  return true;
+}
+
+double
+CachedHomeAltitude::distanceMeters(double lat1, double lon1, double lat2,
+                                   double lon2)
+{
+  constexpr double kEarthRadius = 6378137.0;
+
+  auto deg2rad = [](double deg) { return deg * M_PI / 180.0; };
+
+  lat1 = deg2rad(lat1);
+  lon1 = deg2rad(lon1);
+  lat2 = deg2rad(lat2);
+  lon2 = deg2rad(lon2);
+
+  const double dlat = lat2 - lat1;
+  const double dlon = lon2 - lon1;
+
+  const double a = std::sin(dlat / 2.0) * std::sin(dlat / 2.0) +
+                   std::cos(lat1) * std::cos(lat2) * std::sin(dlon / 2.0) *
+                       std::sin(dlon / 2.0);
+
+  const double c = 2.0 * std::atan2(std::sqrt(a), std::sqrt(1.0 - a));
+
+  return kEarthRadius * c;
+}
+
 TelemetryModule::TelemetryModule(const std::string &name)
     : rclcpp_lifecycle::LifecycleNode(
           name, "",
@@ -1151,7 +1216,6 @@ TelemetryModule::gps_position_callback(const uint8_t *data, uint16_t data_size,
   gps_position_msg.altitude = gps_position->z / pow(10, 3);
   gps_position_pub_->publish(gps_position_msg);
 
-
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.gps_position = gps_position_msg;
@@ -1639,6 +1703,12 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
   flight_status_msg.header.stamp = get_measurement_time(timestamp);
   flight_status_msg.flight_status = *flight_status;
   flight_status_pub_->publish(flight_status_msg);
+
+  {
+    std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
+    current_state_.flight_status = flight_status_msg;
+  }
+
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
@@ -1797,23 +1867,67 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
           *reinterpret_cast<const T_DjiFcSubscriptionHomePointInfo *>(data));
   sensor_msgs::msg::NavSatFix home_point_msg;
 
-
-
   //  home_point_msg.header.stamp = this->get_clock()->now();
   home_point_msg.header.stamp = get_measurement_time(timestamp);
   home_point_msg.longitude = psdk_utils::rad_to_deg(home_point->longitude);
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
 
-
-  if (home_point_updated(home_point_msg))
+  // this can be if it is really updated or starting for the first time
+  if (home_point_changed(home_point_msg))
   {
-    // WARNING: altitude is taken from raw gps
-    // lat and lon could be from fused
-    current_state_.home_point_gps_raw_altitude = current_state_.gps_position.altitude;
-    RCLCPP_INFO(get_logger(),
-                       "--------> Home point updated: gps_altitude: %f",current_state_.home_point_gps_raw_altitude);
+    // in the air or on the ground but props spinning
+    if (current_state_.flight_status.flight_status !=
+        DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_STOPED)
+    {
+      // load from file
+      double altitude;
 
+      if (home_altitude_cache.loadAltitude(
+              "/tmp/home_altitude.txt", home_point_msg,
+              1.0,      // Maximum distance from cached point (m)
+              60 * 60,  // Maximum age (seconds) = 24 hours
+              altitude))
+
+      {
+        RCLCPP_INFO(get_logger(), "Using cached home altitude: %.2f m",
+                    altitude);
+        current_state_.home_point_gps_raw_altitude = altitude;
+      }
+      else
+      {
+        RCLCPP_WARN(get_logger(), "No valid cached home altitude found.");
+        current_state_.home_point_gps_raw_altitude = -1000.0;
+      }
+
+      RCLCPP_INFO(get_logger(),
+                  "--------> Home point updated from cached (file) value "
+                  "gps_altitude: %f",
+                  current_state_.home_point_gps_raw_altitude);
+    }
+    else
+    {
+      // WARNING: altitude is taken from raw gps
+      // lat and lon could be from fused
+      current_state_.home_point_gps_raw_altitude =
+          current_state_.gps_position.altitude;
+      RCLCPP_INFO(
+          get_logger(),
+          "--------> Home point updated from current raw gps_altitude: %f",
+          current_state_.home_point_gps_raw_altitude);
+
+      home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
+
+      if (!home_altitude_cache.save("/tmp/home_altitude.txt", home_point_msg))
+      {
+        RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
+      }
+      else
+      {
+        RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
+      }
+    }
   }
+
   home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
 
   home_point_pub_->publish(home_point_msg);
@@ -1825,20 +1939,23 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
 }
 
 // logic for detecting if home point has been updated
-bool TelemetryModule::home_point_updated(const sensor_msgs::msg::NavSatFix &new_home_point) const
+bool
+TelemetryModule::home_point_changed(
+    const sensor_msgs::msg::NavSatFix &new_home_point) const
 {
-  constexpr double kEps = 1e-9; // radians (~6 mm)
+  constexpr double kEps = 1e-9;  // radians (~6 mm)
 
   // 1. psdk must say it's valid
   // 2. it has moved comparing to the previous value
   // ...
   const bool changed =
       !current_state_.home_point_status.data ||
-      std::abs(new_home_point.latitude - current_state_.home_point_position.latitude) > kEps ||
-      std::abs(new_home_point.longitude - current_state_.home_point_position.longitude) > kEps;
+      std::abs(new_home_point.latitude -
+               current_state_.home_point_position.latitude) > kEps ||
+      std::abs(new_home_point.longitude -
+               current_state_.home_point_position.longitude) > kEps;
 
   return changed;
-
 }
 
 T_DjiReturnCode
@@ -1868,8 +1985,6 @@ TelemetryModule::home_point_status_callback(const uint8_t *data,
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.home_point_status = home_point_status_msg;
   }
-
-
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }

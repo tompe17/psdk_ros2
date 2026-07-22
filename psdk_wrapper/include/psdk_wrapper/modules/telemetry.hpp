@@ -67,9 +67,35 @@
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
 
+#include <cmath>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
 
 namespace psdk_ros2
 {
+
+class CachedHomeAltitude
+{
+public:
+  bool save(
+      const std::string &filename,
+      const sensor_msgs::msg::NavSatFix &fix) const;
+
+  bool loadAltitude(
+      const std::string &filename,
+      const sensor_msgs::msg::NavSatFix &fix,
+      double max_distance_m,
+      double max_age_sec,
+      double &altitude) const;
+
+private:
+  static double distanceMeters(
+      double lat1,
+      double lon1,
+      double lat2,
+      double lon2);
+};
 
 class GimbalAngleHistory
 {
@@ -472,6 +498,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     std_msgs::msg::Float32 altitude_sl_fused;
     std_msgs::msg::Float32 home_point_altitude;
     float home_point_gps_raw_altitude;
+    psdk_interfaces::msg::FlightStatus flight_status;
 
     void
     initialize_state()
@@ -483,7 +510,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       gps_position.latitude = 40.0;
       gps_position.longitude = 2.0;
       gps_position.altitude = -1000.0;
+
       home_point_gps_raw_altitude = -1000.0;
+
       attitude.setRPY(0.0, 0.0, 0.0);
 
       gimbal_angles.vector.x = 0.0;
@@ -495,6 +524,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   };
 
   CopterState current_state_;
+  CachedHomeAltitude home_altitude_cache;
   TelemetryParams params_;
   void save_body_gimbal_offset();
   bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout) const;
@@ -504,7 +534,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double body_yaw_raw_at_reset_rad_;
   double offset_due_to_yaw;
   double get_body_yaw_raw_rad();
-  bool home_point_updated(const sensor_msgs::msg::NavSatFix &new_home_point) const;
+  bool home_point_changed(const sensor_msgs::msg::NavSatFix &new_home_point) const;
 
  private:
   /*C++ type DJI topic subscriber callbacks*/
