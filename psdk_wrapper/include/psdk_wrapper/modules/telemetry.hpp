@@ -1221,6 +1221,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    * @brief Publish all static transforms for a given copter
    */
   void publish_static_transforms();
+  void publish_static_home_point_transform();
+
   /**
    * @brief Method which publishes the dynamic transforms for a given copter
    */

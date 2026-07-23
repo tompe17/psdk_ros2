@@ -1973,6 +1973,8 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.home_point_position = home_point_msg;
+    publish_static_home_point_transform();
+
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -3005,6 +3007,29 @@ TelemetryModule::set_local_position_ref_cb(
     response->success = false;
     return;
   }
+}
+
+void
+TelemetryModule::publish_static_home_point_transform()
+{
+  geometry_msgs::msg::TransformStamped tf_home_point;
+  tf_home_point.header.stamp = this->get_clock()->now();
+  tf_home_point.header.frame_id = params_.map_frame;
+  tf_home_point.child_frame_id = "home_point";
+
+  double cx, cy, cz;
+  double alt = current_state_.home_point_position.altitude;
+  double lat = current_state_.home_point_position.latitude;
+  double lon = current_state_.home_point_position.longitude;;
+  global_coord_ptr_->wgs84_to_world(lon, lat, alt, cx, cy, cz);
+  tf_home_point.transform.translation.x = cx;
+  tf_home_point.transform.translation.y = cy;
+  tf_home_point.transform.translation.z = cz;
+  tf_home_point.transform.rotation.x = psdk_utils::Q_NO_ROTATION.getX();
+  tf_home_point.transform.rotation.y = psdk_utils::Q_NO_ROTATION.getY();
+  tf_home_point.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
+  tf_home_point.transform.rotation.w = psdk_utils::Q_NO_ROTATION.getW();
+  tf_static_broadcaster_->sendTransform(tf_home_point);
 }
 
 /*@todo Generalize the functions related to TFs for different copter, gimbal
