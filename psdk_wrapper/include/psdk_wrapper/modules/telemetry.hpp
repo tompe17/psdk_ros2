@@ -553,6 +553,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
       home_point_gps_raw_altitude = -1000.0;
 
+      home_point_position.longitude = 0.0;
+      home_point_position.latitude = 0.0;
+
       attitude.setRPY(0.0, 0.0, 0.0);
 
       gimbal_angles.vector.x = 0.0;
