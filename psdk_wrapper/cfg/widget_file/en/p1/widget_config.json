@@ -61,42 +61,42 @@
           {
             "item_name": "None",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_wide.png",
-              "icon_file_name_unselected": "icon_wide.png"
+              "icon_file_name_selected": "fc_none.png",
+              "icon_file_name_unselected": "fc_none.png"
             }
           },
           {
             "item_name": "Takeoff",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_wide.png",
-              "icon_file_name_unselected": "icon_wide.png"
+              "icon_file_name_selected": "fc_takeoff.png",
+              "icon_file_name_unselected": "fc_takeoff.png"
             }
           },
           {
             "item_name": "Land",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_wide.png",
-              "icon_file_name_unselected": "icon_wide.png"
+              "icon_file_name_selected": "fc_land.png",
+              "icon_file_name_unselected": "fc_land.png"
             }
           },
           {
             "item_name": "Cancel landing",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_zoom.png",
-              "icon_file_name_unselected": "icon_zoom.png"
+              "icon_file_name_selected": "fc_land.png",
+              "icon_file_name_unselected": "fc_land.png"
             }
           },          {
             "item_name": "Go home",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_wide.png",
-              "icon_file_name_unselected": "icon_wide.png"
+              "icon_file_name_selected": "fc_gohome.png",
+              "icon_file_name_unselected": "fc_gohome.png"
             }
           },
           {
             "item_name": "Cancel go home",
             "icon_file_set": {
-              "icon_file_name_selected": "icon_zoom.png",
-              "icon_file_name_unselected": "icon_zoom.png"
+              "icon_file_name_selected": "fc_gohome.png",
+              "icon_file_name_unselected": "fc_gohome.png"
             }
           }
         ],
