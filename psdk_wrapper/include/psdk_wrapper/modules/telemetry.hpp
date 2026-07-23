@@ -96,13 +96,13 @@ class FlightStatusHistory
   }
 
   bool
-  takeoff() const
+  on_the_ground_recently() const
   {
     if (history_.empty()) return false;
 
     for (uint8_t status : history_)
     {
-      if (status != 2)
+      if (status != DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
       {
         return true;
       }
@@ -128,10 +128,11 @@ class CachedHomeAltitude
   bool save(const std::string& filename,
             const sensor_msgs::msg::NavSatFix& fix) const;
 
-  bool loadAltitude(const std::string& filename,
-                    const sensor_msgs::msg::NavSatFix& fix,
-                    double max_distance_m, double max_age_sec,
-                    double& altitude) const;
+  bool loadAltitude(const std::string &filename,
+                                 const double longitude_prev,
+                                 const double latitude_prev,
+                                 double max_distance_m, double max_age_sec,
+                                 double &altitude) const;
 
  private:
   static double distanceMeters(double lat1, double lon1, double lat2,
@@ -576,8 +577,9 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double body_yaw_raw_at_reset_rad_;
   double offset_due_to_yaw;
   double get_body_yaw_raw_rad();
-  bool home_point_changed(
-      const sensor_msgs::msg::NavSatFix& new_home_point) const;
+  bool home_point_changed(const double &longitude, const double &latitude) const;
+  bool handle_home_point_update(const double &longitude, const double &latitude,
+                                             double &altitude) const;
 
  private:
   /*C++ type DJI topic subscriber callbacks*/

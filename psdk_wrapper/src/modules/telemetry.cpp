@@ -39,7 +39,8 @@ CachedHomeAltitude::save(const std::string &filename,
 
 bool
 CachedHomeAltitude::loadAltitude(const std::string &filename,
-                                 const sensor_msgs::msg::NavSatFix &fix,
+                                 const double longitude_prev,
+                                 const double latitude_prev,
                                  double max_distance_m, double max_age_sec,
                                  double &altitude) const
 {
@@ -53,7 +54,7 @@ CachedHomeAltitude::loadAltitude(const std::string &filename,
 
   if (std::difftime(std::time(nullptr), timestamp) > max_age_sec) return false;
 
-  if (distanceMeters(lat, lon, fix.latitude, fix.longitude) > max_distance_m)
+  if (distanceMeters(lat, lon, latitude_prev, longitude_prev) > max_distance_m)
   {
     return false;
   }
@@ -1864,6 +1865,73 @@ TelemetryModule::control_mode_callback(const uint8_t *data, uint16_t data_size,
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
+bool
+TelemetryModule::handle_home_point_update(const double &longitude,
+                                          const double &latitude,
+                                          double &altitude) const
+{
+  // default unknown value
+  altitude = -1000.0;
+
+  // this can be true if it is really updated or starting the node for the first time
+  if (home_point_changed(longitude, latitude))
+  {
+    // checking just the status is not enough - it will show always in the air
+    // if (current_state_.flight_status.flight_status ==
+    // DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
+
+    // check if there's anything else in recent history other than in the air
+    // this would mean that a takeoff was performed
+    if (!current_state_.flight_status_history.on_the_ground_recently())
+    {
+      // load from file
+      if (home_altitude_cache.loadAltitude(
+              "/tmp/home_altitude.txt", longitude, latitude,
+              1.0,      // Maximum distance from cached point (m)
+              60 * 60,  // Maximum age (seconds)
+              altitude))
+
+      {
+        RCLCPP_INFO(get_logger(), "Using cached home altitude: %.2f m",
+                    altitude);
+        return true;
+      }
+      else
+      {
+        RCLCPP_WARN(get_logger(), "No valid cached home altitude found.");
+        return false;
+      }
+    }
+    else
+    {
+      // WARNING: altitude is taken from raw gps
+      altitude = current_state_.gps_position.altitude;
+      RCLCPP_INFO(get_logger(), "Using raw GPS altitude: %.2f m", altitude);
+      return true;
+      // lat and lon could be from fused
+      // current_state_.home_point_gps_raw_altitude =
+      // current_state_.gps_position.altitude;
+      // RCLCPP_INFO(
+      // get_logger(),
+      // "--------> Home point updated from current raw gps_altitude: %f",
+      // current_state_.home_point_gps_raw_altitude);
+
+      // home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
+
+      // if (!home_altitude_cache.save("/tmp/home_altitude.txt",
+      // home_point_msg))
+      // {
+      //   RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
+      // }
+      // else
+      // {
+      //   RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
+      // }
+    }
+  }
+  return false;
+}
+
 T_DjiReturnCode
 TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
                                      const T_DjiDataTimestamp *timestamp)
@@ -1880,68 +1948,26 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
   home_point_msg.longitude = psdk_utils::rad_to_deg(home_point->longitude);
   home_point_msg.latitude = psdk_utils::rad_to_deg(home_point->latitude);
 
-  // this can be if it is really updated or starting for the first time
-    // RCLCPP_INFO(get_logger(), "Flight status: %d", current_state_.flight_status.flight_status);
-  if (home_point_changed(home_point_msg))
+  double altitude;
+
+  const auto valid = handle_home_point_update(
+      home_point_msg.longitude, home_point_msg.latitude, altitude);
+
+  current_state_.home_point_gps_raw_altitude = altitude;
+  home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
+
+  // if home point changed and it is valid (gps or file), save it
+  if (valid)
   {
-    // checking just the status is not enough - it will show always in the air
-    // if (current_state_.flight_status.flight_status ==
-        // DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
-
-    // check if there's anything else in recent history other than in the air
-    // this would mean that a takeoff was performed
-    if (!current_state_.flight_status_history.takeoff())
+    if (!home_altitude_cache.save("/tmp/home_altitude.txt", home_point_msg))
     {
-      // load from file
-      double altitude;
-
-      if (home_altitude_cache.loadAltitude(
-              "/tmp/home_altitude.txt", home_point_msg,
-              1.0,      // Maximum distance from cached point (m)
-              60 * 60,  // Maximum age (seconds)
-              altitude))
-
-      {
-        RCLCPP_INFO(get_logger(), "Using cached home altitude: %.2f m",
-                    altitude);
-        current_state_.home_point_gps_raw_altitude = altitude;
-      }
-      else
-      {
-        RCLCPP_WARN(get_logger(), "No valid cached home altitude found.");
-        current_state_.home_point_gps_raw_altitude = -1000.0;
-      }
-
-      RCLCPP_INFO(get_logger(),
-                  "--------> Home point updated from cached (file) value "
-                  "gps_altitude: %f",
-                  current_state_.home_point_gps_raw_altitude);
+      RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
     }
     else
     {
-      // WARNING: altitude is taken from raw gps
-      // lat and lon could be from fused
-      current_state_.home_point_gps_raw_altitude =
-          current_state_.gps_position.altitude;
-      RCLCPP_INFO(
-          get_logger(),
-          "--------> Home point updated from current raw gps_altitude: %f",
-          current_state_.home_point_gps_raw_altitude);
-
-      home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
-
-      if (!home_altitude_cache.save("/tmp/home_altitude.txt", home_point_msg))
-      {
-        RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
-      }
-      else
-      {
-        RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
-      }
+      RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
     }
   }
-
-  home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
 
   home_point_pub_->publish(home_point_msg);
   {
@@ -1953,8 +1979,8 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
 
 // logic for detecting if home point has been updated
 bool
-TelemetryModule::home_point_changed(
-    const sensor_msgs::msg::NavSatFix &new_home_point) const
+TelemetryModule::home_point_changed(const double &longitude,
+                                    const double &latitude) const
 {
   constexpr double kEps = 1e-9;  // radians (~6 mm)
 
@@ -1963,10 +1989,8 @@ TelemetryModule::home_point_changed(
   // ...
   const bool changed =
       !current_state_.home_point_status.data ||
-      std::abs(new_home_point.latitude -
-               current_state_.home_point_position.latitude) > kEps ||
-      std::abs(new_home_point.longitude -
-               current_state_.home_point_position.longitude) > kEps;
+      std::abs(latitude - current_state_.home_point_position.latitude) > kEps ||
+      std::abs(longitude - current_state_.home_point_position.longitude) > kEps;
 
   return changed;
 }
