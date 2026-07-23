@@ -271,6 +271,9 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   params_.camera_frame = add_tf_prefix(params_.camera_frame);
   params_.image_frame = add_tf_prefix(params_.image_frame);
 
+  current_state_.home_point_position.altitude = params_.default_altitude_value;
+  current_state_.home_point_gps_raw_altitude = params_.default_altitude_value;
+
   if (params_.publish_transforms)
   {
     publish_static_transforms();
@@ -1872,7 +1875,7 @@ TelemetryModule::handle_home_point_update(const double &longitude,
                                           double &altitude) const
 {
   // default unknown value
-  altitude = -1000.0;
+  altitude = params_.default_altitude_value;
   // 1. the home point has to be valid
   // 2. it has changed - this can be true if it is really updated or starting
   // the node for the first time
@@ -2301,7 +2304,7 @@ TelemetryModule::home_point_altitude_callback(
   home_point_altitude_pub_->publish(home_point_altitude_msg);
 
   std_msgs::msg::Float32 home_point_gps_altitude_msg;
-  home_point_gps_altitude_msg.data = -1000.0;
+  home_point_gps_altitude_msg.data = params_.default_altitude_value;
   home_point_gps_altitude_pub_->publish(home_point_gps_altitude_msg);
 
   std::unique_lock<std::shared_mutex> lock(current_state_mutex_);

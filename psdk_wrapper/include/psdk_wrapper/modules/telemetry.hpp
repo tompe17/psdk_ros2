@@ -522,6 +522,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     int battery_level_frequency;
     int control_information_frequency;
     int esc_data_frequency;
+
+    double default_altitude_value;
   };
   struct CopterState
   {
@@ -532,7 +534,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
     sensor_msgs::msg::NavSatFix gps_fused;
     tf2::Quaternion attitude;
     T_DjiFcSubscriptionQuaternion attitude_q_raw;
-    // T_DjiFcSubscriptionQuaternion attitude_q_raw_prev;
     geometry_msgs::msg::Vector3Stamped gimbal_angles;
     GimbalAngleHistory gimbal_angle_history;
     T_DjiFcSubscriptionGimbalAngles gimbal_angles_raw;  // from the vehicle

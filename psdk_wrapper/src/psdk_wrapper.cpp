@@ -81,6 +81,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("file_path", rclcpp::ParameterValue("/logs/media/"));
   declare_parameter("sim", rclcpp::ParameterValue(false));
   declare_parameter("location", "granso");
+  declare_parameter("default_altitude_value", "-1000.0");
 
 
   declare_parameter("data_frequency.imu", 1);
@@ -614,6 +615,9 @@ PSDKWrapper::load_parameters()
     get_parameter("sim",
                   telemetry_module_->params_.sim);
     RCLCPP_INFO(get_logger(), "simulation: %d", telemetry_module_->params_.sim);
+    get_parameter("default_altitude_value",
+                      telemetry_module_->params_.default_altitude_value);
+
 
     // Get data frequency
     get_and_validate_frequency("data_frequency.imu",
