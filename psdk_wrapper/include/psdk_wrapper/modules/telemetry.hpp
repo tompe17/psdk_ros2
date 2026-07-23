@@ -1361,7 +1361,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_pub;
   rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geo_pose_pub;
-  rclcpp::Publisher<geographic_msgs::msg::GeoPoint>::SharedPtr geo_point_pub;
 
   /* ROS 2 services */
   rclcpp::Service<Trigger>::SharedPtr set_local_position_ref_srv_;

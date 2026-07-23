@@ -3306,7 +3306,6 @@ TelemetryModule::publish_dynamic_body_transforms() const
 
     tf_broadcaster_->sendTransform(get_home_point_transform(current_state_.gps_fused.header.stamp));
 
-    // geopose
     geographic_msgs::msg::GeoPose gp;
     gp.position.latitude = current_state_.gps_fused.latitude;
     gp.position.longitude = current_state_.gps_fused.longitude;
@@ -3314,7 +3313,6 @@ TelemetryModule::publish_dynamic_body_transforms() const
     gp.orientation = tf_body.transform.rotation;
     geo_pose_pub->publish(gp);
 
-    // pose
     geometry_msgs::msg::PoseStamped p;
     p.header.stamp = current_state_.gps_fused.header.stamp;
     p.header.frame_id = params_.map_frame;
