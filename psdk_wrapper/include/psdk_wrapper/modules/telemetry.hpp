@@ -1224,12 +1224,14 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   void publish_static_transforms();
   void publish_static_home_point_transform();
   geometry_msgs::msg::TransformStamped get_home_point_transform(const rclcpp::Time &stamp) const;
+  geometry_msgs::msg::TransformStamped get_body_transform(const rclcpp::Time &stamp) const;
+  double get_current_world_alt() const;
 
   /**
    * @brief Method which publishes the dynamic transforms for a given copter
    */
   void publish_dynamic_gimbal_transforms(const T_DjiDataTimestamp* timestamp);
-  void publish_dynamic_body_transforms();
+  void publish_dynamic_body_transforms() const;
 
   /**
    * @brief Method which computes the yaw angle difference between the gimbal

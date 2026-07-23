@@ -3022,7 +3022,7 @@ TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
   geometry_msgs::msg::TransformStamped tf_home_point;
   tf_home_point.header.stamp = stamp;
   tf_home_point.header.frame_id = params_.map_frame;
-  tf_home_point.child_frame_id = "home_point";
+  tf_home_point.child_frame_id = params_.home_point_frame;
 
   double cx, cy, cz;
   double alt = current_state_.home_point_position.altitude;
@@ -3037,6 +3037,46 @@ TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
   tf_home_point.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
   tf_home_point.transform.rotation.w = psdk_utils::Q_NO_ROTATION.getW();
   return tf_home_point;
+}
+
+double TelemetryModule::get_current_world_alt() const
+{
+  const double height_above_takeoff = current_state_.altitude_sl_fused.data -
+                                      current_state_.home_point_altitude.data;
+
+  double alt = height_above_takeoff + global_coord_ptr_->get_world_origin_elevation();
+  return alt;
+
+}
+
+geometry_msgs::msg::TransformStamped
+TelemetryModule::get_body_transform(const rclcpp::Time &stamp) const
+{
+  // std::shared_ptr<psdk_ros2::CoordModule> coord =
+      // psdk_ros2::global_coord_ptr_;
+
+  // const double height_above_takeoff = current_state_.altitude_sl_fused.data -
+                                      // current_state_.home_point_altitude.data;
+
+  double cx, cy, cz;
+  double alt = get_current_world_alt();
+  // double alt = height_above_takeoff + coord->get_world_origin_elevation();
+  double lat = current_state_.gps_fused.latitude;
+  double lon = current_state_.gps_fused.longitude;
+
+  global_coord_ptr_->wgs84_to_world(lon, lat, alt, cx, cy, cz);
+
+  geometry_msgs::msg::TransformStamped t;
+  // body
+  t.header.stamp = stamp; ;
+  t.header.frame_id = params_.map_frame;
+  t.child_frame_id = params_.body_frame;
+
+  t.transform.translation.x = cx;
+  t.transform.translation.y = cy;
+  t.transform.translation.z = cz;
+  t.transform.rotation = tf2::toMsg(current_state_.attitude);
+  return t;
 }
 
 
@@ -3242,62 +3282,39 @@ TelemetryModule::print_angles(const std::string &text,
 }
 
 void
-TelemetryModule::publish_dynamic_body_transforms()
+TelemetryModule::publish_dynamic_body_transforms() const
 {
   if (aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
       aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)
   {
-    std::shared_ptr<psdk_ros2::CoordModule> coord =
-        psdk_ros2::global_coord_ptr_;
+    auto tf_body = get_body_transform(current_state_.gps_fused.header.stamp);
+    tf_broadcaster_->sendTransform(tf_body);
 
-    const double height_above_takeoff = current_state_.altitude_sl_fused.data -
-                                        current_state_.home_point_altitude.data;
-
-    double cx, cy, cz;
-    double alt = height_above_takeoff + coord->get_world_origin_elevation();
-    double lat = current_state_.gps_fused.latitude;
-    double lon = current_state_.gps_fused.longitude;
-
-    coord->wgs84_to_world(lon, lat, alt, cx, cy, cz);
-
-    geometry_msgs::msg::TransformStamped t;
-    // body
-    t.header.stamp = current_state_.gps_fused.header.stamp;
-    t.header.frame_id = params_.map_frame;
-    t.child_frame_id = params_.body_frame;
-
-    t.transform.translation.x = cx;
-    t.transform.translation.y = cy;
-    t.transform.translation.z = cz;
-    t.transform.rotation = tf2::toMsg(current_state_.attitude);
-    tf_broadcaster_->sendTransform(t);
-
-    // hor body
-    t.child_frame_id = params_.horbody_frame;
+    auto tf_horbody = tf_body;
+    tf_horbody.child_frame_id = params_.horbody_frame;
     tf2::Quaternion tf_q_flat_yaw;
     tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
-    t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
-    tf_broadcaster_->sendTransform(t);
+    tf_horbody.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
+    tf_broadcaster_->sendTransform(tf_horbody);
 
-    tf_broadcaster_->sendTransform(get_home_point_transform(t.header.stamp));
-
+    tf_broadcaster_->sendTransform(get_home_point_transform(current_state_.gps_fused.header.stamp));
 
     // geopose
     geographic_msgs::msg::GeoPose gp;
-    gp.position.latitude = lat;
-    gp.position.longitude = lon;
-    gp.position.altitude = alt;
-    gp.orientation = t.transform.rotation;
+    gp.position.latitude = current_state_.gps_fused.latitude;
+    gp.position.longitude = current_state_.gps_fused.longitude;
+    gp.position.altitude = get_current_world_alt();
+    gp.orientation = tf_body.transform.rotation;
     geo_pose_pub->publish(gp);
 
     // pose
     geometry_msgs::msg::PoseStamped p;
     p.header.stamp = current_state_.gps_fused.header.stamp;
     p.header.frame_id = params_.map_frame;
-    p.pose.position.x = cx;
-    p.pose.position.y = cy;
-    p.pose.position.z = cz;
-    p.pose.orientation = t.transform.rotation;
+    p.pose.position.x = tf_body.transform.translation.x;
+    p.pose.position.y = tf_body.transform.translation.y;
+    p.pose.position.z = tf_body.transform.translation.z;
+    p.pose.orientation = tf_body.transform.rotation;
     pose_pub->publish(p);
   }
 }
