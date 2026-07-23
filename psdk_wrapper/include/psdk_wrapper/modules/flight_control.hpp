@@ -105,6 +105,12 @@ class FlightControlModule : public rclcpp_lifecycle::LifecycleNode
    */
   bool deinit();
 
+  bool start_go_home();
+  bool cancel_go_home();
+  bool start_landing();
+  bool cancel_landing();
+  bool start_takeoff();
+
  private:
   /**
    * @brief Callback function to control aircraft position and yaw. This

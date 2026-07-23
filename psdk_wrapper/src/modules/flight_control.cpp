@@ -390,41 +390,52 @@ FlightControlModule::get_go_home_altitude_cb(
   }
   response->success = true;
 }
-
-void
-FlightControlModule::start_go_home_cb(
-    const std::shared_ptr<Trigger::Request> request,
-    const std::shared_ptr<Trigger::Response> response)
+bool FlightControlModule::start_go_home()
 {
-  (void)request;
   auto result = DjiFlightController_StartGoHome();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(),
-                 "Could not start go to home action. Error code: %ld", result);
-    response->success = false;
-    return;
+    RCLCPP_ERROR(
+        get_logger(),
+        "Could not start go to home action. Error code: %ld",
+        result);
+    return false;
   }
+
   RCLCPP_INFO(get_logger(), "Go Home action started");
-  response->success = true;
+  return true;
 }
 
-void
-FlightControlModule::cancel_go_home_cb(
+void FlightControlModule::start_go_home_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
+  response->success = start_go_home();
+}
+
+bool FlightControlModule::cancel_go_home()
+{
   auto result = DjiFlightController_CancelGoHome();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(),
-                 "Could not cancel go to home action. Error code: %ld", result);
-    response->success = false;
-    return;
+    RCLCPP_ERROR(
+        get_logger(),
+        "Could not cancel go to home action. Error code: %ld",
+        result);
+    return false;
   }
+
   RCLCPP_INFO(get_logger(), "Go Home action has been cancelled");
-  response->success = true;
+  return true;
+}
+
+void FlightControlModule::cancel_go_home_cb(
+    const std::shared_ptr<Trigger::Request> request,
+    const std::shared_ptr<Trigger::Response> response)
+{
+  (void)request;
+  response->success = cancel_go_home();
 }
 
 void
@@ -809,58 +820,76 @@ FlightControlModule::turn_off_motors_cb(
   response->success = true;
 }
 
-void
-FlightControlModule::start_takeoff_cb(
-    const std::shared_ptr<Trigger::Request> request,
-    const std::shared_ptr<Trigger::Response> response)
+bool FlightControlModule::start_takeoff()
 {
-  (void)request;
   auto result = DjiFlightController_StartTakeoff();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(), "Could not start takeoff! Error code is: %ld",
-                 result);
-    response->success = false;
-    return;
+    RCLCPP_ERROR(
+        get_logger(),
+        "Could not start takeoff! Error code is: %ld",
+        result);
+    return false;
   }
+
   RCLCPP_INFO(get_logger(), "Starting Take Off");
-  response->success = true;
+  return true;
 }
 
-void
-FlightControlModule::start_landing_cb(
+void FlightControlModule::start_takeoff_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
+  response->success = start_takeoff();
+}
+
+bool FlightControlModule::start_landing()
+{
   auto result = DjiFlightController_StartLanding();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(), "Could not start landing! Error code is: %ld",
-                 result);
-    response->success = false;
-    return;
+    RCLCPP_ERROR(
+        get_logger(),
+        "Could not start landing! Error code is: %ld",
+        result);
+    return false;
   }
+
   RCLCPP_INFO(get_logger(), "Starting Landing");
-  response->success = true;
+  return true;
 }
 
-void
-FlightControlModule::cancel_landing_cb(
+void FlightControlModule::start_landing_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
+  response->success = start_landing();
+}
+
+bool FlightControlModule::cancel_landing()
+{
   auto result = DjiFlightController_CancelLanding();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(), "Could not cancel landing! Error code is: %ld",
-                 result);
-    response->success = false;
-    return;
+    RCLCPP_ERROR(
+        get_logger(),
+        "Could not cancel landing! Error code is: %ld",
+        result);
+    return false;
   }
+
   RCLCPP_INFO(get_logger(), "Landing has been cancelled");
-  response->success = true;
+  return true;
+}
+
+void FlightControlModule::cancel_landing_cb(
+    const std::shared_ptr<Trigger::Request> request,
+    const std::shared_ptr<Trigger::Response> response)
+{
+  (void)request;
+  response->success = cancel_landing();
 }
 
 void
