@@ -121,7 +121,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
                 telemetry_thread_, "telemetry_node",
                 psdk_ros2::global_telemetry_ptr_);
   create_module(is_flight_control_module_mandatory_, flight_control_module_,
-                flight_control_thread_, "flight_control_node");
+                flight_control_thread_, "flight_control_node", global_fc_ptr_);
   create_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_,
                 waypoint_flying_thread_, "waypoint_flying_node");
   create_module(is_camera_module_mandatory_, camera_module_, camera_thread_,
