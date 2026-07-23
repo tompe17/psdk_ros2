@@ -480,7 +480,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   /**
    * @brief Unsubscribe the telemetry topics
    */
-  void unsubscribe_psdk_topics();
+  void unsubscribe_psdk_topics() const;
 
   /**
    * @brief Set the aircraft base object

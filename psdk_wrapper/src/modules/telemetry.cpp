@@ -1873,8 +1873,9 @@ TelemetryModule::handle_home_point_update(const double &longitude,
   // default unknown value
   altitude = -1000.0;
 
-  // this can be true if it is really updated or starting the node for the first time
-  if (home_point_changed(longitude, latitude))
+  // this can be true if it is really updated or starting the node for the first
+  // time
+  if (current_state_.home_point_status.data && home_point_changed(longitude, latitude))
   {
     // checking just the status is not enough - it will show always in the air
     // if (current_state_.flight_status.flight_status ==
@@ -1988,7 +1989,6 @@ TelemetryModule::home_point_changed(const double &longitude,
   // 2. it has moved comparing to the previous value
   // ...
   const bool changed =
-      !current_state_.home_point_status.data ||
       std::abs(latitude - current_state_.home_point_position.latitude) > kEps ||
       std::abs(longitude - current_state_.home_point_position.longitude) > kEps;
 
@@ -2901,7 +2901,7 @@ TelemetryModule::subscribe_psdk_topics()
 }  // NOLINT(readability/fn_size)
 
 void
-TelemetryModule::unsubscribe_psdk_topics()
+TelemetryModule::unsubscribe_psdk_topics() const
 {
   for (auto topic : psdk_utils::topics_to_subscribe)
   {
