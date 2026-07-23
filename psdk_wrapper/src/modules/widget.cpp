@@ -385,39 +385,36 @@ WidgetModule::execute_flight_control_command(int32_t value)
       break;
     case 1:
       std::cout << "Widget Takeoff" << std::endl;
-      // if (!run_flight_control_command(&FlightControlModule::start_takeoff))
-      // last_flight_control_command_ = 0;
-
       std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->start_takeoff(); })
           .detach();
-
       std::cout << "Takeoff done" << std::endl;
 
       break;
     case 2:
       std::cout << "Widget land" << std::endl;
-      if (!run_flight_control_command(&FlightControlModule::start_landing))
-        last_flight_control_command_ = 0;
-      std::cout << "land done" << std::endl;
+      std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->start_landing(); })
+          .detach();
 
       break;
     case 3:
       std::cout << "Widget cancel land" << std::endl;
-      if (!run_flight_control_command(&FlightControlModule::cancel_landing))
-        last_flight_control_command_ = 0;
+      std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->cancel_landing(); })
+    .detach();
+
       break;
     case 4:
     {
       std::cout << "Widget go home" << std::endl;
-      if (!run_flight_control_command(&FlightControlModule::start_go_home))
-        last_flight_control_command_ = 0;
+      std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->start_go_home(); })
+    .detach();
+
       break;
     }
     case 5:
     {
       std::cout << "Widget cancel go home" << std::endl;
-      if (!run_flight_control_command(&FlightControlModule::cancel_go_home))
-        last_flight_control_command_ = 0;
+      std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->cancel_go_home(); })
+          .detach();
       break;
     }
 
