@@ -132,11 +132,11 @@ WaypointFlyingModule::init()
 {
   if (is_module_initialized_)
   {
-    RCLCPP_INFO(get_logger(), "HMS already initialized, skipping.");
+    RCLCPP_INFO(get_logger(), "WaypointFlyingModule already initialized, skipping.");
     return true;
   }
 
-  RCLCPP_INFO(get_logger(), "Initiating Waypoint Flying");
+  RCLCPP_INFO(get_logger(), "Initiating WaypointFlyingModule");
   wfm_pointer = this;
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
@@ -155,7 +155,7 @@ WaypointFlyingModule::init()
 bool
 WaypointFlyingModule::deinit()
 {
-  RCLCPP_INFO(get_logger(), "Deinitializing Waypoint Flying");
+  RCLCPP_INFO(get_logger(), "Deinitializing WaypointFlyingModule");
 #if 0  
   T_DjiReturnCode return_code = DjiHmsManager_DeInit();
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)

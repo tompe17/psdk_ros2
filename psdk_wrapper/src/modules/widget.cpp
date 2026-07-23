@@ -426,20 +426,6 @@ WidgetModule::execute_flight_control_command(int32_t value)
   return true;
 }
 
-bool
-WidgetModule::run_flight_control_command(bool (FlightControlModule::*command)())
-{
-  std::promise<bool> promise;
-  auto future = promise.get_future();
-
-  std::thread([fc = psdk_ros2::global_fc_ptr_, command,
-               p = std::move(promise)]() mutable
-              { p.set_value((fc.get()->*command)()); })
-      .detach();
-
-  return future.get();
-}
-
 T_DjiReturnCode
 WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
                                int32_t *value, void *user_data)
@@ -485,9 +471,6 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
 
       *value = self->last_flight_control_command_;
 
-      // RCLCPP_INFO(self->get_logger(),
-      // "widget_state_get: self->last_flight_control_command_: %d",
-      // self->last_flight_control_command_);
       break;
     }
 
