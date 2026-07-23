@@ -1875,6 +1875,11 @@ TelemetryModule::handle_home_point_update(const double &longitude,
   // 1. the home point has to be valid
   // 2. it has changed - this can be true if it is really updated or starting
   // the node for the first time
+  
+  RCLCPP_INFO(get_logger(), "HP valid: %d changed:%d",
+    current_state_.home_point_status.data,
+    home_point_changed(longitude, latitude));
+
   if (current_state_.home_point_status.data &&
       home_point_changed(longitude, latitude))
   {
