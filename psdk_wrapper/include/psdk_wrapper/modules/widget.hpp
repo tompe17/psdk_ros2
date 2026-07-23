@@ -92,6 +92,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   bool execute_flight_control_command(int32_t value);
   static bool run_flight_control_command(bool (FlightControlModule::*command)());
   void publishCommand(const std::string &command);
+  int32_t update_last_flight_control_command();
 
   /*
    * Widget state

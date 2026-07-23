@@ -399,14 +399,14 @@ WidgetModule::execute_flight_control_command(int32_t value)
     case 3:
       std::cout << "Widget cancel land" << std::endl;
       std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->cancel_landing(); })
-    .detach();
+          .detach();
 
       break;
     case 4:
     {
       std::cout << "Widget go home" << std::endl;
       std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->start_go_home(); })
-    .detach();
+          .detach();
 
       break;
     }
@@ -481,11 +481,13 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     }
     case 5:
     {
+      self->last_flight_control_command_ = self->update_last_flight_control_command();
+
       *value = self->last_flight_control_command_;
 
       // RCLCPP_INFO(self->get_logger(),
-                  // "widget_state_get: self->last_flight_control_command_: %d",
-                  // self->last_flight_control_command_);
+      // "widget_state_get: self->last_flight_control_command_: %d",
+      // self->last_flight_control_command_);
       break;
     }
 
@@ -495,6 +497,36 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
   }
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+int32_t
+WidgetModule::update_last_flight_control_command()
+{
+  auto ret = last_flight_control_command_;
+  // takeoff
+  switch (last_flight_control_command_)
+  {
+    case 1: // takeoff
+      if (global_telemetry_ptr_->current_state_.flight_status.flight_status ==
+          DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
+      {
+        ret = 0;
+      }
+    break;
+    case 3: // cancel land
+    case 5: // cancel go home
+      ret = 0;
+    case 2: // land
+    case 4: // go home
+      if (global_telemetry_ptr_->current_state_.flight_status.flight_status ==
+          DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_STOPED)
+      {
+        ret = 0;
+      }
+    break;
+    default:;
+  }
+  return ret;
 }
 
 void
