@@ -91,6 +91,13 @@
         "widget_name": "Flight control",
         "list_item": [
           {
+            "item_name": "None",
+            "icon_file_set": {
+              "icon_file_name_selected": "icon_wide.png",
+              "icon_file_name_unselected": "icon_wide.png"
+            }
+          },
+          {
             "item_name": "Takeoff",
             "icon_file_set": {
               "icon_file_name_selected": "icon_wide.png",
