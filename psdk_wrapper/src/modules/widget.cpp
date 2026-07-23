@@ -377,7 +377,7 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
 bool WidgetModule::execute_flight_control_command(int32_t value)
 {
-  last_flight_control_command = value;
+  last_flight_control_command_ = value;
   switch (value)
   {
     case 0:
