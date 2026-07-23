@@ -67,6 +67,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("horbody_frame",
                     rclcpp::ParameterValue("psdk_horbody_link"));
   declare_parameter("map_frame", rclcpp::ParameterValue("psdk_map_enu"));
+  declare_parameter("home_point_frame", rclcpp::ParameterValue("psdk_home_point_enu"));
   declare_parameter("gimbal_base_frame",
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
   declare_parameter("gimbal_frame", rclcpp::ParameterValue("psdk_gimbal_link"));
@@ -597,6 +598,7 @@ PSDKWrapper::load_parameters()
     get_non_mandatory_param("horbody_frame",
                             telemetry_module_->params_.horbody_frame);
     get_non_mandatory_param("map_frame", telemetry_module_->params_.map_frame);
+    get_non_mandatory_param("home_point_frame", telemetry_module_->params_.home_point_frame);
     get_non_mandatory_param("gimbal_frame",
                             telemetry_module_->params_.gimbal_frame);
     get_non_mandatory_param("gimbal_base_frame",
