@@ -385,13 +385,21 @@ WidgetModule::execute_flight_control_command(int32_t value)
       break;
     case 1:
       std::cout << "Widget Takeoff" << std::endl;
-      if (!run_flight_control_command(&FlightControlModule::start_takeoff))
-        last_flight_control_command_ = 0;
+      // if (!run_flight_control_command(&FlightControlModule::start_takeoff))
+      // last_flight_control_command_ = 0;
+
+      std::thread([fc = psdk_ros2::global_fc_ptr_] { fc->start_takeoff(); })
+          .detach();
+
+      std::cout << "Takeoff done" << std::endl;
+
       break;
     case 2:
       std::cout << "Widget land" << std::endl;
       if (!run_flight_control_command(&FlightControlModule::start_landing))
         last_flight_control_command_ = 0;
+      std::cout << "land done" << std::endl;
+
       break;
     case 3:
       std::cout << "Widget cancel land" << std::endl;
@@ -479,7 +487,8 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
       *value = self->last_flight_control_command_;
 
       RCLCPP_INFO(self->get_logger(),
-                  "widget_state_get: self->last_flight_control_command_: %d", self->last_flight_control_command_);
+                  "widget_state_get: self->last_flight_control_command_: %d",
+                  self->last_flight_control_command_);
       break;
     }
 
