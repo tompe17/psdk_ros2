@@ -483,9 +483,9 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     {
       *value = self->last_flight_control_command_;
 
-      RCLCPP_INFO(self->get_logger(),
-                  "widget_state_get: self->last_flight_control_command_: %d",
-                  self->last_flight_control_command_);
+      // RCLCPP_INFO(self->get_logger(),
+                  // "widget_state_get: self->last_flight_control_command_: %d",
+                  // self->last_flight_control_command_);
       break;
     }
 
