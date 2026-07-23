@@ -126,11 +126,11 @@ class CachedHomeAltitude
 {
  public:
   static bool save(const std::string& filename, const double& longitude,
-            const double& latitude, const double& altitude);
+                   const double& latitude, const double& altitude);
 
   static bool loadAltitude(const std::string& filename, double longitude_prev,
-                    double latitude_prev, double max_distance_m,
-                    double max_age_sec, double& altitude);
+                           double latitude_prev, double max_distance_m,
+                           double max_age_sec, double& altitude);
 
  private:
   static double distanceMeters(double lat1, double lon1, double lat2,
@@ -1223,8 +1223,12 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    */
   void publish_static_transforms();
   void publish_static_home_point_transform();
-  geometry_msgs::msg::TransformStamped get_home_point_transform(const rclcpp::Time &stamp) const;
-  geometry_msgs::msg::TransformStamped get_body_transform(const rclcpp::Time &stamp) const;
+  geometry_msgs::msg::TransformStamped get_home_point_transform(
+      const rclcpp::Time& stamp) const;
+  geometry_msgs::msg::TransformStamped get_body_transform(
+      const rclcpp::Time& stamp) const;
+  geometry_msgs::msg::TransformStamped get_horbody_transform(
+      const rclcpp::Time& stamp) const;
   double get_current_world_alt() const;
 
   /**

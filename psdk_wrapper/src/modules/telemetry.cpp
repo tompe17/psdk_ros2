@@ -3050,6 +3050,17 @@ double TelemetryModule::get_current_world_alt() const
 }
 
 geometry_msgs::msg::TransformStamped
+TelemetryModule::get_horbody_transform(const rclcpp::Time &stamp) const
+{
+  auto tf_horbody = get_body_transform(stamp);
+  tf_horbody.child_frame_id = params_.horbody_frame;
+  tf2::Quaternion tf_q_flat_yaw;
+  tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
+  tf_horbody.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
+  return tf_horbody;
+}
+
+geometry_msgs::msg::TransformStamped
 TelemetryModule::get_body_transform(const rclcpp::Time &stamp) const
 {
   // std::shared_ptr<psdk_ros2::CoordModule> coord =
@@ -3290,11 +3301,7 @@ TelemetryModule::publish_dynamic_body_transforms() const
     auto tf_body = get_body_transform(current_state_.gps_fused.header.stamp);
     tf_broadcaster_->sendTransform(tf_body);
 
-    auto tf_horbody = tf_body;
-    tf_horbody.child_frame_id = params_.horbody_frame;
-    tf2::Quaternion tf_q_flat_yaw;
-    tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
-    tf_horbody.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
+    auto tf_horbody = get_horbody_transform(current_state_.gps_fused.header.stamp);
     tf_broadcaster_->sendTransform(tf_horbody);
 
     tf_broadcaster_->sendTransform(get_home_point_transform(current_state_.gps_fused.header.stamp));
