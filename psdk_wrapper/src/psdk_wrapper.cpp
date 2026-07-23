@@ -81,7 +81,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("file_path", rclcpp::ParameterValue("/logs/media/"));
   declare_parameter("sim", rclcpp::ParameterValue(false));
   declare_parameter("location", "granso");
-  declare_parameter("default_altitude_value", "-1000.0");
+  declare_parameter("default_altitude_value", -1000.0);
 
 
   declare_parameter("data_frequency.imu", 1);
