@@ -35,6 +35,8 @@ T_DjiWidgetHandlerListItem WidgetModule::widget_handlers_[] = {
     {3, DJI_WIDGET_TYPE_SCALE, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr},
     {4, DJI_WIDGET_TYPE_SWITCH, WidgetModule::widget_state_set,
+     WidgetModule::widget_state_get, nullptr},
+    {5, DJI_WIDGET_TYPE_LIST, WidgetModule::widget_state_set,
      WidgetModule::widget_state_get, nullptr}};
 
 /*****************************************************************************/
@@ -355,6 +357,15 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
 
       break;
     }
+    case 5:
+    {
+      if (!self->execute_flight_control_command(value))
+      {
+        RCLCPP_INFO(self->get_logger(), "Unknown widget value: %d", value);
+
+      }
+      break;
+    }
 
     default:
 
@@ -362,6 +373,36 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       break;
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
+}
+
+bool WidgetModule::execute_flight_control_command(int32_t value)
+{
+  last_flight_control_command = value;
+  switch (value)
+  {
+    case 0:
+      std::cout << "Widget Takeoff" << std::endl;
+      break;
+    case 1:
+      std::cout << "Widget land" << std::endl;
+      break;
+    case 2:
+      std::cout << "Widget cancel land" << std::endl;
+      break;
+    case 3:
+      std::cout << "Widget go home" << std::endl;
+      break;
+    case 4:
+      std::cout << "Widget cancel go home" << std::endl;
+      break;
+
+    default:
+      last_flight_control_command = -1;
+      return false;
+      break;
+  }
+  return true;
+
 }
 
 T_DjiReturnCode
