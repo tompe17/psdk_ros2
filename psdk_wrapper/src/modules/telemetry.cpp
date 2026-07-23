@@ -1876,9 +1876,9 @@ TelemetryModule::handle_home_point_update(const double &longitude,
   // 2. it has changed - this can be true if it is really updated or starting
   // the node for the first time
 
-  RCLCPP_INFO(get_logger(), "HP valid: %d changed:%d",
-    current_state_.home_point_status.data,
-    home_point_changed(longitude, latitude));
+  // RCLCPP_INFO(get_logger(), "HP valid: %d changed:%d",
+    // current_state_.home_point_status.data,
+    // home_point_changed(longitude, latitude));
 
   if (current_state_.home_point_status.data &&
       home_point_changed(longitude, latitude))
@@ -1888,7 +1888,7 @@ TelemetryModule::handle_home_point_update(const double &longitude,
     // DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
 
     // check if there's anything else in recent history other than in the air
-    // this would mean that a takeoff was performed
+    // this would mean that a takeoff/landing was performed
     if (!current_state_.flight_status_history.on_the_ground_recently())
     {
       // load from file
@@ -1905,7 +1905,7 @@ TelemetryModule::handle_home_point_update(const double &longitude,
       }
       else
       {
-        RCLCPP_WARN(get_logger(), "No valid cached home altitude found.");
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "In the air and no valid cached home altitude found.");
         return false;
       }
     }
