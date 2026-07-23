@@ -54,7 +54,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 
  private:
   static constexpr uint32_t CAMERA_LENS_WIDGET_INDEX = 0;
-  uint32_t last_flight_control_command = -1;
+  uint32_t last_flight_control_command_ = 0;
 
  private:
   std::shared_ptr<CameraModule> camera_;

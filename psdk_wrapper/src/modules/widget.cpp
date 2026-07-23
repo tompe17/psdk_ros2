@@ -397,7 +397,7 @@ bool WidgetModule::execute_flight_control_command(int32_t value)
       break;
 
     default:
-      last_flight_control_command = -1;
+      last_flight_control_command_ = 0;
       return false;
       break;
   }
@@ -442,6 +442,11 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     {
       *value = global_gimbal_ptr_->gimbal_mode_is_follow();
 
+      break;
+    }
+    case 5:
+    {
+      *value = self->last_flight_control_command_;
       break;
     }
 
