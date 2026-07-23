@@ -3013,8 +3013,14 @@ TelemetryModule::set_local_position_ref_cb(
 void
 TelemetryModule::publish_static_home_point_transform()
 {
+  tf_static_broadcaster_->sendTransform(get_home_point_transform(this->get_clock()->now()));
+}
+
+geometry_msgs::msg::TransformStamped
+TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
+{
   geometry_msgs::msg::TransformStamped tf_home_point;
-  tf_home_point.header.stamp = this->get_clock()->now();
+  tf_home_point.header.stamp = stamp;
   tf_home_point.header.frame_id = params_.map_frame;
   tf_home_point.child_frame_id = "home_point";
 
@@ -3030,8 +3036,9 @@ TelemetryModule::publish_static_home_point_transform()
   tf_home_point.transform.rotation.y = psdk_utils::Q_NO_ROTATION.getY();
   tf_home_point.transform.rotation.z = psdk_utils::Q_NO_ROTATION.getZ();
   tf_home_point.transform.rotation.w = psdk_utils::Q_NO_ROTATION.getW();
-  tf_static_broadcaster_->sendTransform(tf_home_point);
+  return tf_home_point;
 }
+
 
 /*@todo Generalize the functions related to TFs for different copter, gimbal
  * and payload types and move it to a separate dedicated file
@@ -3235,7 +3242,7 @@ TelemetryModule::print_angles(const std::string &text,
 }
 
 void
-TelemetryModule::publish_dynamic_body_transforms() const
+TelemetryModule::publish_dynamic_body_transforms()
 {
   if (aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
       aircraft_base_.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)
@@ -3271,6 +3278,9 @@ TelemetryModule::publish_dynamic_body_transforms() const
     tf_q_flat_yaw.setRPY(0.0, 0.0, tf2::getYaw(current_state_.attitude));
     t.transform.rotation = tf2::toMsg(tf_q_flat_yaw);
     tf_broadcaster_->sendTransform(t);
+
+    tf_broadcaster_->sendTransform(get_home_point_transform(t.header.stamp));
+
 
     // geopose
     geographic_msgs::msg::GeoPose gp;

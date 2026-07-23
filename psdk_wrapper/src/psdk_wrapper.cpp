@@ -67,7 +67,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("horbody_frame",
                     rclcpp::ParameterValue("psdk_horbody_link"));
   declare_parameter("map_frame", rclcpp::ParameterValue("psdk_map_enu"));
-  declare_parameter("home_point_frame", rclcpp::ParameterValue("psdk_home_point_enu"));
+  declare_parameter("home_point_frame", rclcpp::ParameterValue("psdk_home_point_link"));
   declare_parameter("gimbal_base_frame",
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
   declare_parameter("gimbal_frame", rclcpp::ParameterValue("psdk_gimbal_link"));
