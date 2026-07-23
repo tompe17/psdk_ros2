@@ -381,18 +381,21 @@ bool WidgetModule::execute_flight_control_command(int32_t value)
   switch (value)
   {
     case 0:
-      std::cout << "Widget Takeoff" << std::endl;
+      std::cout << "Widget FC none" << std::endl;
       break;
     case 1:
-      std::cout << "Widget land" << std::endl;
+      std::cout << "Widget Takeoff" << std::endl;
       break;
     case 2:
-      std::cout << "Widget cancel land" << std::endl;
+      std::cout << "Widget land" << std::endl;
       break;
     case 3:
-      std::cout << "Widget go home" << std::endl;
+      std::cout << "Widget cancel land" << std::endl;
       break;
     case 4:
+      std::cout << "Widget go home" << std::endl;
+      break;
+    case 5:
       std::cout << "Widget cancel go home" << std::endl;
       break;
 
