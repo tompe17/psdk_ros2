@@ -125,14 +125,12 @@ class FlightStatusHistory
 class CachedHomeAltitude
 {
  public:
-  bool save(const std::string& filename,
-            const sensor_msgs::msg::NavSatFix& fix) const;
+  static bool save(const std::string& filename, const double& longitude,
+            const double& latitude, const double& altitude);
 
-  bool loadAltitude(const std::string &filename,
-                                 const double longitude_prev,
-                                 const double latitude_prev,
-                                 double max_distance_m, double max_age_sec,
-                                 double &altitude) const;
+  static bool loadAltitude(const std::string& filename, double longitude_prev,
+                    double latitude_prev, double max_distance_m,
+                    double max_age_sec, double& altitude);
 
  private:
   static double distanceMeters(double lat1, double lon1, double lat2,
@@ -566,7 +564,6 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   };
 
   CopterState current_state_;
-  CachedHomeAltitude home_altitude_cache;
   TelemetryParams params_;
   void save_body_gimbal_offset();
   bool wait_for_first_gimbal_sample(std::chrono::milliseconds timeout) const;
@@ -577,9 +574,10 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
   double body_yaw_raw_at_reset_rad_;
   double offset_due_to_yaw;
   double get_body_yaw_raw_rad();
-  bool home_point_changed(const double &longitude, const double &latitude) const;
-  bool handle_home_point_update(const double &longitude, const double &latitude,
-                                             double &altitude) const;
+  bool home_point_changed(const double& longitude,
+                          const double& latitude) const;
+  bool handle_home_point_update(const double& longitude, const double& latitude,
+                                double& altitude) const;
 
  private:
   /*C++ type DJI topic subscriber callbacks*/

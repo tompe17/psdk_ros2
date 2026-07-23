@@ -23,16 +23,16 @@ namespace psdk_ros2
 {
 
 bool
-CachedHomeAltitude::save(const std::string &filename,
-                         const sensor_msgs::msg::NavSatFix &fix) const
+CachedHomeAltitude::save(const std::string &filename, const double &longitude,
+                         const double &latitude, const double &altitude)
 {
   std::ofstream out(filename);
   if (!out) return false;
 
   out << std::time(nullptr) << '\n';
-  out << std::setprecision(16) << fix.latitude << '\n';
-  out << std::setprecision(16) << fix.longitude << '\n';
-  out << std::setprecision(16) << fix.altitude << '\n';
+  out << std::setprecision(16) << latitude << '\n';
+  out << std::setprecision(16) << longitude << '\n';
+  out << std::setprecision(16) << altitude << '\n';
 
   return true;
 }
@@ -42,7 +42,7 @@ CachedHomeAltitude::loadAltitude(const std::string &filename,
                                  const double longitude_prev,
                                  const double latitude_prev,
                                  double max_distance_m, double max_age_sec,
-                                 double &altitude) const
+                                 double &altitude)
 {
   std::ifstream in(filename);
   if (!in) return false;
@@ -1887,7 +1887,7 @@ TelemetryModule::handle_home_point_update(const double &longitude,
     if (!current_state_.flight_status_history.on_the_ground_recently())
     {
       // load from file
-      if (home_altitude_cache.loadAltitude(
+      if (CachedHomeAltitude::loadAltitude(
               "/tmp/home_altitude.txt", longitude, latitude,
               1.0,      // Maximum distance from cached point (m)
               60 * 60,  // Maximum age (seconds)
@@ -1909,7 +1909,6 @@ TelemetryModule::handle_home_point_update(const double &longitude,
       // WARNING: altitude is taken from raw gps
       altitude = current_state_.gps_position.altitude;
       RCLCPP_INFO(get_logger(), "Using raw GPS altitude: %.2f m", altitude);
-      return true;
       // lat and lon could be from fused
       // current_state_.home_point_gps_raw_altitude =
       // current_state_.gps_position.altitude;
@@ -1920,15 +1919,16 @@ TelemetryModule::handle_home_point_update(const double &longitude,
 
       // home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
 
-      // if (!home_altitude_cache.save("/tmp/home_altitude.txt",
-      // home_point_msg))
-      // {
-      //   RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
-      // }
-      // else
-      // {
-      //   RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
-      // }
+      if (!CachedHomeAltitude::save("/tmp/home_altitude.txt", longitude, latitude,altitude))
+      {
+        RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
+      }
+      else
+      {
+        RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
+      }
+      return true;
+
     }
   }
   return false;
@@ -1960,19 +1960,6 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
     current_state_.home_point_gps_raw_altitude = altitude;
   }
   home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
-
-  // if home point changed and it is valid (gps or file), save it
-  if (valid)
-  {
-    if (!home_altitude_cache.save("/tmp/home_altitude.txt", home_point_msg))
-    {
-      RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
-    }
-    else
-    {
-      RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
-    }
-  }
 
   home_point_pub_->publish(home_point_msg);
 
