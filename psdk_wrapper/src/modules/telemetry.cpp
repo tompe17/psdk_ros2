@@ -1919,7 +1919,8 @@ TelemetryModule::handle_home_point_update(const double &longitude,
 
       // home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
 
-      if (!CachedHomeAltitude::save("/tmp/home_altitude.txt", longitude, latitude,altitude))
+      if (!CachedHomeAltitude::save("/tmp/home_altitude.txt", longitude,
+                                    latitude, altitude))
       {
         RCLCPP_ERROR(get_logger(), "Failed to save cached home altitude.");
       }
@@ -1928,7 +1929,6 @@ TelemetryModule::handle_home_point_update(const double &longitude,
         RCLCPP_INFO(get_logger(), "Cached home altitude saved.");
       }
       return true;
-
     }
   }
   return false;
@@ -1957,6 +1957,8 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
 
   if (valid)
   {
+    RCLCPP_INFO(get_logger(), "----> Setting home point alt %f", altitude);
+
     current_state_.home_point_gps_raw_altitude = altitude;
   }
   home_point_msg.altitude = current_state_.home_point_gps_raw_altitude;
