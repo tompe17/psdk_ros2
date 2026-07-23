@@ -27,6 +27,7 @@ std::shared_ptr<psdk_ros2::PerceptionModule> psdk_ros2::global_perception_ptr_;
 std::shared_ptr<psdk_ros2::WidgetModule> psdk_ros2::global_widget_ptr_;
 std::shared_ptr<psdk_ros2::CoordModule> psdk_ros2::global_coord_ptr_;
 std::shared_ptr<psdk_ros2::GimbalModule> psdk_ros2::global_gimbal_ptr_;
+std::shared_ptr<psdk_ros2::FlightControlModule> psdk_ros2::global_fc_ptr_;
 
 using namespace std::placeholders;  // NOLINT
 

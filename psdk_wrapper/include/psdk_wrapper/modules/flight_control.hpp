@@ -447,6 +447,7 @@ class FlightControlModule : public rclcpp_lifecycle::LifecycleNode
 
   bool is_module_initialized_{false};
 };
+extern std::shared_ptr<FlightControlModule> global_fc_ptr_;
 
 }  // namespace psdk_ros2
 

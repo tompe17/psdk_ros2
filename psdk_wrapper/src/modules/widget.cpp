@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "psdk_wrapper/modules/camera.hpp"
+#include "psdk_wrapper/modules/flight_control.hpp"
 #include "psdk_wrapper/modules/gimbal.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
 #include "psdk_wrapper/modules/telemetry.hpp"
@@ -362,20 +363,19 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
       if (!self->execute_flight_control_command(value))
       {
         RCLCPP_INFO(self->get_logger(), "Unknown widget value: %d", value);
-
       }
       break;
     }
 
     default:
-
       RCLCPP_INFO(self->get_logger(), "Unknown widget index: %d", index);
       break;
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
-bool WidgetModule::execute_flight_control_command(int32_t value)
+bool
+WidgetModule::execute_flight_control_command(int32_t value)
 {
   last_flight_control_command_ = value;
   switch (value)
@@ -385,19 +385,33 @@ bool WidgetModule::execute_flight_control_command(int32_t value)
       break;
     case 1:
       std::cout << "Widget Takeoff" << std::endl;
+      if (!run_flight_control_command(&FlightControlModule::start_takeoff))
+        last_flight_control_command_ = 0;
       break;
     case 2:
       std::cout << "Widget land" << std::endl;
+      if (!run_flight_control_command(&FlightControlModule::start_landing))
+        last_flight_control_command_ = 0;
       break;
     case 3:
       std::cout << "Widget cancel land" << std::endl;
+      if (!run_flight_control_command(&FlightControlModule::cancel_landing))
+        last_flight_control_command_ = 0;
       break;
     case 4:
+    {
       std::cout << "Widget go home" << std::endl;
+      if (!run_flight_control_command(&FlightControlModule::start_go_home))
+        last_flight_control_command_ = 0;
       break;
+    }
     case 5:
+    {
       std::cout << "Widget cancel go home" << std::endl;
+      if (!run_flight_control_command(&FlightControlModule::cancel_go_home))
+        last_flight_control_command_ = 0;
       break;
+    }
 
     default:
       last_flight_control_command_ = 0;
@@ -405,7 +419,20 @@ bool WidgetModule::execute_flight_control_command(int32_t value)
       break;
   }
   return true;
+}
 
+bool
+WidgetModule::run_flight_control_command(bool (FlightControlModule::*command)())
+{
+  std::promise<bool> promise;
+  auto future = promise.get_future();
+
+  std::thread([fc = psdk_ros2::global_fc_ptr_, command,
+               p = std::move(promise)]() mutable
+              { p.set_value((fc.get()->*command)()); })
+      .detach();
+
+  return future.get();
 }
 
 T_DjiReturnCode

@@ -25,7 +25,9 @@
 
 namespace psdk_ros2
 {
+class FlightControlModule;
 class CameraModule;
+
 class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
@@ -88,8 +90,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   void handleThermalPressed();
 
   bool execute_flight_control_command(int32_t value);
-
-
+  static bool run_flight_control_command(bool (FlightControlModule::*command)());
   void publishCommand(const std::string &command);
 
   /*
