@@ -403,6 +403,7 @@ FlightControlModule::update_flight_control_mode(const uint8_t &flight_status)
       if (flight_status == DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
       {
         fc_mode = FLIGHT_CONTROL_MODE_NONE;
+        fc_command = FLIGHT_CONTROL_CMD_NONE;
       }
       break;
 
