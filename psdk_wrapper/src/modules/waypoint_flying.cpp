@@ -259,9 +259,7 @@ WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
 T_DjiReturnCode
 mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
 {
-  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
-  // eventData.curWaypointIndex, eventData.state, eventData.velocity);
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_event_callback");
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_event_callback");
 
   psdk_interfaces::msg::WaypointV2MissionEventPush msg;
   msg.event = eventData.event;
@@ -272,11 +270,8 @@ mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
   msg.waypoint_index = 0;
   msg.current_mission_exec_num = 0;
   msg.finished_all_exec_num = 0;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
-  std::cout << "global_wp_ptr_: " << global_wp_ptr_<<std::endl;
 
   global_wp_ptr_->event_push_publisher->publish(msg);
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
 
   return 0;
 }
@@ -284,9 +279,7 @@ mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
 T_DjiReturnCode
 mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
 {
-  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback: %d %d
-  // %d", stateData.curWaypointIndex, stateData.state, stateData.velocity);
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback");
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback");
 
   psdk_interfaces::msg::WaypointV2MissionStatePush msg;
   msg.common_data_version = 0;
@@ -294,12 +287,8 @@ mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
   msg.cur_waypoint_index = stateData.curWaypointIndex;
   msg.state = stateData.state;  // 0x1 mission prepared; 0x2 enter mission
   msg.velocity = stateData.velocity;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
-  std::cout << "global_wp_ptr_: " << global_wp_ptr_<<std::endl;
 
   global_wp_ptr_->state_push_publisher->publish(msg);
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
-
 
   return 0;
 }
@@ -455,12 +444,6 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
   // std::cerr << "uploadres: " << uploadres << std::endl;
 
   print_return_code("Upload mission result: ", uploadres);
-
-  // RCLCPP_INFO(
-  // get_logger(),
-  // "UploadMission returned %ld (%s)",
-  // uploadres,
-  // DjiCore_GetErrorCodeStr(uploadres));
 
   res->result = true;
 
