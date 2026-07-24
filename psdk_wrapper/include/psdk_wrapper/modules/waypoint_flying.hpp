@@ -37,8 +37,10 @@
 
 namespace psdk_ros2
 {
-T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
-T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData);
+// T_DjiReturnCode mission_state_callback(T_DjiWaypointV2MissionStatePush stateData);
+// T_DjiReturnCode mission_event_calback(T_DjiWaypointV2MissionEventPush eventData);
+T_DjiReturnCode mission_state_callback(T_DjiWaypointV2MissionStatePush stateData);
+T_DjiReturnCode mission_event_callback(T_DjiWaypointV2MissionEventPush eventData);
 
 class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
@@ -49,8 +51,10 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
  public:
   static void print_return_code(const std::string text, const T_DjiReturnCode code);
 
-  T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
-  T_DjiReturnCode event_callback(T_DjiWaypointV2MissionEventPush eventData);
+
+
+  // T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
+  // T_DjiReturnCode event_callback(T_DjiWaypointV2MissionEventPush eventData);
 
   using Trigger = std_srvs::srv::Trigger;
   //  using SetHomeFromGPS = psdk_interfaces::srv::SetHomeFromGPS;

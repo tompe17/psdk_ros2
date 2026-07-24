@@ -239,7 +239,7 @@ WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
               "subscribe_waypoint_v2_event_callback");
 
   T_DjiReturnCode ret =
-      DjiWaypointV2_RegisterMissionEventCallback(&event_callback2);
+      DjiWaypointV2_RegisterMissionEventCallback(&mission_event_callback);
 
   if (ret > 0)
   {
@@ -249,16 +249,16 @@ WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
   res->result = true;
 }
 
-T_DjiReturnCode
-WaypointFlyingModule::state_callback(T_DjiWaypointV2MissionStatePush stateData)
-{
-  return 0;
-}
+// T_DjiReturnCode
+// WaypointFlyingModule::state_callback(T_DjiWaypointV2MissionStatePush stateData)
+// {
+  // return 0;
+// }
 
 T_DjiReturnCode
-state_callback2(T_DjiWaypointV2MissionStatePush stateData)
+mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
 {
-  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback: %d %d %d",
   //  stateData.curWaypointIndex, stateData.state, stateData.velocity);
 
   psdk_interfaces::msg::WaypointV2MissionStatePush msg;
@@ -274,7 +274,7 @@ state_callback2(T_DjiWaypointV2MissionStatePush stateData)
 }
 
 T_DjiReturnCode
-event_callback2(T_DjiWaypointV2MissionEventPush eventData)
+mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
 {
   // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
   //  stateData.curWaypointIndex, stateData.state, stateData.velocity);
@@ -308,14 +308,8 @@ WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
   wfm_pointer = this;
 
   res->result = true;
-  /// T_DjiReturnCode regres =
-  /// DjiWaypointV2_RegisterMissionStateCallback(std::bind(&WaypointFlyingModule::state_callback,
-  /// this, std::placeholders::_1));
-  // T_DjiReturnCode regres =
-  // DjiWaypointV2_RegisterMissionStateCallback([&this](T_DjiWaypointV2MissionStatePush
-  // stateData){this->state_callback(stateData)});
   T_DjiReturnCode regres =
-      DjiWaypointV2_RegisterMissionStateCallback(&state_callback2);
+      DjiWaypointV2_RegisterMissionStateCallback(&mission_state_callback);
   if (regres > 0)
   {
     res->result = false;
