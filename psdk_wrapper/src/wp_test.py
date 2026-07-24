@@ -92,7 +92,8 @@ class WaypointTester(Node):
 
     ############################################################
 
-    def make_waypoint(self, lat_deg, lon_deg, rel_height):
+    def make_waypoint(self, lat_deg, lon_deg, rel_height, wp_type=WaypointV2.
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP, dumping_m=4):
 
         wp = WaypointV2()
 
@@ -107,9 +108,12 @@ class WaypointTester(Node):
         wp.relative_height = rel_height
 
         wp.waypoint_type = (
-            WaypointV2.
-            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
+            wp_type
         )
+        # wp.waypoint_type = (
+        #     WaypointV2.
+        #     DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
+        # )
 
         wp.heading_mode = (
             WaypointV2.
@@ -134,13 +138,32 @@ class WaypointTester(Node):
         wp.max_flight_speed = 10.0
         wp.auto_flight_speed = 7.0
 
-        wp.damping_distance = 40
+        wp.damping_distance = int(dumping_m*100.0)
 
         wp.config.use_local_cruise_vel = 0
         wp.config.use_local_max_vel = 0
 
         return wp
-
+#   // comments:
+    #   // * damping is in cm - so if given in meters, has to be divided by 100.
+    #   //   we can do it 0..1 - and scale based on segment length/2
+    #   //   this might still fail for very short distances
+    #   // * first waypoint cannot be a coordinated turn - will refuse to fly
+    #   // * heading is always along the segment for the first WP
+    #   // * damping seems not to do anything for straight line and curve
+    #   // * WP types:
+    #   //   -coordinated turn: can turn before a WP if damping is high, fly pass
+    #   //    the waypoint if damping is small
+    #   //   -curve: always crosses the waypoint -
+    #   //      damping does nothing
+    #   //   - DJIWaypointV2FlightPathModeGoToPointAlongACurveAndStop
+    #   //    if it overshoots, it will correct itself by moving closer - looks weird
+    #   // * if second (and other) WP are curve, and the first is a straight line -
+    #   //      the line s ignored - it will curve the first segment also
+    #   // * distance between waypoints:
+    #   //   - for straight lines, curves: 0.1m is ok (in sim)
+    #   //   - coordinated turn: 3m (because of small damping)
+    #   // * for coordinated turn, the minimum angle between segments must be: 3
     ############################################################
 
     def upload(self, mission):
@@ -282,17 +305,66 @@ def test2(node):
         node.make_waypoint(
             lat2,
             lon2,
-            5.0),
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
+            dumping_m=5),
+
         node.make_waypoint(
             lat3,
             lon3,
-            5.0),
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
+            dumping_m=5),
     ]
 
     if node.upload(mission):
-        print("sleep")
-        sleep(4)
-        print("sleep done, starting")
+        node.start()
+
+def test3(node):
+
+    print("\n==============================")
+    print("TEST 3: circle")
+    print("==============================")
+
+    lat0 = node.gps.latitude
+    lon0 = node.gps.longitude
+
+    lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, 10.0, 10.0)
+    lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
+    lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)
+
+    mission = [
+        node.make_waypoint(
+            lat1,
+            lon1,
+            5.0),
+
+        node.make_waypoint(
+            lat2,
+            lon2,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+
+        node.make_waypoint(
+            lat3,
+            lon3,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+        node.make_waypoint(
+            lat4,
+            lon4,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+
+        node.make_waypoint(
+            lat1,
+            lon1,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+    ]
+
+    if node.upload(mission):
         node.start()
 
 
@@ -320,6 +392,9 @@ def main():
 
     elif test == 2:
         test2(node)
+
+    elif test == 3:
+        test3(node)
 
     else:
         print("Unknown test")

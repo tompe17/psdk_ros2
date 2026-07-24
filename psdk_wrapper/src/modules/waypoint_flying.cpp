@@ -445,8 +445,6 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
   // "upload_waypoint_v2_mission_callback");
 
   T_DjiReturnCode ret = DjiWaypointV2_UploadMission(ms);
-  // std::cerr << "uploadres: " << uploadres << std::endl;
-
   print_return_code("Upload mission result: ", ret);
 
   res->result = true;
