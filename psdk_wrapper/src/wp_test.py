@@ -65,45 +65,49 @@ class WaypointTester(Node):
             rclpy.spin_once(self, timeout_sec=0.1)
 
         self.get_logger().info(
-            f"GPS: {self.gps.latitude:.8f}, {self.gps.longitude:.8f}"
+            f"GPS: {self.gps.latitude:.8f}, "
+            f"{self.gps.longitude:.8f}"
         )
 
     def call(self, client, req, name):
-        print(f"\n=== {name} ===")
-
         while not client.wait_for_service(timeout_sec=1.0):
-            print(f"Waiting for {name} service...")
+            print(f"Waiting for {name}...")
 
         future = client.call_async(req)
 
         rclpy.spin_until_future_complete(self, future)
 
         if future.exception() is not None:
-            print(f"{name}: EXCEPTION")
+            print(f"{name}: exception")
             print(future.exception())
             return None
 
         result = future.result()
 
-        print(f"{name}:")
+        print(f"\n{name}")
         print(result)
 
         return result
 
     ############################################################
 
-    def make_waypoint(self, lat, lon, rel_height):
+    def make_waypoint(self, lat_deg, lon_deg, rel_height):
 
         wp = WaypointV2()
 
-        wp.latitude = lat
-        wp.longitude = lon
+        #
+        # IMPORTANT:
+        # Waypoint V2 expects latitude/longitude in radians.
+        #
+
+        wp.latitude = math.radians(lat_deg)
+        wp.longitude = math.radians(lon_deg)
 
         wp.relative_height = rel_height
 
         wp.waypoint_type = (
             WaypointV2.
-            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_FIRST_POINT_ALONG_A_STRAIGHT_LINE
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
         )
 
         wp.heading_mode = (
@@ -113,7 +117,7 @@ class WaypointTester(Node):
 
         wp.turn_mode = (
             WaypointV2.
-            DJI_WAYPOINT_V2_TURN_MODE_CLOCKWISE
+            DJI_WAYPOINT_V2_TURN_MODE_UNKNOWN
         )
 
         wp.heading = 0.0
@@ -122,10 +126,14 @@ class WaypointTester(Node):
         wp.position_y = 0.0
         wp.position_z = 0.0
 
-        wp.max_flight_speed = 5.0
-        wp.auto_flight_speed = 2.0
+        #
+        # Match DJI sample
+        #
 
-        wp.damping_distance = 0
+        wp.max_flight_speed = 10.0
+        wp.auto_flight_speed = 7.0
+
+        wp.damping_distance = 40
 
         wp.config.use_local_cruise_vel = 0
         wp.config.use_local_max_vel = 0
@@ -145,30 +153,41 @@ class WaypointTester(Node):
         s = req.waypoint_v2_init_settings
 
         s.mission_id = random.randint(1, 1000000)
-        s.repeat_times = 0
+
+        #
+        # Missing in previous version
+        #
+
+        s.miss_total_len = len(mission)
+
+        #
+        # Match DJI sample
+        #
+
+        s.repeat_times = 1
 
         s.finished_action = (
             s.DJI_WAYPOINT_V2_MISSION_FINISHED_NO_ACTION
         )
 
-        s.max_flight_speed = 5.0
-        s.auto_flight_speed = 2.0
+        s.max_flight_speed = 10.0
+        s.auto_flight_speed = 7.0
 
         s.exit_mission_on_signal_lost = 1
 
         s.goto_first_waypoint_mode = (
             s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
-            # s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
         )
 
         s.mission = mission
 
-        print("\nMission:")
+        print("\nMission")
+
         for i, wp in enumerate(mission):
             print(
-                f"  WP{i}: "
-                f"lat={wp.latitude:.8f} "
-                f"lon={wp.longitude:.8f} "
+                f"WP{i}: "
+                f"lat(rad)={wp.latitude:.10f} "
+                f"lon(rad)={wp.longitude:.10f} "
                 f"h={wp.relative_height:.1f}"
             )
 
@@ -207,12 +226,11 @@ class WaypointTester(Node):
             return False
 
         if result.result:
-            print("Mission started successfully")
+            print("Mission started.")
         else:
-            print("Mission start failed")
+            print("Mission start failed.")
 
         return result.result
-
 
 ############################################################
 
@@ -227,7 +245,11 @@ def test1(node):
         node.make_waypoint(
             node.gps.latitude,
             node.gps.longitude,
-            125.0)
+            5.0),
+        node.make_waypoint(
+            node.gps.latitude,
+            node.gps.longitude,
+            10.0)
     ]
 
     if node.upload(mission):
