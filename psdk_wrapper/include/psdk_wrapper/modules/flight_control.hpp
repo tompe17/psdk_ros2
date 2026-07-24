@@ -525,6 +525,7 @@ class FlightControlModule : public rclcpp_lifecycle::LifecycleNode
       get_horizontal_radar_obstacle_avoidance_srv_;
 
   bool is_module_initialized_{false};
+  rclcpp::Time joy_command_time_;
 };
 extern std::shared_ptr<FlightControlModule> global_fc_ptr_;
 

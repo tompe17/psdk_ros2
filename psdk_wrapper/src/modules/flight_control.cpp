@@ -284,6 +284,7 @@ FlightControlModule::init(
     return false;
   }
   is_module_initialized_ = true;
+  joy_command_time_ = get_clock()->now();
   return true;
 }
 
@@ -334,7 +335,7 @@ const std::string &FlightControlModule::flight_control_joystick_mode_to_string(
 
 std::string FlightControlModule::get_flight_control_mode_status_str() const
 {
-  float time_since_joy_command = 0.0;
+  float time_since_joy_command = (get_clock()->now() - joy_command_time_).seconds();
 
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(2);
@@ -1108,7 +1109,7 @@ FlightControlModule::flight_control_position_yaw_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
   fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_POSITION_YAW;
-
+  joy_command_time_ = get_clock()->now();
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_POSITION_CONTROL_MODE,
       DJI_FLIGHT_CONTROLLER_VERTICAL_POSITION_CONTROL_MODE,
@@ -1156,6 +1157,7 @@ FlightControlModule::flight_control_velocity_yawrate_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
   fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_VELOCITY_YAWRATE;
+  joy_command_time_ = get_clock()->now();
 
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE,
@@ -1195,6 +1197,7 @@ FlightControlModule::flight_control_body_velocity_yawrate_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
   fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_BODY_VELOCITY_YAWRATE;
+  joy_command_time_ = get_clock()->now();
 
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE,
@@ -1232,6 +1235,7 @@ FlightControlModule::flight_control_rollpitch_yawrate_thrust_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
   fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_ROLL_PITCH_YAWRATE_THRUST;
+  joy_command_time_ = get_clock()->now();
 
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGLE_CONTROL_MODE,
