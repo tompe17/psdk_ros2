@@ -270,6 +270,7 @@ mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
   msg.current_mission_exec_num = 0;
   msg.finished_all_exec_num = 0;
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
+  std::cout << "global_wp_ptr_: " << global_wp_ptr_<<std::endl;
 
   global_wp_ptr_->event_push_publisher->publish(msg);
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
@@ -291,6 +292,7 @@ mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
   msg.state = stateData.state;  // 0x1 mission prepared; 0x2 enter mission
   msg.velocity = stateData.velocity;
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
+  std::cout << "global_wp_ptr_: " << global_wp_ptr_<<std::endl;
 
   global_wp_ptr_->state_push_publisher->publish(msg);
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
