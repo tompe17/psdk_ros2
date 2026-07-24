@@ -194,10 +194,13 @@ WaypointFlyingModule::init()
   // wfm_pointer = this;
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
-  print_return_code("Init mission result: ", resinit);
+  print_return_code("DjiWaypointV2_Init result: ", resinit);
+  // print_return_code("Init mission result: ", resinit);
 
-  // std::cerr << "INIT***********************resinit: " << resinit <<
-  // std::endl;
+  // subscribe always
+  subscribe_waypoint_v2_mission_event();
+  subscribe_waypoint_v2_mission_state();
+
 
   if (resinit > 0)
   {
