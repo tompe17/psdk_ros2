@@ -73,6 +73,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
   std::shared_ptr<CameraModule> camera_;
 
   static FlightControlCommand lookup_flight_command(int widget_value);
+  static int lookup_widget_value(FlightControlCommand command);
 
   /*
    * DJI widget callbacks

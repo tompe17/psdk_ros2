@@ -385,6 +385,19 @@ FlightControlCommand WidgetModule::lookup_flight_command(int widget_value)
   return FLIGHT_CONTROL_CMD_NONE;
 }
 
+int WidgetModule::lookup_widget_value(FlightControlCommand command)
+{
+  for (const auto &[widget_value, flight_command] : widget_value_to_flight_commands)
+  {
+    if (flight_command == command)
+    {
+      return widget_value;
+    }
+  }
+
+  return 0;  // or -1 if you prefer an invalid widget id
+}
+
 bool
 WidgetModule::execute_flight_control_command(const int32_t value)
 {
@@ -492,8 +505,7 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     }
     case 5:
     {
-      // self->last_flight_control_command_ =
-          // self->update_last_flight_control_command();
+
 
       *value = global_fc_ptr_->fc_mode;// self->last_flight_control_command_;
 
