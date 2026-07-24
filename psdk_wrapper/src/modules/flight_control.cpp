@@ -340,8 +340,8 @@ std::string FlightControlModule::get_flight_control_mode_status_str() const
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(2);
   oss << "{"
-      << "\"flight_mode\":\"" << fc_mode << "\","
-      << "\"flight_mode_str\":\"" << flight_control_mode_to_string(fc_mode) << "\","
+      << "\"control_mode\":\"" << fc_mode << "\","
+      << "\"control_mode_str\":\"" << flight_control_mode_to_string(fc_mode) << "\","
       << "\"joy_mode\":" << fc_joystick_mode << ","
       << "\"joy_mode_str\":" << flight_control_joystick_mode_to_string(fc_joystick_mode) << ","
       << "\"time_since_joy_command\":\"" << time_since_joy_command << "\","

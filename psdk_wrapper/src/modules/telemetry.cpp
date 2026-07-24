@@ -1719,6 +1719,8 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
   flight_status_msg.flight_status = *flight_status;
   flight_status_pub_->publish(flight_status_msg);
 
+  global_fc_ptr_->update_flight_control_mode(flight_status_msg.flight_status);
+
   // maybe the flight control module should publish it itself
   std_msgs::msg::String flight_control_status_msg;
   flight_control_status_msg.data = global_fc_ptr_->get_flight_control_mode_status_str();
