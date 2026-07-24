@@ -35,7 +35,7 @@ class WaypointTester(Node):
 
         self.create_subscription(
             NavSatFix,
-            "/dji5/psdk_ros2/gps_fused",
+            "/dji5/psdk_ros2/gps_position_fused",
             self.gps_cb,
             10,
         )
@@ -226,6 +226,7 @@ def main():
 
     node = WaypointTester()
 
+    node.wait_for_gps()
 
     test = int(sys.argv[1])
 
