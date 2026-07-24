@@ -42,28 +42,6 @@ namespace psdk_ros2
   T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
   T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData);
 
-struct DjiErrorObject
-{
-  T_DjiReturnCode code;
-  const char *description;
-  const char *suggestion;
-};
-
-static const DjiErrorObject kErrors[] = {
-  DJI_ERROR_OBJECTS
-};
-
-const DjiErrorObject *findError(T_DjiReturnCode code)
-{
-  for (const auto &e : kErrors)
-  {
-    if (e.code == code)
-      return &e;
-  }
-
-  return nullptr;
-}
-
 
   class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {

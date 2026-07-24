@@ -275,6 +275,30 @@ double inline deg_to_rad(const double degrees)
   return (degrees * C_PI) / 180;
 };
 
+
+struct DjiErrorObject
+{
+  T_DjiReturnCode code;
+  const char *description;
+  const char *suggestion;
+};
+
+static const DjiErrorObject kErrors[] = {
+  DJI_ERROR_OBJECTS
+};
+
+inline const DjiErrorObject *findError(T_DjiReturnCode code)
+{
+  for (const auto &e : kErrors)
+  {
+    if (e.code == code)
+      return &e;
+  }
+
+  return nullptr;
+}
+
+
 };  // namespace psdk_utils
 }  // namespace psdk_ros2
 
