@@ -201,7 +201,6 @@ WaypointFlyingModule::init()
   subscribe_waypoint_v2_mission_event();
   subscribe_waypoint_v2_mission_state();
 
-
   if (resinit > 0)
   {
     is_module_initialized_ = false;
@@ -233,9 +232,10 @@ WaypointFlyingModule::deinit()
 void
 WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
     const std::shared_ptr<
-        psdk_interfaces::srv::SubscribeWaypointV2Event::Request> req,
-    std::shared_ptr<
-        psdk_interfaces::srv::SubscribeWaypointV2Event::Response> res) const
+        psdk_interfaces::srv::SubscribeWaypointV2Event::Request>
+        req,
+    std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Response>
+        res) const
 {
   (void)req;
 
@@ -253,12 +253,12 @@ WaypointFlyingModule::subscribe_waypoint_v2_event_callback(
   }
 }
 
-
 T_DjiReturnCode
 mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
 {
   // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "state_callback2: %d %d %d",
-  //  stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  // eventData.curWaypointIndex, eventData.state, eventData.velocity);
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_event_callback");
 
   psdk_interfaces::msg::WaypointV2MissionEventPush msg;
   msg.event = eventData.event;
@@ -269,18 +269,20 @@ mission_event_callback(T_DjiWaypointV2MissionEventPush eventData)
   msg.waypoint_index = 0;
   msg.current_mission_exec_num = 0;
   msg.finished_all_exec_num = 0;
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
 
   global_wp_ptr_->event_push_publisher->publish(msg);
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
 
   return 0;
 }
 
-
 T_DjiReturnCode
 mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
 {
-  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback: %d %d %d",
-  //  stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback: %d %d
+  // %d", stateData.curWaypointIndex, stateData.state, stateData.velocity);
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "mission_state_callback");
 
   psdk_interfaces::msg::WaypointV2MissionStatePush msg;
   msg.common_data_version = 0;
@@ -288,8 +290,11 @@ mission_state_callback(T_DjiWaypointV2MissionStatePush stateData)
   msg.cur_waypoint_index = stateData.curWaypointIndex;
   msg.state = stateData.state;  // 0x1 mission prepared; 0x2 enter mission
   msg.velocity = stateData.velocity;
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub1");
 
   global_wp_ptr_->state_push_publisher->publish(msg);
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "pub2");
+
 
   return 0;
 }
@@ -298,11 +303,9 @@ bool
 WaypointFlyingModule::subscribe_waypoint_v2_mission_state()
 {
   T_DjiReturnCode ret =
-      DjiWaypointV2_RegisterMissionStateCallback(
-          &mission_state_callback);
+      DjiWaypointV2_RegisterMissionStateCallback(&mission_state_callback);
 
   print_return_code("Subscribe mission state result: ", ret);
-
 
   return ret == DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -311,8 +314,7 @@ bool
 WaypointFlyingModule::subscribe_waypoint_v2_mission_event()
 {
   T_DjiReturnCode ret =
-      DjiWaypointV2_RegisterMissionEventCallback(
-          &mission_event_callback);
+      DjiWaypointV2_RegisterMissionEventCallback(&mission_event_callback);
 
   print_return_code("Subscribe mission event result: ", ret);
 
@@ -322,9 +324,10 @@ WaypointFlyingModule::subscribe_waypoint_v2_mission_event()
 void
 WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
     const std::shared_ptr<
-        psdk_interfaces::srv::SubscribeWaypointV2State::Request> req,
-    std::shared_ptr<
-        psdk_interfaces::srv::SubscribeWaypointV2State::Response> res)
+        psdk_interfaces::srv::SubscribeWaypointV2State::Request>
+        req,
+    std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response>
+        res)
 {
   (void)req;
 
@@ -332,15 +335,13 @@ WaypointFlyingModule::subscribe_waypoint_v2_state_callback(
 
   if (res->result)
   {
-    RCLCPP_INFO(
-        get_logger(),
-        "Successfully registered waypoint mission state callback");
+    RCLCPP_INFO(get_logger(),
+                "Successfully registered waypoint mission state callback");
   }
   else
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Failed to register waypoint mission state callback");
+    RCLCPP_ERROR(get_logger(),
+                 "Failed to register waypoint mission state callback");
   }
 }
 
@@ -370,11 +371,13 @@ WaypointFlyingModule::resume_waypoint_v2_mission_callback(
   res->result = true;
 }
 
-void WaypointFlyingModule::print_return_code(const std::string text, const T_DjiReturnCode code)
+void
+WaypointFlyingModule::print_return_code(const std::string text,
+                                        const T_DjiReturnCode code)
 {
   if (const auto *err = psdk_utils::findError(code))
   {
-    std::cerr <<  text << err->description;
+    std::cerr << text << err->description;
 
     if (err->suggestion) std::cerr << " (" << err->suggestion << ")";
 
@@ -382,8 +385,7 @@ void WaypointFlyingModule::print_return_code(const std::string text, const T_Dji
   }
   else
   {
-    std::cerr << text << " 0x" << std::hex << code << std::dec
-              << std::endl;
+    std::cerr << text << " 0x" << std::hex << code << std::dec << std::endl;
   }
 }
 
