@@ -128,7 +128,7 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
           psdk_interfaces::srv::StartWaypointV2Mission::Request>
           req,
       std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Response>
-          res);
+          res) const;
 
   void stop_waypoint_v2_mission_callback(
       const std::shared_ptr<
@@ -149,7 +149,7 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
           psdk_interfaces::srv::UploadWaypointV2Mission::Request>
           req,
       std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response>
-          res);
+          res) const;
 
   void generate_waypoint_v2_action_callback(
       const std::shared_ptr<

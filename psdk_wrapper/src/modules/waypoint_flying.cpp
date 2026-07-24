@@ -391,16 +391,17 @@ WaypointFlyingModule::start_waypoint_v2_mission_callback(
     const std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Request>
         req,
     std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Response> res)
+    const
 {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
-              "start_waypoint_v2_mission_callback");
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
+  // "start_waypoint_v2_mission_callback");
 
   res->result = true;
-  T_DjiReturnCode startres = DjiWaypointV2_Start();
+  T_DjiReturnCode ret = DjiWaypointV2_Start();
 
-  print_return_code("Start mission result: ", startres);
+  print_return_code("Start mission result: ", ret);
 
-  if (startres > 0)
+  if (ret > 0)
   {
     res->result = false;
   }
@@ -438,19 +439,19 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
         psdk_interfaces::srv::UploadWaypointV2Mission::Request>
         req,
     std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response>
-        res)
+        res) const
 {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
-              "upload_waypoint_v2_mission_callback");
+  // RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
+  // "upload_waypoint_v2_mission_callback");
 
-  T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
+  T_DjiReturnCode ret = DjiWaypointV2_UploadMission(ms);
   // std::cerr << "uploadres: " << uploadres << std::endl;
 
-  print_return_code("Upload mission result: ", uploadres);
+  print_return_code("Upload mission result: ", ret);
 
   res->result = true;
 
-  if (uploadres > 0)
+  if (ret > 0)
   {
     res->result = false;
   }
