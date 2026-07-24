@@ -20,6 +20,8 @@
 
 #include "psdk_wrapper/modules/flight_control.hpp"
 
+#include <std_msgs/msg/detail/string__struct.hpp>
+
 namespace psdk_ros2
 {
 
@@ -188,6 +190,7 @@ FlightControlModule::on_configure(const rclcpp_lifecycle::State &state)
           std::bind(
               &FlightControlModule::get_horizontal_radar_obstacle_avoidance_cb,
               this, std::placeholders::_1, std::placeholders::_2));
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -301,6 +304,126 @@ FlightControlModule::deinit()
   return true;
 }
 
+const std::string &FlightControlModule::flight_control_mode_to_string(const FlightControlMode mode)
+{
+  static const std::string unknown = "Unknown";
+
+  auto it = flight_control_mode_str.find(mode);
+  if (it != flight_control_mode_str.end())
+  {
+    return it->second;
+  }
+
+  return unknown;
+}
+
+const std::string &FlightControlModule::flight_control_joystick_mode_to_string(
+    const FlightControlJoystickMode mode)
+{
+  static const std::string unknown = "Unknown";
+
+  auto it = flight_control_joystick_mode_str.find(mode);
+  if (it != flight_control_joystick_mode_str.end())
+  {
+    return it->second;
+  }
+
+  return unknown;
+}
+
+
+std::string FlightControlModule::get_flight_control_mode_status_str() const
+{
+  float time_since_joy_command = 0.0;
+
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(2);
+  oss << "{"
+      << "\"flight_mode\":\"" << fc_mode << "\","
+      << "\"flight_mode_str\":\"" << flight_control_mode_to_string(fc_mode) << "\","
+      << "\"joy_mode\":" << fc_joystick_mode << ","
+      << "\"joy_mode_str\":" << flight_control_joystick_mode_to_string(fc_joystick_mode) << ","
+      << "\"time_since_joy_command\":\"" << time_since_joy_command << "\","
+      << "}";
+
+  return oss.str();
+}
+
+bool
+FlightControlModule::execute_flight_command(FlightControlCommand command)
+{
+  switch (command)
+  {
+    case FLIGHT_CONTROL_CMD_NONE:
+      return true;
+
+    case FLIGHT_CONTROL_CMD_TAKEOFF:
+      return start_takeoff();
+
+    case FLIGHT_CONTROL_CMD_LAND:
+      return start_landing();
+
+    case FLIGHT_CONTROL_CMD_CONFIRM_LAND:
+      return start_confirm_landing();
+
+    case FLIGHT_CONTROL_CMD_FORCE_LAND:
+      return start_force_landing();
+
+    case FLIGHT_CONTROL_CMD_CANCEL_LAND:
+      return cancel_landing();
+
+    case FLIGHT_CONTROL_CMD_GO_HOME:
+      return start_go_home();
+
+    case FLIGHT_CONTROL_CMD_CANCEL_GO_HOME:
+      return cancel_go_home();
+
+    case FLIGHT_CONTROL_CMD_OBTAIN_JOYSTICK:
+      return obtain_ctrl_authority();
+
+    case FLIGHT_CONTROL_CMD_RELEASE_JOYSTICK:
+      return release_ctrl_authority();
+
+    default:
+      RCLCPP_ERROR(get_logger(), "Unknown flight control command %d",
+                   static_cast<int>(command));
+      return false;
+  }
+}
+
+void
+FlightControlModule::update_flight_control_mode(const uint8_t &flight_status)
+{
+  auto ret = fc_mode;
+
+  switch (fc_command)
+  {
+    case FLIGHT_CONTROL_CMD_TAKEOFF:  // takeoff
+      if (flight_status == DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
+      {
+        fc_mode = FLIGHT_CONTROL_MODE_NONE;
+      }
+      break;
+
+    case FLIGHT_CONTROL_CMD_CANCEL_LAND:
+    case FLIGHT_CONTROL_CMD_CANCEL_GO_HOME:
+      fc_mode = FLIGHT_CONTROL_MODE_NONE;
+      fc_command = FLIGHT_CONTROL_CMD_NONE;
+
+    case FLIGHT_CONTROL_CMD_LAND:
+    case FLIGHT_CONTROL_CMD_FORCE_LAND:
+    case FLIGHT_CONTROL_CMD_CONFIRM_LAND:
+    case FLIGHT_CONTROL_CMD_GO_HOME:
+      if (flight_status == DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_STOPED)
+      {
+        fc_mode = FLIGHT_CONTROL_MODE_NONE;
+        fc_command = FLIGHT_CONTROL_CMD_NONE;
+      }
+      break;
+    default:;
+  }
+}
+
 void
 FlightControlModule::set_home_from_gps_cb(
     const std::shared_ptr<SetHomeFromGPS::Request> request,
@@ -390,23 +513,24 @@ FlightControlModule::get_go_home_altitude_cb(
   }
   response->success = true;
 }
-bool FlightControlModule::start_go_home()
+bool
+FlightControlModule::start_go_home()
 {
   auto result = DjiFlightController_StartGoHome();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Could not start go to home action. Error code: %ld",
-        result);
+    RCLCPP_ERROR(get_logger(),
+                 "Could not start go to home action. Error code: %ld", result);
     return false;
   }
-
+  fc_mode = FLIGHT_CONTROL_MODE_GO_HOME;
+  fc_command = FLIGHT_CONTROL_CMD_GO_HOME;
   RCLCPP_INFO(get_logger(), "Go Home action started");
   return true;
 }
 
-void FlightControlModule::start_go_home_cb(
+void
+FlightControlModule::start_go_home_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
@@ -414,28 +538,48 @@ void FlightControlModule::start_go_home_cb(
   response->success = start_go_home();
 }
 
-bool FlightControlModule::cancel_go_home()
+bool
+FlightControlModule::cancel_go_home()
 {
   auto result = DjiFlightController_CancelGoHome();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Could not cancel go to home action. Error code: %ld",
-        result);
+    RCLCPP_ERROR(get_logger(),
+                 "Could not cancel go to home action. Error code: %ld", result);
     return false;
   }
+  fc_mode = FLIGHT_CONTROL_MODE_NONE;
+  fc_command = FLIGHT_CONTROL_CMD_CANCEL_GO_HOME;
 
   RCLCPP_INFO(get_logger(), "Go Home action has been cancelled");
   return true;
 }
 
-void FlightControlModule::cancel_go_home_cb(
+void
+FlightControlModule::cancel_go_home_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
   response->success = cancel_go_home();
+}
+
+bool
+FlightControlModule::obtain_ctrl_authority()
+{
+  fc_command = FLIGHT_CONTROL_CMD_OBTAIN_JOYSTICK;
+
+  auto result = DjiFlightController_ObtainJoystickCtrlAuthority();
+  if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(),
+                 "Could not obtain control authority. Error code is: %ld",
+                 result);
+    return false;
+  }
+  fc_mode = FLIGHT_CONTROL_MODE_JOYSTICK;
+  RCLCPP_INFO(get_logger(), "Control authority obtained");
+  return true;
 }
 
 void
@@ -444,18 +588,28 @@ FlightControlModule::obtain_ctrl_authority_cb(
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
-  auto result = DjiFlightController_ObtainJoystickCtrlAuthority();
+  response->success = obtain_ctrl_authority();
+}
+
+bool
+FlightControlModule::release_ctrl_authority()
+{
+  fc_command = FLIGHT_CONTROL_CMD_RELEASE_JOYSTICK;
+
+  auto result = DjiFlightController_ReleaseJoystickCtrlAuthority();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
     RCLCPP_ERROR(get_logger(),
-                 "Could not obtain control authority. Error code "
-                 "is: %ld",
+                 "Could not release control authority. Error code is: %ld",
                  result);
-    response->success = false;
-    return;
+    return false;
   }
-  RCLCPP_INFO(get_logger(), "Control authority obtained");
-  response->success = true;
+
+  fc_mode = FLIGHT_CONTROL_MODE_NONE;
+  fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_NONE;
+
+  RCLCPP_INFO(get_logger(), "Control authority released");
+  return true;
 }
 
 void
@@ -464,20 +618,8 @@ FlightControlModule::release_ctrl_authority_cb(
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
-  auto result = DjiFlightController_ReleaseJoystickCtrlAuthority();
-  if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
-  {
-    RCLCPP_ERROR(get_logger(),
-                 "Could not release control authority. Error code "
-                 "is: %ld",
-                 result);
-    response->success = false;
-    return;
-  }
-  RCLCPP_INFO(get_logger(), "Control authority released");
-  response->success = true;
+  response->success = release_ctrl_authority();
 }
-
 void
 FlightControlModule::set_horizontal_vo_obstacle_avoidance_cb(
     const std::shared_ptr<SetObstacleAvoidance::Request> request,
@@ -820,23 +962,24 @@ FlightControlModule::turn_off_motors_cb(
   response->success = true;
 }
 
-bool FlightControlModule::start_takeoff()
+bool
+FlightControlModule::start_takeoff()
 {
   auto result = DjiFlightController_StartTakeoff();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Could not start takeoff! Error code is: %ld",
-        result);
+    RCLCPP_ERROR(get_logger(), "Could not start takeoff! Error code is: %ld",
+                 result);
     return false;
   }
-
+  fc_mode = FLIGHT_CONTROL_MODE_TAKEOFF;
+  fc_command = FLIGHT_CONTROL_CMD_TAKEOFF;
   RCLCPP_INFO(get_logger(), "Starting Take Off");
   return true;
 }
 
-void FlightControlModule::start_takeoff_cb(
+void
+FlightControlModule::start_takeoff_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
@@ -844,23 +987,25 @@ void FlightControlModule::start_takeoff_cb(
   response->success = start_takeoff();
 }
 
-bool FlightControlModule::start_landing()
+bool
+FlightControlModule::start_landing()
 {
   auto result = DjiFlightController_StartLanding();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Could not start landing! Error code is: %ld",
-        result);
+    RCLCPP_ERROR(get_logger(), "Could not start landing! Error code is: %ld",
+                 result);
     return false;
   }
+  fc_mode = FLIGHT_CONTROL_MODE_LAND;
+  fc_command = FLIGHT_CONTROL_CMD_LAND;
 
   RCLCPP_INFO(get_logger(), "Starting Landing");
   return true;
 }
 
-void FlightControlModule::start_landing_cb(
+void
+FlightControlModule::start_landing_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
@@ -868,28 +1013,48 @@ void FlightControlModule::start_landing_cb(
   response->success = start_landing();
 }
 
-bool FlightControlModule::cancel_landing()
+bool
+FlightControlModule::cancel_landing()
 {
+  fc_command = FLIGHT_CONTROL_CMD_CANCEL_LAND;
   auto result = DjiFlightController_CancelLanding();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Could not cancel landing! Error code is: %ld",
-        result);
+    RCLCPP_ERROR(get_logger(), "Could not cancel landing! Error code is: %ld",
+                 result);
     return false;
   }
+  fc_mode = FLIGHT_CONTROL_MODE_NONE;
 
   RCLCPP_INFO(get_logger(), "Landing has been cancelled");
   return true;
 }
 
-void FlightControlModule::cancel_landing_cb(
+void
+FlightControlModule::cancel_landing_cb(
     const std::shared_ptr<Trigger::Request> request,
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
   response->success = cancel_landing();
+}
+bool
+FlightControlModule::start_confirm_landing()
+{
+  fc_command = FLIGHT_CONTROL_CMD_CONFIRM_LAND;
+
+  auto result = DjiFlightController_StartConfirmLanding();
+  if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(), "Could not confirm landing! Error code is: %ld",
+                 result);
+    return false;
+  }
+
+  fc_mode = FLIGHT_CONTROL_MODE_CONFIRM_LAND;
+
+  RCLCPP_INFO(get_logger(), "Landing has been confirmed");
+  return true;
 }
 
 void
@@ -898,16 +1063,26 @@ FlightControlModule::start_confirm_landing_cb(
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
-  auto result = DjiFlightController_StartConfirmLanding();
+  response->success = start_confirm_landing();
+}
+
+bool
+FlightControlModule::start_force_landing()
+{
+  fc_command = FLIGHT_CONTROL_CMD_FORCE_LAND;
+
+  auto result = DjiFlightController_StartForceLanding();
   if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(get_logger(), "Could not confirm landing! Error code is: %ld",
+    RCLCPP_ERROR(get_logger(), "Could not force landing! Error code is: %ld",
                  result);
-    response->success = false;
-    return;
+    return false;
   }
-  RCLCPP_INFO(get_logger(), "Landing has been confirmed");
-  response->success = true;
+
+  fc_mode = FLIGHT_CONTROL_MODE_FORCE_LAND;
+
+  RCLCPP_INFO(get_logger(), "Force Landing!");
+  return true;
 }
 
 void
@@ -916,18 +1091,8 @@ FlightControlModule::start_force_landing_cb(
     const std::shared_ptr<Trigger::Response> response)
 {
   (void)request;
-  auto result = DjiFlightController_StartForceLanding();
-  if (result != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
-  {
-    RCLCPP_ERROR(get_logger(), "Could not force landing! Error code is: %ld",
-                 result);
-    response->success = false;
-    return;
-  }
-  RCLCPP_INFO(get_logger(), "Force Landing!");
-  response->success = true;
+  response->success = start_force_landing();
 }
-
 void
 FlightControlModule::flight_control_generic_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
@@ -942,6 +1107,8 @@ void
 FlightControlModule::flight_control_position_yaw_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
+  fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_POSITION_YAW;
+
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_POSITION_CONTROL_MODE,
       DJI_FLIGHT_CONTROLLER_VERTICAL_POSITION_CONTROL_MODE,
@@ -988,6 +1155,8 @@ void
 FlightControlModule::flight_control_velocity_yawrate_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
+  fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_VELOCITY_YAWRATE;
+
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE,
       DJI_FLIGHT_CONTROLLER_VERTICAL_VELOCITY_CONTROL_MODE,
@@ -1025,6 +1194,8 @@ void
 FlightControlModule::flight_control_body_velocity_yawrate_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
+  fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_BODY_VELOCITY_YAWRATE;
+
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE,
       DJI_FLIGHT_CONTROLLER_VERTICAL_VELOCITY_CONTROL_MODE,
@@ -1060,6 +1231,8 @@ void
 FlightControlModule::flight_control_rollpitch_yawrate_thrust_cb(
     const sensor_msgs::msg::Joy::SharedPtr msg)
 {
+  fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_ROLL_PITCH_YAWRATE_THRUST;
+
   T_DjiFlightControllerJoystickMode joystick_mode = {
       DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGLE_CONTROL_MODE,
       DJI_FLIGHT_CONTROLLER_VERTICAL_THRUST_CONTROL_MODE,

@@ -46,6 +46,7 @@
 #include <std_msgs/msg/u_int16.hpp>
 #include <std_msgs/msg/u_int8.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <string>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.hpp>
@@ -1308,6 +1309,8 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
       esc_pub_;
   rclcpp_lifecycle::LifecyclePublisher<
       psdk_interfaces::msg::FlightStatus>::SharedPtr flight_status_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<
+      std_msgs::msg::String>::SharedPtr flight_control_status_pub_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::UInt8>::SharedPtr
       landing_gear_pub_;
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::UInt16>::SharedPtr

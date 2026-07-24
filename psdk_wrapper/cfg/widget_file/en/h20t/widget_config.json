@@ -130,6 +130,12 @@
               "icon_file_name_selected": "fc_gohome.png",
               "icon_file_name_unselected": "fc_gohome.png"
             }
+          },
+          {
+            "item_name": "Joystick"
+          },
+          {
+            "item_name": "Release joystick"
           }
         ],
         "customize_rc_buttons_config": {

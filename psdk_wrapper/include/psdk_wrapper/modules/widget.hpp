@@ -22,11 +22,23 @@
 #include <string>
 
 #include "psdk_wrapper/modules/camera.hpp"
+#include "psdk_wrapper/modules/flight_control.hpp"
 
 namespace psdk_ros2
 {
 class FlightControlModule;
 class CameraModule;
+
+const std::unordered_map<uint32_t, FlightControlCommand>
+    widget_value_to_flight_commands = {
+  {1, FLIGHT_CONTROL_CMD_TAKEOFF},
+  {2, FLIGHT_CONTROL_CMD_LAND},
+  {3, FLIGHT_CONTROL_CMD_CANCEL_LAND},
+  {4, FLIGHT_CONTROL_CMD_GO_HOME},
+  {5, FLIGHT_CONTROL_CMD_CANCEL_GO_HOME},
+  {6, FLIGHT_CONTROL_CMD_OBTAIN_JOYSTICK},
+  {7, FLIGHT_CONTROL_CMD_RELEASE_JOYSTICK},
+};
 
 class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 {
@@ -56,10 +68,11 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 
  private:
   static constexpr uint32_t CAMERA_LENS_WIDGET_INDEX = 0;
-  uint32_t last_flight_control_command_ = 0;
+  // uint32_t last_flight_control_command_ = 0;
 
- private:
   std::shared_ptr<CameraModule> camera_;
+
+  static FlightControlCommand lookup_flight_command(int widget_value);
 
   /*
    * DJI widget callbacks
@@ -91,7 +104,7 @@ class WidgetModule : public rclcpp_lifecycle::LifecycleNode
 
   bool execute_flight_control_command(int32_t value);
   void publishCommand(const std::string &command);
-  int32_t update_last_flight_control_command();
+  // int32_t update_last_flight_control_command();
 
   /*
    * Widget state

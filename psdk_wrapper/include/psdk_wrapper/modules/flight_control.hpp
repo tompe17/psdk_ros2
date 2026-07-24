@@ -34,8 +34,73 @@
 #include "psdk_interfaces/srv/set_home_from_gps.hpp"
 #include "psdk_interfaces/srv/set_obstacle_avoidance.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
+
 namespace psdk_ros2
 {
+
+
+enum FlightControlMode
+{
+  FLIGHT_CONTROL_MODE_NONE = 0,
+  FLIGHT_CONTROL_MODE_TAKEOFF,
+  FLIGHT_CONTROL_MODE_LAND,
+  FLIGHT_CONTROL_MODE_CONFIRM_LAND,
+  FLIGHT_CONTROL_MODE_FORCE_LAND,
+  FLIGHT_CONTROL_MODE_GO_HOME,
+  FLIGHT_CONTROL_MODE_JOYSTICK,
+};
+
+const std::map<FlightControlMode, std::string> flight_control_mode_str = {
+  {FLIGHT_CONTROL_MODE_NONE,           "None"},
+  {FLIGHT_CONTROL_MODE_TAKEOFF,        "Takeoff"},
+  {FLIGHT_CONTROL_MODE_LAND,           "Land"},
+  {FLIGHT_CONTROL_MODE_CONFIRM_LAND,   "Confirm Land"},
+  {FLIGHT_CONTROL_MODE_FORCE_LAND,     "Force Land"},
+  {FLIGHT_CONTROL_MODE_GO_HOME,        "Go Home"},
+  {FLIGHT_CONTROL_MODE_JOYSTICK,       "Joystick"},
+};
+
+enum FlightControlCommand
+{
+  FLIGHT_CONTROL_CMD_NONE = 0,
+  FLIGHT_CONTROL_CMD_TAKEOFF,
+
+  FLIGHT_CONTROL_CMD_LAND,
+  FLIGHT_CONTROL_CMD_FORCE_LAND,
+  FLIGHT_CONTROL_CMD_CANCEL_LAND,
+  FLIGHT_CONTROL_CMD_CONFIRM_LAND,
+
+  FLIGHT_CONTROL_CMD_GO_HOME,
+  FLIGHT_CONTROL_CMD_CANCEL_GO_HOME,
+
+  FLIGHT_CONTROL_CMD_OBTAIN_JOYSTICK,
+  FLIGHT_CONTROL_CMD_RELEASE_JOYSTICK,
+};
+
+enum FlightControlJoystickMode
+{
+  FLIGHT_CONTROL_MODE_JOY_NONE = 0,
+  FLIGHT_CONTROL_MODE_JOY_GENERIC,  // NYI
+  FLIGHT_CONTROL_MODE_JOY_POSITION_YAW,
+  FLIGHT_CONTROL_MODE_JOY_VELOCITY_YAWRATE,
+  FLIGHT_CONTROL_MODE_JOY_BODY_VELOCITY_YAWRATE,
+  FLIGHT_CONTROL_MODE_JOY_ROLL_PITCH_YAWRATE_THRUST,
+};
+
+
+const std::map<FlightControlJoystickMode, std::string>
+    flight_control_joystick_mode_str = {
+  {FLIGHT_CONTROL_MODE_JOY_NONE, "None"},
+  {FLIGHT_CONTROL_MODE_JOY_GENERIC, "Generic"},
+  {FLIGHT_CONTROL_MODE_JOY_POSITION_YAW, "Position + Yaw"},
+  {FLIGHT_CONTROL_MODE_JOY_VELOCITY_YAWRATE, "Velocity + Yaw Rate"},
+  {FLIGHT_CONTROL_MODE_JOY_BODY_VELOCITY_YAWRATE,
+   "Body Velocity + Yaw Rate"},
+  {FLIGHT_CONTROL_MODE_JOY_ROLL_PITCH_YAWRATE_THRUST,
+   "Roll/Pitch + Yaw Rate + Thrust"},
+};
+
+
 class FlightControlModule : public rclcpp_lifecycle::LifecycleNode
 {
  public:
@@ -104,12 +169,26 @@ class FlightControlModule : public rclcpp_lifecycle::LifecycleNode
    * @return true/false
    */
   bool deinit();
-
+  bool execute_flight_command(FlightControlCommand command);
   bool start_go_home();
   bool cancel_go_home();
   bool start_landing();
+  bool start_confirm_landing();
+  bool start_force_landing();
   bool cancel_landing();
   bool start_takeoff();
+  bool obtain_ctrl_authority();
+  bool release_ctrl_authority();
+  void update_flight_control_mode(const uint8_t &flight_status);
+
+  static const std::string &flight_control_mode_to_string(FlightControlMode mode);
+  static const std::string &flight_control_joystick_mode_to_string(FlightControlJoystickMode mode);
+
+  std::string get_flight_control_mode_status_str() const;
+
+  FlightControlMode fc_mode = FLIGHT_CONTROL_MODE_NONE;
+  FlightControlCommand fc_command = FLIGHT_CONTROL_CMD_NONE;
+  FlightControlJoystickMode fc_joystick_mode = FLIGHT_CONTROL_MODE_JOY_NONE;
 
  private:
   /**

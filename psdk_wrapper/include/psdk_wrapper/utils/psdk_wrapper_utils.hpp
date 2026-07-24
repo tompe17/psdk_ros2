@@ -110,6 +110,31 @@ enum FlightStatus
   FLIGHT_STATUS_IN_AIR = 2 /* Aircraft is in air. */
 };
 
+enum FlightMode
+{
+  FLIGHT_MODE_NOT_READY = 0, /* Home pose not set, so not ready to fly (missions) */
+  FLIGHT_MODE_READY = 1, /* Aircraft is on ground and motors are still. */
+  FLIGHT_MODE_ON_GROUND = 2, /* Aircraft is on ground but motors are rotating. */
+  FLIGHT_MODE_IN_AIR = 3, /* Aircraft is in air. */
+  FLIGHT_MODE_TAKEOFF = 4, /* Aircraft is in air. */
+  FLIGHT_MODE_LAND = 5, /*  */
+  FLIGHT_MODE_GO_HOME = 6, /*  */
+  FLIGHT_MODE_MISSION = 7, /*  */
+};
+
+
+const std::map<FlightMode, std::string> flight_mode_str = {
+  {FLIGHT_MODE_NOT_READY, "not ready"},
+  {FLIGHT_MODE_READY, "ready"},
+  {FLIGHT_MODE_ON_GROUND, "on ground"},
+  {FLIGHT_MODE_IN_AIR, "in air"},
+  {FLIGHT_MODE_TAKEOFF, "takeoff"},
+  {FLIGHT_MODE_LAND, "land"},
+  {FLIGHT_MODE_GO_HOME, "go home"},
+  {FLIGHT_MODE_MISSION, "mission"},
+};
+
+
 /**
  * @todo (Bianca) Implement the remaining/ commented DJI topics
  */

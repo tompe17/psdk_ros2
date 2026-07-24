@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include "psdk_wrapper/modules/camera.hpp"
-#include "psdk_wrapper/modules/flight_control.hpp"
 #include "psdk_wrapper/modules/gimbal.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
 #include "psdk_wrapper/modules/telemetry.hpp"
@@ -374,10 +373,35 @@ WidgetModule::widget_state_set(E_DjiWidgetType type, uint32_t index,
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
 
-bool
-WidgetModule::execute_flight_control_command(int32_t value)
+
+FlightControlCommand WidgetModule::lookup_flight_command(int widget_value)
 {
-  last_flight_control_command_ = value;
+  auto it = widget_value_to_flight_commands.find(widget_value);
+  if (it != widget_value_to_flight_commands.end())
+  {
+    return it->second;
+  }
+
+  return FLIGHT_CONTROL_CMD_NONE;
+}
+
+bool
+WidgetModule::execute_flight_control_command(const int32_t value)
+{
+  // last_flight_control_command_ = value;
+
+  FlightControlCommand command = lookup_flight_command(value);
+
+  if (command == FLIGHT_CONTROL_CMD_NONE)
+  {
+    RCLCPP_INFO(get_logger(), "FLight command is NONE, widget value: %d", value);
+    return false;
+  }
+
+  std::thread([fc = psdk_ros2::global_fc_ptr_,fcmd=command] { fc->execute_flight_command(fcmd); })
+      .detach();
+
+#if 0
   switch (value)
   {
     case 0:
@@ -423,6 +447,7 @@ WidgetModule::execute_flight_control_command(int32_t value)
       return false;
       break;
   }
+#endif
   return true;
 }
 
@@ -467,9 +492,10 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     }
     case 5:
     {
-      self->last_flight_control_command_ = self->update_last_flight_control_command();
+      // self->last_flight_control_command_ =
+          // self->update_last_flight_control_command();
 
-      *value = self->last_flight_control_command_;
+      *value = global_fc_ptr_->fc_mode;// self->last_flight_control_command_;
 
       break;
     }
@@ -481,7 +507,7 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
 
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
-
+#if 0
 int32_t
 WidgetModule::update_last_flight_control_command()
 {
@@ -489,29 +515,29 @@ WidgetModule::update_last_flight_control_command()
   // takeoff
   switch (last_flight_control_command_)
   {
-    case 1: // takeoff
+    case 1:  // takeoff
       if (global_telemetry_ptr_->current_state_.flight_status.flight_status ==
           DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_IN_AIR)
       {
         ret = 0;
       }
-    break;
-    case 3: // cancel land
-    case 5: // cancel go home
+      break;
+    case 3:  // cancel land
+    case 5:  // cancel go home
       ret = 0;
-    case 2: // land
-    case 4: // go home
+    case 2:  // land
+    case 4:  // go home
       if (global_telemetry_ptr_->current_state_.flight_status.flight_status ==
           DJI_FC_SUBSCRIPTION_FLIGHT_STATUS_STOPED)
       {
         ret = 0;
       }
-    break;
+      break;
     default:;
   }
   return ret;
 }
-
+#endif
 void
 WidgetModule::poll_widget_channel()
 {

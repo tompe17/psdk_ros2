@@ -18,6 +18,7 @@
 #include "psdk_wrapper/modules/telemetry.hpp"
 
 #include "psdk_wrapper/modules/coord.hpp"
+#include "psdk_wrapper/modules/flight_control.hpp"
 #include "psdk_wrapper/modules/gimbal.hpp"
 namespace psdk_ros2
 {
@@ -298,6 +299,7 @@ TelemetryModule::on_activate(const rclcpp_lifecycle::State &state)
   esc_pub_->on_activate();
   rc_connection_status_pub_->on_activate();
   flight_status_pub_->on_activate();
+  flight_control_status_pub_->on_activate();
   display_mode_pub_->on_activate();
   landing_gear_pub_->on_activate();
   motor_start_error_pub_->on_activate();
@@ -353,6 +355,7 @@ TelemetryModule::on_deactivate(const rclcpp_lifecycle::State &state)
   esc_pub_->on_deactivate();
   rc_connection_status_pub_->on_deactivate();
   flight_status_pub_->on_deactivate();
+  flight_control_status_pub_->on_deactivate();
   display_mode_pub_->on_deactivate();
   motor_start_error_pub_->on_deactivate();
   landing_gear_pub_->on_deactivate();
@@ -415,6 +418,7 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   esc_pub_.reset();
   rc_connection_status_pub_.reset();
   flight_status_pub_.reset();
+  flight_control_status_pub_.reset();
   display_mode_pub_.reset();
   landing_gear_pub_.reset();
   motor_start_error_pub_.reset();
@@ -1712,6 +1716,11 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
   flight_status_msg.header.stamp = get_measurement_time(timestamp);
   flight_status_msg.flight_status = *flight_status;
   flight_status_pub_->publish(flight_status_msg);
+
+  // maybe the flight control module should publish it itself
+  std_msgs::msg::String flight_control_status_msg;
+  flight_control_status_msg.data = global_fc_ptr_->get_flight_control_mode_status_str();
+  flight_control_status_pub_->publish(flight_control_status_msg);
 
   {
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
