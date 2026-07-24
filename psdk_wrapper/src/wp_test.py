@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import random
 import sys
 
 import rclpy
@@ -13,23 +14,26 @@ from psdk_interfaces.srv import (
     StartWaypointV2Mission,
 )
 
+from psdk_interfaces.msg import WaypointV2
 
-def offset_gps(lat_deg, lon_deg, north_m, east_m):
+
+def offset_gps(lat, lon, north, east):
+    """Offset a WGS84 coordinate by north/east metres."""
     R = 6378137.0
 
-    dlat = north_m / R
-    dlon = east_m / (R * math.cos(math.radians(lat_deg)))
+    dlat = north / R
+    dlon = east / (R * math.cos(math.radians(lat)))
 
     return (
-        lat_deg + math.degrees(dlat),
-        lon_deg + math.degrees(dlon),
+        lat + math.degrees(dlat),
+        lon + math.degrees(dlon),
     )
 
 
 class WaypointTester(Node):
 
     def __init__(self):
-        super().__init__("waypoint_v2_test")
+        super().__init__("waypoint_test")
 
         self.gps = None
 
@@ -37,8 +41,7 @@ class WaypointTester(Node):
             NavSatFix,
             "/dji5/psdk_ros2/gps_position_fused",
             self.gps_cb,
-            10,
-        )
+            10)
 
         self.init_cli = self.create_client(
             InitWaypointV2Setting,
@@ -61,17 +64,73 @@ class WaypointTester(Node):
         while rclpy.ok() and self.gps is None:
             rclpy.spin_once(self, timeout_sec=0.1)
 
-        self.get_logger().info("GPS received")
+        self.get_logger().info(
+            f"GPS: {self.gps.latitude:.8f}, {self.gps.longitude:.8f}"
+        )
 
-    def call(self, client, req):
-        while not client.wait_for_service(timeout_sec=1):
-            pass
+    def call(self, client, req, name):
+        print(f"\n=== {name} ===")
+
+        while not client.wait_for_service(timeout_sec=1.0):
+            print(f"Waiting for {name} service...")
 
         future = client.call_async(req)
 
         rclpy.spin_until_future_complete(self, future)
 
-        return future.result()
+        if future.exception() is not None:
+            print(f"{name}: EXCEPTION")
+            print(future.exception())
+            return None
+
+        result = future.result()
+
+        print(f"{name}:")
+        print(result)
+
+        return result
+
+    ############################################################
+
+    def make_waypoint(self, lat, lon, rel_height):
+
+        wp = WaypointV2()
+
+        wp.latitude = lat
+        wp.longitude = lon
+
+        wp.relative_height = rel_height
+
+        wp.waypoint_type = (
+            WaypointV2.
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
+        )
+
+        wp.heading_mode = (
+            WaypointV2.
+            DJI_WAYPOINT_V2_HEADING_MODE_AUTO
+        )
+
+        wp.turn_mode = (
+            WaypointV2.
+            DJI_WAYPOINT_V2_TURN_MODE_CLOCKWISE
+        )
+
+        wp.heading = 0.0
+
+        wp.position_x = 0.0
+        wp.position_y = 0.0
+        wp.position_z = 0.0
+
+        wp.max_flight_speed = 5.0
+        wp.auto_flight_speed = 2.0
+
+        wp.damping_distance = 0
+
+        wp.config.use_local_cruise_vel = 0
+        wp.config.use_local_max_vel = 0
+
+        return wp
 
     ############################################################
 
@@ -79,58 +138,79 @@ class WaypointTester(Node):
 
         req = InitWaypointV2Setting.Request()
 
-        req.radius = 0.5
         req.polygon_num = 0
+        req.radius = 1.0
         req.action_num = 0
 
-        req.waypoint_v2_init_settings.repeat_times = 0
-        req.waypoint_v2_init_settings.finished_action = 0
-        req.waypoint_v2_init_settings.max_flight_speed = 5.0
-        req.waypoint_v2_init_settings.auto_flight_speed = 2.0
-        req.waypoint_v2_init_settings.goto_first_waypoint_mode = 0
+        s = req.waypoint_v2_init_settings
 
-        req.waypoint_v2_init_settings.mission = mission
+        s.mission_id = random.randint(1, 1000000)
+        s.repeat_times = 0
 
-        print(self.call(self.init_cli, req))
+        s.finished_action = (
+            s.DJI_WAYPOINT_V2_MISSION_FINISHED_NO_ACTION
+        )
 
-        print(self.call(
+        s.max_flight_speed = 5.0
+        s.auto_flight_speed = 2.0
+
+        s.exit_mission_on_signal_lost = 1
+
+        s.goto_first_waypoint_mode = (
+            s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
+        )
+
+        s.mission = mission
+
+        print("\nMission:")
+        for i, wp in enumerate(mission):
+            print(
+                f"  WP{i}: "
+                f"lat={wp.latitude:.8f} "
+                f"lon={wp.longitude:.8f} "
+                f"h={wp.relative_height:.1f}"
+            )
+
+        result = self.call(
+            self.init_cli,
+            req,
+            "InitWaypointV2Setting")
+
+        if result is None or not result.result:
+            print("Init failed")
+            return False
+
+        result = self.call(
             self.upload_cli,
-            UploadWaypointV2Mission.Request()))
+            UploadWaypointV2Mission.Request(),
+            "UploadWaypointV2Mission")
 
-    def start(self):
+        if result is None or not result.result:
+            print("Upload failed")
+            return False
 
-        print(self.call(
-            self.start_cli,
-            StartWaypointV2Mission.Request()))
+        print("Mission uploaded successfully")
+
+        return True
 
     ############################################################
 
-    def make_wp(self,
-                lat,
-                lon,
-                rel_height):
+    def start(self):
 
-        wp = InitWaypointV2Setting.Request().waypoint_v2_init_settings.mission.add()
+        result = self.call(
+            self.start_cli,
+            StartWaypointV2Mission.Request(),
+            "StartWaypointV2Mission")
 
-        wp.latitude = lat
-        wp.longitude = lon
-        wp.relative_height = rel_height
+        if result is None:
+            return False
 
-        wp.waypoint_type = 0
-        wp.heading_mode = 0
+        if result.result:
+            print("Mission started successfully")
+        else:
+            print("Mission start failed")
 
-        wp.heading = 0.0
-        wp.turn_mode = 0
-
-        wp.max_flight_speed = 5.0
-        wp.auto_flight_speed = 2.0
-
-        wp.damping_distance = 0.2
-
-        wp.config.use_local_cruise_vel = False
-        wp.config.use_local_max_vel = False
-
-        return wp
+        return result.result
 
 
 ############################################################
@@ -138,37 +218,19 @@ class WaypointTester(Node):
 
 def test1(node):
 
-    print("==== TEST 1 ====")
+    print("\n==============================")
+    print("TEST 1: Climb 5 metres")
+    print("==============================")
 
-    lat = node.gps.latitude
-    lon = node.gps.longitude
+    mission = [
+        node.make_waypoint(
+            node.gps.latitude,
+            node.gps.longitude,
+            5.0)
+    ]
 
-    mission = []
-
-    wp = InitWaypointV2Setting.Request().waypoint_v2_init_settings.mission.add()
-
-    wp.latitude = lat
-    wp.longitude = lon
-    wp.relative_height = 5.0
-
-    wp.waypoint_type = 0
-    wp.heading_mode = 0
-    wp.turn_mode = 0
-
-    wp.heading = 0.0
-
-    wp.max_flight_speed = 5.0
-    wp.auto_flight_speed = 2.0
-
-    wp.damping_distance = 0.2
-
-    wp.config.use_local_cruise_vel = False
-    wp.config.use_local_max_vel = False
-
-    mission.append(wp)
-
-    node.upload(mission)
-    node.start()
+    if node.upload(mission):
+        node.start()
 
 
 ############################################################
@@ -176,49 +238,34 @@ def test1(node):
 
 def test2(node):
 
-    print("==== TEST 2 ====")
+    print("\n==============================")
+    print("TEST 2: North then East")
+    print("==============================")
 
-    lat = node.gps.latitude
-    lon = node.gps.longitude
+    lat0 = node.gps.latitude
+    lon0 = node.gps.longitude
 
-    lat1, lon1 = offset_gps(lat, lon, 10, 0)
-    lat2, lon2 = offset_gps(lat1, lon1, 0, 10)
+    lat1, lon1 = offset_gps(lat0, lon0, 10.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, 0.0, 10.0)
 
-    mission = []
+    mission = [
+        node.make_waypoint(
+            lat1,
+            lon1,
+            5.0),
 
-    for p in [
-        (lat1, lon1),
-        (lat2, lon2),
-    ]:
+        node.make_waypoint(
+            lat2,
+            lon2,
+            5.0),
+    ]
 
-        wp = InitWaypointV2Setting.Request().waypoint_v2_init_settings.mission.add()
-
-        wp.latitude = p[0]
-        wp.longitude = p[1]
-
-        wp.relative_height = 5.0
-
-        wp.waypoint_type = 0
-        wp.heading_mode = 0
-        wp.turn_mode = 0
-
-        wp.heading = 0.0
-
-        wp.max_flight_speed = 5.0
-        wp.auto_flight_speed = 2.0
-
-        wp.damping_distance = 0.2
-
-        wp.config.use_local_cruise_vel = False
-        wp.config.use_local_max_vel = False
-
-        mission.append(wp)
-
-    node.upload(mission)
-    node.start()
+    if node.upload(mission):
+        node.start()
 
 
 ############################################################
+
 
 def main():
 
@@ -228,6 +275,12 @@ def main():
 
     node.wait_for_gps()
 
+    if len(sys.argv) != 2:
+        print("Usage:")
+        print("    wp_test.py 1")
+        print("    wp_test.py 2")
+        return
+
     test = int(sys.argv[1])
 
     if test == 1:
@@ -235,6 +288,9 @@ def main():
 
     elif test == 2:
         test2(node)
+
+    else:
+        print("Unknown test")
 
     rclpy.shutdown()
 

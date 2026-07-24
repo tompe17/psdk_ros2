@@ -274,6 +274,7 @@ double inline deg_to_rad(const double degrees)
 {
   return (degrees * C_PI) / 180;
 };
+
 };  // namespace psdk_utils
 }  // namespace psdk_ros2
 

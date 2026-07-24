@@ -16,6 +16,7 @@
 #include <functional>
 
 #include "dji_waypoint_v2.h"
+#include "dji_error.h"
 
 psdk_ros2::WaypointFlyingModule *wfm_pointer;
 
@@ -396,6 +397,29 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
 
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   std::cerr << "uploadres: " << uploadres << std::endl;
+
+  if (const auto *err = psdk_utils::findError(uploadres))
+  {
+    std::cerr << "UploadMission failed: "
+              << err->description;
+
+    if (err->suggestion)
+      std::cerr << " (" << err->suggestion << ")";
+
+    std::cerr << std::endl;
+  }
+  else
+  {
+    std::cerr << "UploadMission failed: 0x"
+              << std::hex << uploadres << std::dec
+              << std::endl;
+  }
+
+  // RCLCPP_INFO(
+    // get_logger(),
+    // "UploadMission returned %ld (%s)",
+    // uploadres,
+    // DjiCore_GetErrorCodeStr(uploadres));
 
   res->result = true;
 
