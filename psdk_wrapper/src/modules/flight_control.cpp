@@ -422,6 +422,9 @@ FlightControlModule::update_flight_control_mode(const uint8_t &flight_status)
         fc_command = FLIGHT_CONTROL_CMD_NONE;
       }
       break;
+    case FLIGHT_CONTROL_CMD_RELEASE_JOYSTICK:
+      fc_command = FLIGHT_CONTROL_CMD_NONE;
+      break;
     default:;
   }
 }
