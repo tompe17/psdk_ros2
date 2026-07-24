@@ -31,6 +31,7 @@ class CameraModule;
 
 const std::unordered_map<uint32_t, FlightControlCommand>
     widget_value_to_flight_commands = {
+  {0, FLIGHT_CONTROL_CMD_NONE},
   {1, FLIGHT_CONTROL_CMD_TAKEOFF},
   {2, FLIGHT_CONTROL_CMD_LAND},
   {3, FLIGHT_CONTROL_CMD_CANCEL_LAND},
