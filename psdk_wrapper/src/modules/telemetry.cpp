@@ -180,6 +180,8 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
       "psdk_ros2/gimbal_status", 10);
   flight_status_pub_ = create_publisher<psdk_interfaces::msg::FlightStatus>(
       "psdk_ros2/flight_status", 10);
+  flight_control_status_pub_ = create_publisher<std_msgs::msg::String>(
+      "psdk_ros2/flight_control_status", 10);
   display_mode_pub_ = create_publisher<psdk_interfaces::msg::DisplayMode>(
       "psdk_ros2/display_mode", 10);
   landing_gear_pub_ = create_publisher<std_msgs::msg::UInt8>(
