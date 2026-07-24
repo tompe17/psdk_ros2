@@ -1360,7 +1360,7 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
 
   // lrs
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub;
-  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_pub;
+  // rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_pub;
   rclcpp::Publisher<geographic_msgs::msg::GeoPose>::SharedPtr geo_pose_pub;
 
   /* ROS 2 services */

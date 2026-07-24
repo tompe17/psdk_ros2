@@ -233,8 +233,6 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
   // lrs
   pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
       "psdk_ros2/pose", 10);
-  camera_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
-      "psdk_ros2/camera_pose", 10);
   geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>(
       "psdk_ros2/geopose", rclcpp::SensorDataQoS());
 
@@ -442,7 +440,6 @@ TelemetryModule::on_cleanup(const rclcpp_lifecycle::State &state)
   gimbal_status_pub_.reset();
 
   pose_pub.reset();
-  camera_pose_pub.reset();
   geo_pose_pub.reset();
 
   // Reset global variables
@@ -3257,7 +3254,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
     // print_angles("Gimbal ", q_gimbal);
 
     // print_angles("Gimbal in body ", q_body_to_gimbal);
-
+#if 0
     // camera pose
     try
     {
@@ -3280,6 +3277,7 @@ TelemetryModule::publish_dynamic_gimbal_transforms(
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 25,
                            "TF lookup failed: %s", ex.what());
     }
+#endif
   }
 }
 
