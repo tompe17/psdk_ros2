@@ -297,7 +297,7 @@ WaypointFlyingModule::subscribe_waypoint_v2_mission_state()
   T_DjiReturnCode ret =
       DjiWaypointV2_RegisterMissionStateCallback(&mission_state_callback);
 
-  print_return_code("Subscribe mission state result: ", ret);
+  global_wp_ptr_->print_return_code("Subscribe mission state result: ", ret);
 
   return ret == DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -308,7 +308,7 @@ WaypointFlyingModule::subscribe_waypoint_v2_mission_event()
   T_DjiReturnCode ret =
       DjiWaypointV2_RegisterMissionEventCallback(&mission_event_callback);
 
-  print_return_code("Subscribe mission event result: ", ret);
+  global_wp_ptr_->print_return_code("Subscribe mission event result: ", ret);
 
   return ret == DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
