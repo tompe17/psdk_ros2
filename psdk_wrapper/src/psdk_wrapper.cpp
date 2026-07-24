@@ -26,6 +26,7 @@ std::shared_ptr<psdk_ros2::HmsModule> psdk_ros2::global_hms_ptr_;
 std::shared_ptr<psdk_ros2::PerceptionModule> psdk_ros2::global_perception_ptr_;
 std::shared_ptr<psdk_ros2::WidgetModule> psdk_ros2::global_widget_ptr_;
 std::shared_ptr<psdk_ros2::CoordModule> psdk_ros2::global_coord_ptr_;
+std::shared_ptr<psdk_ros2::WaypointFlyingModule> psdk_ros2::global_wp_ptr_;
 std::shared_ptr<psdk_ros2::GimbalModule> psdk_ros2::global_gimbal_ptr_;
 std::shared_ptr<psdk_ros2::FlightControlModule> psdk_ros2::global_fc_ptr_;
 
@@ -124,7 +125,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_flight_control_module_mandatory_, flight_control_module_,
                 flight_control_thread_, "flight_control_node", global_fc_ptr_);
   create_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_,
-                waypoint_flying_thread_, "waypoint_flying_node");
+                waypoint_flying_thread_, "waypoint_flying_node", global_wp_ptr_);
   create_module(is_camera_module_mandatory_, camera_module_, camera_thread_,
                 "camera_node", psdk_ros2::global_camera_ptr_);
   create_module(is_gimbal_module_mandatory_, gimbal_module_, gimbal_thread_,
