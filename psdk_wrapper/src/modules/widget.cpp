@@ -391,10 +391,10 @@ WidgetModule::execute_flight_control_command(const int32_t value)
   // last_flight_control_command_ = value;
 
   FlightControlCommand command = lookup_flight_command(value);
-
+  RCLCPP_INFO(get_logger(), "Widget flight command: %d (fc: %d)", value, command);
   if (command == FLIGHT_CONTROL_CMD_NONE)
   {
-    RCLCPP_INFO(get_logger(), "FLight command is NONE, widget value: %d", value);
+    RCLCPP_WARN(get_logger(), "FLight command is NONE, widget value: %d", value);
     return false;
   }
 
