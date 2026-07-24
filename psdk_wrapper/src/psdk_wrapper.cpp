@@ -227,7 +227,7 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
 
   // auto start streaming
   liveview_module_->camera_setup_streaming(true, -1, -1, true);
-  
+
   return CallbackReturn::SUCCESS;
 }
 

@@ -111,8 +111,6 @@ WaypointFlyingModule::on_configure(const rclcpp_lifecycle::State &state)
           std::bind(&WaypointFlyingModule::upload_waypoint_v2_action_callback,
                     this, std::placeholders::_1, std::placeholders::_2));
 
-
-
   return CallbackReturn::SUCCESS;
 }
 
@@ -366,20 +364,25 @@ WaypointFlyingModule::resume_waypoint_v2_mission_callback(
 }
 
 void
-WaypointFlyingModule::print_return_code(const std::string text,
-                                        const T_DjiReturnCode code)
+WaypointFlyingModule::print_return_code(const std::string &text,
+                                        T_DjiReturnCode code) const
 {
   if (const auto *err = psdk_utils::findError(code))
   {
-    std::cerr << text << err->description;
-
-    if (err->suggestion) std::cerr << " (" << err->suggestion << ")";
-
-    std::cerr << std::endl;
+    if (err->suggestion)
+    {
+      RCLCPP_INFO(get_logger(), "%s%s (%s)", text.c_str(), err->description,
+                  err->suggestion);
+    }
+    else
+    {
+      RCLCPP_INFO(get_logger(), "%s%s", text.c_str(), err->description);
+    }
   }
   else
   {
-    std::cerr << text << " 0x" << std::hex << code << std::dec << std::endl;
+    RCLCPP_INFO(get_logger(), "%s0x%lx", text.c_str(),
+                static_cast<unsigned long>(code));
   }
 }
 
