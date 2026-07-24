@@ -103,7 +103,7 @@ class WaypointTester(Node):
 
         wp.waypoint_type = (
             WaypointV2.
-            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_FIRST_POINT_ALONG_A_STRAIGHT_LINE
         )
 
         wp.heading_mode = (
@@ -158,6 +158,7 @@ class WaypointTester(Node):
 
         s.goto_first_waypoint_mode = (
             s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
+            # s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
         )
 
         s.mission = mission
@@ -226,7 +227,7 @@ def test1(node):
         node.make_waypoint(
             node.gps.latitude,
             node.gps.longitude,
-            5.0)
+            125.0)
     ]
 
     if node.upload(mission):

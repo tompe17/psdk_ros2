@@ -484,7 +484,8 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
   for (uint16_t i = 0; i < request->waypoint_v2_init_settings.mission.size();
        i++)
   {
-    T_DjiWaypointV2 wp;
+    // T_DjiWaypointV2 wp;
+    T_DjiWaypointV2 wp{};
 
     wp.longitude = request->waypoint_v2_init_settings.mission[i].longitude;
     wp.latitude = request->waypoint_v2_init_settings.mission[i].latitude;
