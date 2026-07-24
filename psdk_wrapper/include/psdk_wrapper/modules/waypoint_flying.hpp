@@ -11,14 +11,16 @@
 #ifndef PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_WAYPOINT_FLYING_HPP_
 #define PSDK_WRAPPER_INCLUDE_PSDK_WRAPPER_MODULES_WAYPOINT_FLYING_HPP_
 
+#include <stddef.h>
+
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <string>
-#include <stddef.h>
 
-#include "std_srvs/srv/trigger.hpp"
-
+#include "dji_waypoint_v2.h"
+#include "psdk_interfaces/msg/waypoint_v2_mission_event_push.hpp"
+#include "psdk_interfaces/msg/waypoint_v2_mission_state_push.hpp"
 #include "psdk_interfaces/srv/download_waypoint_v2_mission.hpp"
 #include "psdk_interfaces/srv/generate_waypoint_v2_action.hpp"
 #include "psdk_interfaces/srv/init_waypoint_v2_setting.hpp"
@@ -30,33 +32,26 @@
 #include "psdk_interfaces/srv/subscribe_waypoint_v2_state.hpp"
 #include "psdk_interfaces/srv/upload_waypoint_v2_action.hpp"
 #include "psdk_interfaces/srv/upload_waypoint_v2_mission.hpp"
-
-#include "psdk_interfaces/msg/waypoint_v2_mission_state_push.hpp"
-#include "psdk_interfaces/msg/waypoint_v2_mission_event_push.hpp"
-
-#include "dji_waypoint_v2.h"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 namespace psdk_ros2
 {
-  T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
-  T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData);
+T_DjiReturnCode state_callback2(T_DjiWaypointV2MissionStatePush stateData);
+T_DjiReturnCode event_callback2(T_DjiWaypointV2MissionEventPush eventData);
 
-
-  class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
+class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
-private:
-  T_DjiWayPointV2MissionSettings * ms;
+ private:
+  T_DjiWayPointV2MissionSettings *ms;
   bool is_module_initialized_{false};
 
-
-
  public:
+  static void print_return_code(const std::string text, const T_DjiReturnCode code);
 
   T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
   T_DjiReturnCode event_callback(T_DjiWaypointV2MissionEventPush eventData);
 
-  
   using Trigger = std_srvs::srv::Trigger;
   //  using SetHomeFromGPS = psdk_interfaces::srv::SetHomeFromGPS;
   //  using SetGoHomeAltitude = psdk_interfaces::srv::SetGoHomeAltitude;
@@ -64,66 +59,112 @@ private:
   //  using SetObstacleAvoidance = psdk_interfaces::srv::SetObstacleAvoidance;
   //  using GetObstacleAvoidance = psdk_interfaces::srv::GetObstacleAvoidance;
 
-  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionStatePush>::SharedPtr state_push_publisher;
-  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionEventPush>::SharedPtr event_push_publisher;
+  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionStatePush>::SharedPtr
+      state_push_publisher;
+  rclcpp::Publisher<psdk_interfaces::msg::WaypointV2MissionEventPush>::SharedPtr
+      event_push_publisher;
 
-  rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2Event>::SharedPtr subscribe_waypoint_v2_event_service;
-  rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2State>::SharedPtr subscribe_waypoint_v2_state_service;
-  rclcpp::Service<psdk_interfaces::srv::PauseWaypointV2Mission>::SharedPtr pause_waypoint_v2_mission_service;    
-  rclcpp::Service<psdk_interfaces::srv::ResumeWaypointV2Mission>::SharedPtr resume_waypoint_v2_mission_service;    
-  rclcpp::Service<psdk_interfaces::srv::StopWaypointV2Mission>::SharedPtr stop_waypoint_v2_mission_service;    
-  rclcpp::Service<psdk_interfaces::srv::StartWaypointV2Mission>::SharedPtr start_waypoint_v2_mission_service;    
-  rclcpp::Service<psdk_interfaces::srv::DownloadWaypointV2Mission>::SharedPtr download_waypoint_v2_mission_service;    
-  rclcpp::Service<psdk_interfaces::srv::UploadWaypointV2Mission>::SharedPtr upload_waypoint_v2_mission_service;    
+  rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2Event>::SharedPtr
+      subscribe_waypoint_v2_event_service;
+  rclcpp::Service<psdk_interfaces::srv::SubscribeWaypointV2State>::SharedPtr
+      subscribe_waypoint_v2_state_service;
+  rclcpp::Service<psdk_interfaces::srv::PauseWaypointV2Mission>::SharedPtr
+      pause_waypoint_v2_mission_service;
+  rclcpp::Service<psdk_interfaces::srv::ResumeWaypointV2Mission>::SharedPtr
+      resume_waypoint_v2_mission_service;
+  rclcpp::Service<psdk_interfaces::srv::StopWaypointV2Mission>::SharedPtr
+      stop_waypoint_v2_mission_service;
+  rclcpp::Service<psdk_interfaces::srv::StartWaypointV2Mission>::SharedPtr
+      start_waypoint_v2_mission_service;
+  rclcpp::Service<psdk_interfaces::srv::DownloadWaypointV2Mission>::SharedPtr
+      download_waypoint_v2_mission_service;
+  rclcpp::Service<psdk_interfaces::srv::UploadWaypointV2Mission>::SharedPtr
+      upload_waypoint_v2_mission_service;
 
-  rclcpp::Service<psdk_interfaces::srv::GenerateWaypointV2Action>::SharedPtr generate_waypoint_v2_action_service;    
-  rclcpp::Service<psdk_interfaces::srv::InitWaypointV2Setting>::SharedPtr init_waypoint_v2_setting_service;    
-  rclcpp::Service<psdk_interfaces::srv::UploadWaypointV2Action>::SharedPtr upload_waypoint_v2_action_service;
-  
+  rclcpp::Service<psdk_interfaces::srv::GenerateWaypointV2Action>::SharedPtr
+      generate_waypoint_v2_action_service;
+  rclcpp::Service<psdk_interfaces::srv::InitWaypointV2Setting>::SharedPtr
+      init_waypoint_v2_setting_service;
+  rclcpp::Service<psdk_interfaces::srv::UploadWaypointV2Action>::SharedPtr
+      upload_waypoint_v2_action_service;
+
   void subscribe_waypoint_v2_event_callback(
-     const std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::SubscribeWaypointV2Event::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2Event::Response>
+          res);
 
   void subscribe_waypoint_v2_state_callback(
-     const std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response> res);
-    
+      const std::shared_ptr<
+          psdk_interfaces::srv::SubscribeWaypointV2State::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::SubscribeWaypointV2State::Response>
+          res);
+
   void pause_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::PauseWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::PauseWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::PauseWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::PauseWaypointV2Mission::Response>
+          res);
 
   void resume_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::ResumeWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::ResumeWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::ResumeWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::ResumeWaypointV2Mission::Response>
+          res);
 
   void start_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::StartWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Response>
+          res);
 
   void stop_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::StopWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::StopWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::StopWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::StopWaypointV2Mission::Response>
+          res);
 
   void download_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::DownloadWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::DownloadWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::DownloadWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::DownloadWaypointV2Mission::Response>
+          res);
 
   void upload_waypoint_v2_mission_callback(
-     const std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::UploadWaypointV2Mission::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Mission::Response>
+          res);
 
   void generate_waypoint_v2_action_callback(
-     const std::shared_ptr<psdk_interfaces::srv::GenerateWaypointV2Action::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::GenerateWaypointV2Action::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::GenerateWaypointV2Action::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::GenerateWaypointV2Action::Response>
+          res);
 
   void init_waypoint_v2_setting_callback(
-     const std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response> res);
+      const std::shared_ptr<
+          psdk_interfaces::srv::InitWaypointV2Setting::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response>
+          res);
 
   void upload_waypoint_v2_action_callback(
-     const std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Action::Request> req,
-     std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Action::Response> res);
-  
+      const std::shared_ptr<
+          psdk_interfaces::srv::UploadWaypointV2Action::Request>
+          req,
+      std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Action::Response>
+          res);
+
   /**
    * @brief Construct a new WaypointFlyingModule object
    * @param node_name Name of the node
@@ -170,14 +211,10 @@ private:
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State &state);
 
   bool init();
-  
+
   bool deinit();
-  
-  };
+};
 
-
-}
-
-
+}  // namespace psdk_ros2
 
 #endif

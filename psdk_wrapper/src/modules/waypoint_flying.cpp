@@ -194,6 +194,7 @@ WaypointFlyingModule::init()
   wfm_pointer = this;
 
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
+  print_return_code("Init mission result: ", resinit);
 
   // std::cerr << "INIT***********************resinit: " << resinit <<
   // std::endl;
@@ -347,6 +348,23 @@ WaypointFlyingModule::resume_waypoint_v2_mission_callback(
   res->result = true;
 }
 
+void WaypointFlyingModule::print_return_code(const std::string text, const T_DjiReturnCode code)
+{
+  if (const auto *err = psdk_utils::findError(code))
+  {
+    std::cerr <<  text << err->description;
+
+    if (err->suggestion) std::cerr << " (" << err->suggestion << ")";
+
+    std::cerr << std::endl;
+  }
+  else
+  {
+    std::cerr << text << " 0x" << std::hex << code << std::dec
+              << std::endl;
+  }
+}
+
 void
 WaypointFlyingModule::start_waypoint_v2_mission_callback(
     const std::shared_ptr<psdk_interfaces::srv::StartWaypointV2Mission::Request>
@@ -358,7 +376,8 @@ WaypointFlyingModule::start_waypoint_v2_mission_callback(
 
   res->result = true;
   T_DjiReturnCode startres = DjiWaypointV2_Start();
-  std::cerr << "startres: " << startres << std::endl;
+
+  print_return_code("Start mission result: ", startres);
 
   if (startres > 0)
   {
@@ -406,19 +425,7 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
   // std::cerr << "uploadres: " << uploadres << std::endl;
 
-  if (const auto *err = psdk_utils::findError(uploadres))
-  {
-    std::cerr << "UploadMission result: " << err->description;
-
-    if (err->suggestion) std::cerr << " (" << err->suggestion << ")";
-
-    std::cerr << std::endl;
-  }
-  else
-  {
-    std::cerr << "UploadMission failed: 0x" << std::hex << uploadres << std::dec
-              << std::endl;
-  }
+  print_return_code("Upload mission result: ", uploadres);
 
   // RCLCPP_INFO(
   // get_logger(),
