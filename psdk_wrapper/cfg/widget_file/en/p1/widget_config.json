@@ -100,10 +100,20 @@
             }
           },
           {
-            "item_name": "Joystick"
+            "item_name": "Joystick",
+            "icon_file_set": {
+              "icon_file_name_selected": "joy.png",
+              "icon_file_name_unselected": "joy.png"
+            }
+
           },
           {
-            "item_name": "Release joystick"
+            "item_name": "Release joystick",
+            "icon_file_set": {
+              "icon_file_name_selected": "joy.png",
+              "icon_file_name_unselected": "joy.png"
+            }
+
           }
         ],
         "customize_rc_buttons_config": {
