@@ -404,11 +404,11 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
               "upload_waypoint_v2_mission_callback");
 
   T_DjiReturnCode uploadres = DjiWaypointV2_UploadMission(ms);
-  std::cerr << "uploadres: " << uploadres << std::endl;
+  // std::cerr << "uploadres: " << uploadres << std::endl;
 
   if (const auto *err = psdk_utils::findError(uploadres))
   {
-    std::cerr << "UploadMission failed: " << err->description;
+    std::cerr << "UploadMission result: " << err->description;
 
     if (err->suggestion) std::cerr << " (" << err->suggestion << ")";
 

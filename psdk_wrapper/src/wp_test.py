@@ -3,6 +3,7 @@
 import math
 import random
 import sys
+from time import sleep
 
 import rclpy
 from rclpy.node import Node
@@ -270,6 +271,7 @@ def test2(node):
 
     lat1, lon1 = offset_gps(lat0, lon0, 10.0, 0.0)
     lat2, lon2 = offset_gps(lat1, lon1, 0.0, 10.0)
+    lat3, lon3 = offset_gps(lat2, lon2, 10.0, 10.0)
 
     mission = [
         node.make_waypoint(
@@ -281,9 +283,16 @@ def test2(node):
             lat2,
             lon2,
             5.0),
+        node.make_waypoint(
+            lat3,
+            lon3,
+            5.0),
     ]
 
     if node.upload(mission):
+        print("sleep")
+        sleep(4)
+        print("sleep done, starting")
         node.start()
 
 
