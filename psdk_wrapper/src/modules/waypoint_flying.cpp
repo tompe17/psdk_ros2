@@ -111,6 +111,8 @@ WaypointFlyingModule::on_configure(const rclcpp_lifecycle::State &state)
           std::bind(&WaypointFlyingModule::upload_waypoint_v2_action_callback,
                     this, std::placeholders::_1, std::placeholders::_2));
 
+
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -119,6 +121,11 @@ WaypointFlyingModule::on_activate(const rclcpp_lifecycle::State &state)
 {
   (void)state;
   RCLCPP_INFO(get_logger(), "Activating WaypointFlyingModule");
+
+  // subscribe always
+  subscribe_waypoint_v2_mission_event();
+  subscribe_waypoint_v2_mission_state();
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -196,10 +203,6 @@ WaypointFlyingModule::init()
   T_DjiReturnCode resinit = DjiWaypointV2_Init();
   print_return_code("DjiWaypointV2_Init result: ", resinit);
   // print_return_code("Init mission result: ", resinit);
-
-  // subscribe always
-  subscribe_waypoint_v2_mission_event();
-  subscribe_waypoint_v2_mission_state();
 
   if (resinit > 0)
   {
