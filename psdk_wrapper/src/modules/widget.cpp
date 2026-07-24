@@ -507,7 +507,7 @@ WidgetModule::widget_state_get(E_DjiWidgetType type, uint32_t index,
     {
 
 
-      *value = global_fc_ptr_->fc_mode;// self->last_flight_control_command_;
+      *value = lookup_widget_value(global_fc_ptr_->fc_command);
 
       break;
     }
