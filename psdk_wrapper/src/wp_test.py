@@ -495,7 +495,7 @@ def test5(node):
     lat0 = node.gps.latitude
     lon0 = node.gps.longitude
 
-    lat1, lon1 = offset_gps(lat0, lon0, 5.0, 0.0)
+    lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
     lat2, lon2 = offset_gps(lat1, lon1, 0.0, 0.0)
 
     path_adherence = 1.0
@@ -509,7 +509,7 @@ def test5(node):
         node.make_waypoint(
             lat2,
             lon2,
-            5.0,
+            6.0,
             wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP,
             path_adherence=path_adherence),
 

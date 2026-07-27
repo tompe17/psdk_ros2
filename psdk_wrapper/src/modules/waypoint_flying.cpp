@@ -499,9 +499,18 @@ WaypointFlyingModule::waypoint_distance(
       std::cos(a.latitude) * std::cos(b.latitude) *
           std::sin(dlon / 2.0) * std::sin(dlon / 2.0);
 
-  return 2.0 * kEarthRadius *
-         std::atan2(std::sqrt(h), std::sqrt(1.0 - h));
+  const double horizontal_distance =
+      2.0 * kEarthRadius *
+      std::atan2(std::sqrt(h), std::sqrt(1.0 - h));
+
+  const double altitude_difference =
+      b.relativeHeight - a.relativeHeight;
+
+  return std::hypot(
+      horizontal_distance,
+      altitude_difference);
 }
+
 
 double
 WaypointFlyingModule::waypoint_bearing(
