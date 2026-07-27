@@ -478,6 +478,7 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
   response->result =
       init_waypoint_v2_setting(request->waypoint_v2_init_settings);
 
+  update_damping_distances();
   print_mission_summary();
 
 }
@@ -679,7 +680,7 @@ WaypointFlyingModule::calculate_damping_distance(
     size_t waypoint_index,
     double path_adherence) const
 {
-  constexpr double kMinFactor = 0.1; // 0.05
+  constexpr double kMinFactor = 0.05;
   constexpr double kMaxFactor = 0.45;
 
   path_adherence = std::clamp(path_adherence, 0.0, 1.0);
@@ -717,6 +718,36 @@ WaypointFlyingModule::calculate_damping_distance(
       std::lround(damping_m * 100.0));
 }
 
+void
+WaypointFlyingModule::update_damping_distances()
+{
+  if (mission_.size() < 2)
+    return;
+
+  //
+  // First waypoint.
+  //
+
+  mission_.front().dampingDistance = 0;
+
+  //
+  // Interior waypoints.
+  //
+
+  for (size_t i = 1; i + 1 < mission_.size(); ++i)
+  {
+    mission_[i].dampingDistance =
+        calculate_damping_distance(
+            i,
+            mission_[i].dampingDistance);
+  }
+
+  //
+  // Last waypoint.
+  //
+
+  mission_.back().dampingDistance = 10;
+}
 bool
 WaypointFlyingModule::init_waypoint_v2_setting(
     const psdk_interfaces::msg::WaypointV2InitSetting &settings)
@@ -821,10 +852,10 @@ WaypointFlyingModule::fill_waypoint(
   dst.config.useLocalMaxVel =
       src.config.use_local_max_vel;
 
-  dst.dampingDistance = 50 +
-      calculate_damping_distance(
-          waypoint_index,
-          src.damping_distance/100.0);
+  dst.dampingDistance = src.damping_distance/100.0;
+      // calculate_damping_distance(
+          // waypoint_index,
+          // src.damping_distance/100.0);
 
   dst.heading = src.heading;
 

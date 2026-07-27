@@ -242,6 +242,8 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
       E_DJIWaypointV2FlightPathMode mode) const;
   uint16_t calculate_damping_distance(size_t waypoint_index,
                                       double factor) const;
+  void update_damping_distances();
+
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 
