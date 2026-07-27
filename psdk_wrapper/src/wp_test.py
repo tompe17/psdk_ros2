@@ -401,7 +401,7 @@ def test3(node):
     lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
     lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)
 
-    path_adherence = 0.5
+    path_adherence = 0.0
     # wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE
     wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN
     alt = 5.0

@@ -683,7 +683,7 @@ WaypointFlyingModule::calculate_damping_distance(
   constexpr double kMinFactor = 0.05;
   constexpr double kMaxFactor = 0.45;
 
-  path_adherence = std::clamp(path_adherence, 0.0, 1.0);
+  path_adherence = std::clamp(-path_adherence, 0.0, 1.0);
 
   //
   // First and last waypoints do not use damping.
