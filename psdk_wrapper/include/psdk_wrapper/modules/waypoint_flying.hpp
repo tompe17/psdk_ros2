@@ -237,6 +237,9 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
   double waypoint_turn_angle(const T_DjiWaypointV2 &a,
                                    const T_DjiWaypointV2 &b,
                                    const T_DjiWaypointV2 &c) const;
+  std::string flight_path_mode_to_string(
+    E_DJIWaypointV2FlightPathMode mode) const;
+
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 

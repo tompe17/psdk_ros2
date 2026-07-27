@@ -607,7 +607,7 @@ WaypointFlyingModule::print_mission_summary() const
         "hdg=%6.1f° "
         "turn=%6.1f° "
         "damp=%4ucm "
-        "type=%u",
+        "type=%s",
         i,
         wp.latitude * kRadToDeg,
         wp.longitude * kRadToDeg,
@@ -616,7 +616,7 @@ WaypointFlyingModule::print_mission_summary() const
         heading,
         turn,
         wp.dampingDistance,
-        static_cast<uint32_t>(wp.waypointType));
+        flight_path_mode_to_string(wp.waypointType).c_str());
 
     if (i == 0 &&
         wp.waypointType ==
@@ -700,6 +700,38 @@ WaypointFlyingModule::init_waypoint_v2_setting(
   ms_.actionList = action_list_;
 
   return true;
+}
+
+std::string
+WaypointFlyingModule::flight_path_mode_to_string(
+    E_DJIWaypointV2FlightPathMode mode) const
+{
+  switch (mode)
+  {
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_CURVE:
+      return "Curve Fly-By";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_CURVE_AND_STOP:
+      return "Curve Stop";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_STRAIGHT_AND_STOP:
+      return "Straight Stop";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN:
+      return "Coord Turn";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_FIRST_POINT_ALONG_STRAIGHT_LINE:
+      return "First Straight";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_STRAIGHT_OUT:
+      return "Straight Out";
+
+    case DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_UNKNOWN:
+      return "Unknown";
+
+    default:
+      return "Invalid";
+  }
 }
 
 void
