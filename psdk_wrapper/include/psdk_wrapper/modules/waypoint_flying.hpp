@@ -229,6 +229,8 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
       const psdk_interfaces::msg::WaypointV2InitSetting &settings);
   void fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
                      T_DjiWaypointV2 &dst);
+  void print_mission_summary() const;
+
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 

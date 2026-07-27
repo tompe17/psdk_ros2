@@ -477,6 +477,127 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
 {
   response->result =
       init_waypoint_v2_setting(request->waypoint_v2_init_settings);
+
+  print_mission_summary();
+
+}
+
+void
+WaypointFlyingModule::print_mission_summary() const
+{
+  if (ms_.missTotalLen == 0)
+  {
+    RCLCPP_INFO(get_logger(), "Mission is empty.");
+    return;
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Mission %u: %u waypoint(s), repeat=%u, max_speed=%.1f m/s, "
+      "auto_speed=%.1f m/s",
+      ms_.missionID,
+      ms_.missTotalLen,
+      ms_.repeatTimes,
+      ms_.maxFlightSpeed,
+      ms_.autoFlightSpeed);
+
+  double total_length = 0.0;
+
+  auto distance = [](const T_DjiWaypointV2 &a,
+                     const T_DjiWaypointV2 &b)
+  {
+    constexpr double R = 6378137.0;
+
+    double lat1 = a.latitude * M_PI / 180.0;
+    double lat2 = b.latitude * M_PI / 180.0;
+    double dlat = lat2 - lat1;
+    double dlon = (b.longitude - a.longitude) * M_PI / 180.0;
+
+    double h =
+        sin(dlat / 2.0) * sin(dlat / 2.0) +
+        cos(lat1) * cos(lat2) *
+            sin(dlon / 2.0) * sin(dlon / 2.0);
+
+    return 2.0 * R * atan2(sqrt(h), sqrt(1.0 - h));
+  };
+
+  auto bearing = [](const T_DjiWaypointV2 &a,
+                    const T_DjiWaypointV2 &b)
+  {
+    double lat1 = a.latitude * M_PI / 180.0;
+    double lat2 = b.latitude * M_PI / 180.0;
+    double dlon = (b.longitude - a.longitude) * M_PI / 180.0;
+
+    double x = sin(dlon) * cos(lat2);
+
+    double y =
+        cos(lat1) * sin(lat2) -
+        sin(lat1) * cos(lat2) * cos(dlon);
+
+    double brg = atan2(x, y) * 180.0 / M_PI;
+
+    if (brg < 0)
+      brg += 360.0;
+
+    return brg;
+  };
+
+  for (uint16_t i = 0; i < ms_.missTotalLen; ++i)
+  {
+    const auto &wp = ms_.mission[i];
+
+    double seg_len = 0.0;
+    double seg_heading = 0.0;
+    double turn_angle = 0.0;
+
+    if (i > 0)
+    {
+      seg_len = distance(ms_.mission[i - 1], wp);
+      seg_heading = bearing(ms_.mission[i - 1], wp);
+
+      total_length += seg_len;
+    }
+
+    if (i > 1)
+    {
+      double prev_heading =
+          bearing(ms_.mission[i - 2], ms_.mission[i - 1]);
+
+      turn_angle = seg_heading - prev_heading;
+
+      while (turn_angle > 180.0)
+        turn_angle -= 360.0;
+
+      while (turn_angle < -180.0)
+        turn_angle += 360.0;
+    }
+
+    RCLCPP_INFO(
+        get_logger(),
+        "WP%-2u "
+        "lat=%10.7f "
+        "lon=%11.7f "
+        "h=%5.1f "
+        "type=%u "
+        "dist=%6.2f m "
+        "hdg=%6.1f° "
+        "turn=%6.1f° "
+        "damp=%u cm",
+        i,
+        wp.latitude,
+        wp.longitude,
+        wp.relativeHeight,
+        wp.waypointType,
+        seg_len,
+        seg_heading,
+        turn_angle,
+        wp.dampingDistance);
+  }
+
+  RCLCPP_INFO(
+      get_logger(),
+      "Total mission length: %.1f m",
+      total_length);
 }
 
 bool
@@ -541,25 +662,30 @@ WaypointFlyingModule::fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
   dst.headingMode = static_cast<E_DJIWaypointV2HeadingMode>(src.heading_mode);
 
   dst.config.useLocalCruiseVel = src.config.use_local_cruise_vel;
-
   dst.config.useLocalMaxVel = src.config.use_local_max_vel;
-
   dst.dampingDistance = src.damping_distance;
-
   dst.heading = src.heading;
-
   dst.turnMode = static_cast<E_DJIWaypointV2TurnMode>(src.turn_mode);
-
   dst.maxFlightSpeed = src.max_flight_speed;
-
   dst.autoFlightSpeed = src.auto_flight_speed;
 
   //
-  // Currently unused
+  // Only used with HEADING_TOWARDS_POINT_OF_INTEREST.
+  // Not exposed yet.
   //
-  // dst.pointOfInterest.positionX = src.position_x;
-  // dst.pointOfInterest.positionY = src.position_y;
-  // dst.pointOfInterest.positionZ = src.position_z;
+  /*
+  dst.pointOfInterest.positionX = src.position_x;
+  dst.pointOfInterest.positionY = src.position_y;
+  dst.pointOfInterest.positionZ = src.position_z;
+  */
+  if (src.heading_mode ==
+        DJI_WAYPOINT_V2_HEADING_TOWARDS_POINT_OF_INTEREST)
+  {
+    RCLCPP_WARN(
+        get_logger(),
+        "Point-of-interest heading mode selected, "
+        "but pointOfInterest is not yet supported.");
+  }
 }
 
 #if 0
