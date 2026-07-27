@@ -661,24 +661,27 @@ WaypointFlyingModule::print_mission_summary() const
  *
  * The user specifies a normalized path adherence factor in the range [0, 1]:
  *
- *   0.0 : Minimum damping.
- *         The aircraft is allowed to cut the corner as much as possible.
+ *   0.0 : Minimum path adherence.
+ *         The aircraft is allowed to cut corners as much as practical.
  *
- *   1.0 : Maximum damping.
- *         The aircraft follows the planned path as closely as possible.
+ *   1.0 : Maximum path adherence.
+ *         The aircraft follows the planned path as closely as practical.
  *
- * Internally, the factor is mapped to the largest damping distance considered
- * safe for the current geometry. The maximum damping is limited to 45% of the
- * shorter adjacent segment. This leaves a small safety margin below DJI's
- * theoretical limit of half the segment length.
+ * Internally, the factor is mapped to a damping distance between 5% and 45%
+ * of the shorter adjacent segment. The lower limit avoids a zero damping
+ * distance, while the upper limit leaves a small safety margin below DJI's
+ * theoretical recommendation of half the segment length.
  *
- * The returned value is in centimeters, as expected by the DJI PSDK.
+ * The returned value is expressed in centimeters, as required by the DJI PSDK.
  */
 uint16_t
 WaypointFlyingModule::calculate_damping_distance(
     size_t waypoint_index,
     double path_adherence) const
 {
+  constexpr double kMinFactor = 0.05;
+  constexpr double kMaxFactor = 0.45;
+
   path_adherence = std::clamp(path_adherence, 0.0, 1.0);
 
   //
@@ -700,19 +703,20 @@ WaypointFlyingModule::calculate_damping_distance(
           mission_[waypoint_index],
           mission_[waypoint_index + 1]);
 
-  //
-  // DJI recommends that damping does not exceed half of the shorter
-  // adjacent segment. Use 45% to leave a small safety margin.
-  //
-  const double max_damping_m =
-      0.45 * std::min(previous_segment, next_segment);
+  const double shortest_segment =
+      std::min(previous_segment, next_segment);
+
+  const double factor =
+      kMinFactor +
+      path_adherence * (kMaxFactor - kMinFactor);
 
   const double damping_m =
-      path_adherence * max_damping_m;
+      factor * shortest_segment;
 
   return static_cast<uint16_t>(
       std::lround(damping_m * 100.0));
 }
+
 bool
 WaypointFlyingModule::init_waypoint_v2_setting(
     const psdk_interfaces::msg::WaypointV2InitSetting &settings)
