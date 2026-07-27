@@ -719,7 +719,7 @@ WaypointFlyingModule::calculate_damping_distance(
 
 
   auto damping_cm = static_cast<uint16_t>(std::lround(damping_m * 100.0));
-  damping_cm = std::min(damping_cm, static_cast<uint16_t>(minimum_damping_distance_cm_));
+  damping_cm = std::min(damping_cm, minimum_damping_distance_cm_);
 
   return damping_cm;
 }
