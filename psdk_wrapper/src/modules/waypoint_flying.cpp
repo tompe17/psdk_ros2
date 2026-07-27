@@ -820,7 +820,7 @@ WaypointFlyingModule::fill_waypoint(
   dst.dampingDistance =
       calculate_damping_distance(
           waypoint_index,
-          src.damping_distance);
+          src.damping_distance/100.0);
 
   dst.heading = src.heading;
 
