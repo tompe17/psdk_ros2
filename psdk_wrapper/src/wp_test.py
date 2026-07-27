@@ -156,7 +156,7 @@ class WaypointTester(Node):
     ############################################################
 
     def make_waypoint(self, lat_deg, lon_deg, rel_height, wp_type=WaypointV2.
-            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP, dumping_m=4):
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP, path_adherence=1.0):
 
         wp = WaypointV2()
 
@@ -201,7 +201,8 @@ class WaypointTester(Node):
         wp.max_flight_speed = 10.0
         wp.auto_flight_speed = 7.0
 
-        wp.damping_distance = int(dumping_m*100.0)
+        # wp.damping_distance = int(dumping_m*100.0)
+        wp.damping_distance = int(path_adherence*100.0)
 
         wp.config.use_local_cruise_vel = 0
         wp.config.use_local_max_vel = 0
@@ -370,14 +371,14 @@ def test2(node):
             lon2,
             5.0,
             wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
-            dumping_m=5),
+            path_adherence=1.0),
 
         node.make_waypoint(
             lat3,
             lon3,
             5.0,
             wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
-            dumping_m=5),
+            path_adherence=1.0),
     ]
 
     if node.upload(mission):
@@ -397,34 +398,42 @@ def test3(node):
     lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
     lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)
 
+    path_adherence = 1.0
+    # wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE
+    wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN
+    alt = 5.0
     mission = [
         node.make_waypoint(
             lat1,
             lon1,
-            5.0),
+            alt),
 
         node.make_waypoint(
             lat2,
             lon2,
-            5.0,
-            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+            alt,
+            path_adherence=path_adherence,
+            wp_type = wp_type),
 
         node.make_waypoint(
             lat3,
             lon3,
-            5.0,
-            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+            alt,
+            path_adherence=path_adherence,
+            wp_type = wp_type),
         node.make_waypoint(
             lat4,
             lon4,
-            5.0,
-            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+            alt,
+            path_adherence=path_adherence,
+            wp_type = wp_type),
 
         node.make_waypoint(
             lat1,
             lon1,
-            5.0,
-            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE),
+            alt,
+            path_adherence=path_adherence,
+            wp_type = wp_type),
     ]
 
     if node.upload(mission):
