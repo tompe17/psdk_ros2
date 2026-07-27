@@ -78,7 +78,7 @@ def generate_launch_description():
     declare_frame_prefix_arg = DeclareLaunchArgument(
         "tf_frame_prefix",
         default_value=PythonExpression([
-            "'", namespace, "'.replace('/', '')"
+            "'",  LaunchConfiguration("namespace"), "'.replace('/', '')"
         ]),
         description="TF frame prefix",
     )
