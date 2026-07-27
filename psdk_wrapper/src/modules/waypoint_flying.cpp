@@ -719,7 +719,7 @@ WaypointFlyingModule::calculate_damping_distance(
 
 
   auto damping_cm = static_cast<uint16_t>(std::lround(damping_m * 100.0));
-  damping_cm = std::min(damping_cm, minimum_damping_distance_cm_);
+  damping_cm = std::max(damping_cm, minimum_damping_distance_cm_);
 
   return damping_cm;
 }
@@ -739,7 +739,6 @@ WaypointFlyingModule::update_damping_distances()
   //
   // Interior waypoints.
   //
-
   for (size_t i = 1; i + 1 < mission_.size(); ++i)
   {
     mission_[i].dampingDistance =
@@ -751,7 +750,6 @@ WaypointFlyingModule::update_damping_distances()
   //
   // Last waypoint.
   //
-
   mission_.back().dampingDistance = minimum_damping_distance_cm_;
 }
 bool
