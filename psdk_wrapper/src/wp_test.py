@@ -396,7 +396,7 @@ def test3(node):
     lat0 = node.gps.latitude
     lon0 = node.gps.longitude
 
-    lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
+    lat1, lon1 = offset_gps(lat0, lon0, 1.0, 0.0)
     lat2, lon2 = offset_gps(lat1, lon1, 10.0, 10.0)
     lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
     lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)

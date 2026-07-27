@@ -679,7 +679,7 @@ WaypointFlyingModule::calculate_damping_distance(
     size_t waypoint_index,
     double path_adherence) const
 {
-  constexpr double kMinFactor = 0.1;
+  constexpr double kMinFactor = 0.1; // 0.05
   constexpr double kMaxFactor = 0.45;
 
   path_adherence = std::clamp(path_adherence, 0.0, 1.0);
@@ -821,7 +821,7 @@ WaypointFlyingModule::fill_waypoint(
   dst.config.useLocalMaxVel =
       src.config.use_local_max_vel;
 
-  dst.dampingDistance =
+  dst.dampingDistance = 50 +
       calculate_damping_distance(
           waypoint_index,
           src.damping_distance/100.0);
