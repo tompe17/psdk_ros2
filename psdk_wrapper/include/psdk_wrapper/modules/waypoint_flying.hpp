@@ -53,7 +53,7 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 
  public:
   void print_return_code(const std::string &text,
-                                const T_DjiReturnCode code) const;
+                         const T_DjiReturnCode code) const;
   static bool subscribe_waypoint_v2_mission_event();
   static bool subscribe_waypoint_v2_mission_state();
   // T_DjiReturnCode state_callback(T_DjiWaypointV2MissionStatePush stateData);
@@ -220,6 +220,15 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
   bool init();
 
   bool deinit();
+  T_DjiWayPointV2MissionSettings ms_{};
+
+  std::vector<T_DjiWaypointV2> mission_;
+
+  T_DJIWaypointV2ActionList action_list_{};
+  bool init_waypoint_v2_setting(
+      const psdk_interfaces::msg::WaypointV2InitSetting &settings);
+  void fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
+                     T_DjiWaypointV2 &dst);
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 

@@ -475,6 +475,101 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
     std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response>
         response)
 {
+  response->result =
+      init_waypoint_v2_setting(request->waypoint_v2_init_settings);
+}
+
+bool
+WaypointFlyingModule::init_waypoint_v2_setting(
+    const psdk_interfaces::msg::WaypointV2InitSetting &settings)
+{
+  RCLCPP_INFO(get_logger(), "Initializing Waypoint V2 mission");
+
+  //
+  // Currently unused
+  //
+  // uint16_t polygon_num = settings.polygon_num;
+  // float radius = settings.radius;
+  // uint16_t action_num = settings.action_num;
+
+  mission_.resize(settings.mission.size());
+
+  ms_ = {};
+  ms_.missionID = std::rand();
+  ms_.repeatTimes = settings.repeat_times;
+  ms_.finishedAction = static_cast<E_DJIWaypointV2MissionFinishedAction>(
+      settings.finished_action);
+
+  ms_.maxFlightSpeed = settings.max_flight_speed;
+  ms_.autoFlightSpeed = settings.auto_flight_speed;
+  ms_.actionWhenRcLost =
+      DJI_WAYPOINT_V2_MISSION_STOP_WAYPOINT_V2_AND_EXECUTE_RC_LOST_ACTION;
+
+  ms_.gotoFirstWaypointMode =
+      static_cast<E_DJIWaypointV2MissionGotoFirstWaypointMode>(
+          settings.goto_first_waypoint_mode);
+
+  ms_.missTotalLen = mission_.size();
+  for (size_t i = 0; i < mission_.size(); ++i)
+  {
+    fill_waypoint(settings.mission[i], mission_[i]);
+  }
+  action_list_ = {};
+  action_list_.actions = nullptr;
+  action_list_.actionNum = 0;
+
+  ms_.mission = mission_.data();
+  ms_.actionList = action_list_;
+
+  return true;
+}
+
+void
+WaypointFlyingModule::fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
+                                    T_DjiWaypointV2 &dst)
+{
+  dst = {};
+
+  dst.longitude = src.longitude;
+  dst.latitude = src.latitude;
+
+  dst.relativeHeight = src.relative_height;
+
+  dst.waypointType =
+      static_cast<E_DJIWaypointV2FlightPathMode>(src.waypoint_type);
+
+  dst.headingMode = static_cast<E_DJIWaypointV2HeadingMode>(src.heading_mode);
+
+  dst.config.useLocalCruiseVel = src.config.use_local_cruise_vel;
+
+  dst.config.useLocalMaxVel = src.config.use_local_max_vel;
+
+  dst.dampingDistance = src.damping_distance;
+
+  dst.heading = src.heading;
+
+  dst.turnMode = static_cast<E_DJIWaypointV2TurnMode>(src.turn_mode);
+
+  dst.maxFlightSpeed = src.max_flight_speed;
+
+  dst.autoFlightSpeed = src.auto_flight_speed;
+
+  //
+  // Currently unused
+  //
+  // dst.pointOfInterest.positionX = src.position_x;
+  // dst.pointOfInterest.positionY = src.position_y;
+  // dst.pointOfInterest.positionZ = src.position_z;
+}
+
+#if 0
+void
+WaypointFlyingModule::init_waypoint_v2_setting_callback(
+    const std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Request>
+        request,
+    std::shared_ptr<psdk_interfaces::srv::InitWaypointV2Setting::Response>
+        response)
+{
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
               "init_waypoint_v2_setting_callback");
 
@@ -564,7 +659,7 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
   //     response->result = false;
   //   }
 }
-
+#endif
 void
 WaypointFlyingModule::upload_waypoint_v2_action_callback(
     const std::shared_ptr<psdk_interfaces::srv::UploadWaypointV2Action::Request>

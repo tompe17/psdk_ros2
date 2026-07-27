@@ -1,5 +1,68 @@
 #!/usr/bin/env python3
 
+# ## Notes on DJI PSDK Waypoint V2 Missions
+#
+# The following observations were made experimentally using the DJI PSDK and simulator. Some behaviors are not documented by DJI and may vary between firmware versions.
+#
+# ### General
+#
+# - A mission must contain **at least two waypoints**. Uploading a mission with only a single waypoint will fail.
+# - Waypoint latitude and longitude are specified in **radians**, not degrees.
+# - Waypoint altitude (`relativeHeight`) is specified **relative to the takeoff point**.
+#
+# ### Damping Distance
+#
+# - `dampingDistance` is specified in **centimeters**.
+# - It is recommended to expose this parameter in meters and convert internally.
+# - A reasonable default is to limit the damping distance to approximately **half of the length of the preceding segment**.
+# - Very short segments may still violate DJI's constraints.
+#
+# ### Flight Path Modes
+#
+# #### Straight Line
+#
+# - Very small waypoint spacing is allowed (approximately **0.1 m** in simulation).
+# - Damping distance appears to have little or no effect.
+#
+# #### Curve
+#
+# - The aircraft always passes directly through the waypoint.
+# - Damping distance appears to have no observable effect.
+# - Waypoints may be spaced as closely as **0.1 m** in simulation.
+#
+# #### Curve and Stop (`GoToPointAlongACurveAndStop`)
+#
+# - If the aircraft overshoots the waypoint, it flies back toward it before stopping.
+# - This correction maneuver can appear unnatural.
+#
+# #### Coordinated Turn
+#
+# - The **first waypoint cannot use Coordinated Turn**. The mission upload succeeds, but the aircraft refuses to execute the mission.
+# - The aircraft may begin turning before reaching the waypoint if the damping distance is sufficiently large.
+# - Small damping distances cause the aircraft to fly much closer to the waypoint before initiating the turn.
+# - Consecutive waypoints should be separated by at least **3 m**.
+# - The angle between consecutive segments must be at least **3°**.
+#
+# ### Heading Behavior
+#
+# - The heading specified for the **first waypoint** is ignored.
+# - The aircraft initially aligns its heading with the direction of the first mission segment.
+#
+# ### Mixed Flight Path Modes
+#
+# - If the first waypoint is configured as a straight-line waypoint and the second waypoint uses a curve mode, the first segment is also flown as a curve.
+# - In practice, the curve behavior propagates to the preceding segment.
+#
+# ### Recommended Defaults
+#
+# For general waypoint missions, the following settings have produced reliable results:
+#
+# - Minimum of **2 waypoints**
+# - Straight-line flight path
+# - Waypoint spacing greater than **1 m**
+# - Damping distance appropriate for the segment length
+# - First waypoint using a straight-line flight path (not Coordinated Turn)
+
 import math
 import random
 import sys
