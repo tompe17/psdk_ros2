@@ -265,7 +265,8 @@ class WaypointTester(Node):
         s.exit_mission_on_signal_lost = 1
 
         s.goto_first_waypoint_mode = (
-            s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
+            # s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_SAFELY
+            s.DJI_WAYPOINT_V2_MISSION_GOTO_FIRST_WAYPOINT_MODE_POINT_TO_POINT
         )
 
         s.mission = mission
@@ -275,8 +276,8 @@ class WaypointTester(Node):
         for i, wp in enumerate(mission):
             print(
                 f"WP{i}: "
-                f"lat(rad)={wp.latitude:.10f} "
-                f"lon(rad)={wp.longitude:.10f} "
+                f"lat={math.degrees(wp.latitude):.10f} "
+                f"lon={math.degrees(wp.longitude):.10f} "
                 f"h={wp.relative_height:.1f}"
             )
 
@@ -402,9 +403,10 @@ def test3(node):
     lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
     lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)
 
-    path_adherence = 1.0
+    path_adherence = 0.0
     # wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE
-    wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN
+    # wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN
+    wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP
     alt = 5.0
     mission = [
         node.make_waypoint(
@@ -483,6 +485,41 @@ def test4(node):
     if node.upload(mission):
         node.start()
 
+
+def test5(node):
+
+    print("\n==============================")
+    print("TEST 5: alt")
+    print("==============================")
+
+    lat0 = node.gps.latitude
+    lon0 = node.gps.longitude
+
+    lat1, lon1 = offset_gps(lat0, lon0, 5.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, 0.0, 0.0)
+
+    path_adherence = 1.0
+
+    mission = [
+        node.make_waypoint(
+            lat1,
+            lon1,
+            5.0),
+
+        node.make_waypoint(
+            lat2,
+            lon2,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP,
+            path_adherence=path_adherence),
+
+    ]
+
+    if node.upload(mission):
+        node.start()
+
+
+
 ############################################################
 
 
@@ -513,6 +550,8 @@ def main():
 
     elif test == 4:
         test4(node)
+    elif test == 5:
+        test5(node)
 
     else:
         print("Unknown test")

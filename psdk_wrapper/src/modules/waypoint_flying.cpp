@@ -631,15 +631,15 @@ WaypointFlyingModule::print_mission_summary() const
 
     if (i > 0)
     {
-      if (wp.dampingDistance >
-          segment_distance * 50.0)
-      {
-        RCLCPP_WARN(
-            get_logger(),
-            "  Damping (%.2fm) exceeds half the segment length (%.2fm).",
-            wp.dampingDistance / 100.0,
-            segment_distance / 2.0);
-      }
+      // if (wp.dampingDistance >
+      //     segment_distance * 50.0)
+      // {
+      //   RCLCPP_WARN(
+      //       get_logger(),
+      //       "  Damping (%.2fm) exceeds half the segment length (%.2fm).",
+      //       wp.dampingDistance / 100.0,
+      //       segment_distance / 2.0);
+      // }
 
       if (wp.waypointType ==
               DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN &&
@@ -714,9 +714,6 @@ WaypointFlyingModule::calculate_damping_distance(
 
   const double damping_m =
       factor * shortest_segment;
-
-
-
 
   auto damping_cm = static_cast<uint16_t>(std::lround(damping_m * 100.0));
   damping_cm = std::max(damping_cm, minimum_damping_distance_cm_);
