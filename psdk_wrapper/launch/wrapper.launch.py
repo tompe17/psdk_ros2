@@ -9,7 +9,7 @@
 
 from launch import LaunchDescription
 from launch_ros.substitutions import FindPackageShare
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.actions import EmitEvent, DeclareLaunchArgument
 from launch_ros.actions import LifecycleNode
 from launch_ros.events.lifecycle import ChangeState
@@ -77,7 +77,9 @@ def generate_launch_description():
 
     declare_frame_prefix_arg = DeclareLaunchArgument(
         "tf_frame_prefix",
-        default_value=namespace.replace("/", ""),
+        default_value=PythonExpression([
+            "'", namespace, "'.replace('/', '')"
+        ]),
         description="TF frame prefix",
     )
 
