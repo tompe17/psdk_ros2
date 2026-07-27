@@ -444,7 +444,7 @@ WaypointFlyingModule::upload_waypoint_v2_mission_callback(
   // RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
   // "upload_waypoint_v2_mission_callback");
 
-  T_DjiReturnCode ret = DjiWaypointV2_UploadMission(ms);
+  T_DjiReturnCode ret = DjiWaypointV2_UploadMission(&ms_);
   print_return_code("Upload mission result: ", ret);
 
   res->result = true;

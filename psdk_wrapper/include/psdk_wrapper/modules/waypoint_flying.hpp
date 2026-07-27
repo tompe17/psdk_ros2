@@ -48,7 +48,7 @@ T_DjiReturnCode mission_event_callback(
 class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
 {
  private:
-  T_DjiWayPointV2MissionSettings *ms;
+  // T_DjiWayPointV2MissionSettings *ms;
   bool is_module_initialized_{false};
 
  public:
