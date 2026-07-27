@@ -109,6 +109,7 @@ def generate_launch_description():
                 "sim": LaunchConfiguration("sim"),
             },
         ],
+        remappings[('psdk_ros2/pose', 'pose'), ('psdk_ros2/geopose', 'geopose')],
     )
 
     # Configure lifecycle node
