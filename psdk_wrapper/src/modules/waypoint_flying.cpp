@@ -482,9 +482,72 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
 
 }
 
+double
+WaypointFlyingModule::waypoint_distance(
+    const T_DjiWaypointV2 &a,
+    const T_DjiWaypointV2 &b) const
+{
+  constexpr double kEarthRadius = 6378137.0;
+
+  const double dlat = b.latitude - a.latitude;
+  const double dlon = b.longitude - a.longitude;
+
+  const double h =
+      std::sin(dlat / 2.0) * std::sin(dlat / 2.0) +
+      std::cos(a.latitude) * std::cos(b.latitude) *
+          std::sin(dlon / 2.0) * std::sin(dlon / 2.0);
+
+  return 2.0 * kEarthRadius *
+         std::atan2(std::sqrt(h), std::sqrt(1.0 - h));
+}
+
+double
+WaypointFlyingModule::waypoint_bearing(
+    const T_DjiWaypointV2 &a,
+    const T_DjiWaypointV2 &b) const
+{
+  const double dlon = b.longitude - a.longitude;
+
+  const double x =
+      std::sin(dlon) * std::cos(b.latitude);
+
+  const double y =
+      std::cos(a.latitude) * std::sin(b.latitude) -
+      std::sin(a.latitude) * std::cos(b.latitude) *
+          std::cos(dlon);
+
+  double heading = std::atan2(x, y) * 180.0 / M_PI;
+
+  if (heading < 0.0)
+    heading += 360.0;
+
+  return heading;
+}
+
+double
+WaypointFlyingModule::waypoint_turn_angle(
+    const T_DjiWaypointV2 &a,
+    const T_DjiWaypointV2 &b,
+    const T_DjiWaypointV2 &c) const
+{
+  const double h1 = waypoint_bearing(a, b);
+  const double h2 = waypoint_bearing(b, c);
+
+  double angle = h2 - h1;
+
+  while (angle > 180.0)
+    angle -= 360.0;
+
+  while (angle < -180.0)
+    angle += 360.0;
+
+  return angle;
+}
 void
 WaypointFlyingModule::print_mission_summary() const
 {
+  constexpr double kRadToDeg = 180.0 / M_PI;
+
   if (ms_.missTotalLen == 0)
   {
     RCLCPP_INFO(get_logger(), "Mission is empty.");
@@ -493,111 +556,105 @@ WaypointFlyingModule::print_mission_summary() const
 
   RCLCPP_INFO(
       get_logger(),
-      "Mission %u: %u waypoint(s), repeat=%u, max_speed=%.1f m/s, "
-      "auto_speed=%.1f m/s",
+      "Mission %u: %u waypoint(s), repeat=%u, max_speed=%.1f m/s, auto_speed=%.1f m/s",
       ms_.missionID,
       ms_.missTotalLen,
       ms_.repeatTimes,
       ms_.maxFlightSpeed,
       ms_.autoFlightSpeed);
 
-  double total_length = 0.0;
-
-  auto distance = [](const T_DjiWaypointV2 &a,
-                     const T_DjiWaypointV2 &b)
-  {
-    constexpr double R = 6378137.0;
-
-    double lat1 = a.latitude * M_PI / 180.0;
-    double lat2 = b.latitude * M_PI / 180.0;
-    double dlat = lat2 - lat1;
-    double dlon = (b.longitude - a.longitude) * M_PI / 180.0;
-
-    double h =
-        sin(dlat / 2.0) * sin(dlat / 2.0) +
-        cos(lat1) * cos(lat2) *
-            sin(dlon / 2.0) * sin(dlon / 2.0);
-
-    return 2.0 * R * atan2(sqrt(h), sqrt(1.0 - h));
-  };
-
-  auto bearing = [](const T_DjiWaypointV2 &a,
-                    const T_DjiWaypointV2 &b)
-  {
-    double lat1 = a.latitude * M_PI / 180.0;
-    double lat2 = b.latitude * M_PI / 180.0;
-    double dlon = (b.longitude - a.longitude) * M_PI / 180.0;
-
-    double x = sin(dlon) * cos(lat2);
-
-    double y =
-        cos(lat1) * sin(lat2) -
-        sin(lat1) * cos(lat2) * cos(dlon);
-
-    double brg = atan2(x, y) * 180.0 / M_PI;
-
-    if (brg < 0)
-      brg += 360.0;
-
-    return brg;
-  };
+  double total_distance = 0.0;
 
   for (uint16_t i = 0; i < ms_.missTotalLen; ++i)
   {
-    const auto &wp = ms_.mission[i];
+    const auto &wp = mission_[i];
 
-    double seg_len = 0.0;
-    double seg_heading = 0.0;
-    double turn_angle = 0.0;
+    double segment_distance = 0.0;
+    double heading = 0.0;
+    double turn = 0.0;
 
     if (i > 0)
     {
-      seg_len = distance(ms_.mission[i - 1], wp);
-      seg_heading = bearing(ms_.mission[i - 1], wp);
+      segment_distance =
+          waypoint_distance(
+              mission_[i - 1],
+              mission_[i]);
 
-      total_length += seg_len;
+      heading =
+          waypoint_bearing(
+              mission_[i - 1],
+              mission_[i]);
+
+      total_distance += segment_distance;
     }
 
     if (i > 1)
     {
-      double prev_heading =
-          bearing(ms_.mission[i - 2], ms_.mission[i - 1]);
-
-      turn_angle = seg_heading - prev_heading;
-
-      while (turn_angle > 180.0)
-        turn_angle -= 360.0;
-
-      while (turn_angle < -180.0)
-        turn_angle += 360.0;
+      turn =
+          waypoint_turn_angle(
+              mission_[i - 2],
+              mission_[i - 1],
+              mission_[i]);
     }
 
     RCLCPP_INFO(
         get_logger(),
         "WP%-2u "
-        "lat=%10.7f "
-        "lon=%11.7f "
-        "h=%5.1f "
-        "type=%u "
-        "dist=%6.2f m "
+        "lat=%10.7f° "
+        "lon=%11.7f° "
+        "h=%5.1fm "
+        "dist=%6.2fm "
         "hdg=%6.1f° "
         "turn=%6.1f° "
-        "damp=%u cm",
+        "damp=%4ucm "
+        "type=%u",
         i,
-        wp.latitude,
-        wp.longitude,
+        wp.latitude * kRadToDeg,
+        wp.longitude * kRadToDeg,
         wp.relativeHeight,
-        wp.waypointType,
-        seg_len,
-        seg_heading,
-        turn_angle,
-        wp.dampingDistance);
+        segment_distance,
+        heading,
+        turn,
+        wp.dampingDistance,
+        static_cast<uint32_t>(wp.waypointType));
+
+    if (i == 0 &&
+        wp.waypointType ==
+            DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN)
+    {
+      RCLCPP_WARN(
+          get_logger(),
+          "  First waypoint is a coordinated turn.");
+    }
+
+    if (i > 0)
+    {
+      if (wp.dampingDistance >
+          segment_distance * 50.0)
+      {
+        RCLCPP_WARN(
+            get_logger(),
+            "  Damping (%.2fm) exceeds half the segment length (%.2fm).",
+            wp.dampingDistance / 100.0,
+            segment_distance / 2.0);
+      }
+
+      if (wp.waypointType ==
+              DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN &&
+          segment_distance < 3.0)
+      {
+        RCLCPP_WARN(
+            get_logger(),
+            "  Coordinated turn segment is only %.2fm.",
+            segment_distance);
+      }
+    }
   }
 
   RCLCPP_INFO(
       get_logger(),
-      "Total mission length: %.1f m",
-      total_length);
+      "Total mission length: %.2f m",
+      total_distance);
 }
 
 bool

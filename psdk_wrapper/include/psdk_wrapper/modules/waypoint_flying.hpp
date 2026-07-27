@@ -230,7 +230,13 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
   void fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
                      T_DjiWaypointV2 &dst);
   void print_mission_summary() const;
-
+  double waypoint_distance(const T_DjiWaypointV2 &a,
+                           const T_DjiWaypointV2 &b) const;
+  double waypoint_bearing(const T_DjiWaypointV2 &a,
+                          const T_DjiWaypointV2 &b) const;
+  double waypoint_turn_angle(const T_DjiWaypointV2 &a,
+                                   const T_DjiWaypointV2 &b,
+                                   const T_DjiWaypointV2 &c) const;
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 
