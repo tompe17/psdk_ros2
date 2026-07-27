@@ -656,7 +656,63 @@ WaypointFlyingModule::print_mission_summary() const
       "Total mission length: %.2f m",
       total_distance);
 }
+/**
+ * Calculate the DJI damping distance for a coordinated-turn waypoint.
+ *
+ * The user specifies a normalized path adherence factor in the range [0, 1]:
+ *
+ *   0.0 : Minimum damping.
+ *         The aircraft is allowed to cut the corner as much as possible.
+ *
+ *   1.0 : Maximum damping.
+ *         The aircraft follows the planned path as closely as possible.
+ *
+ * Internally, the factor is mapped to the largest damping distance considered
+ * safe for the current geometry. The maximum damping is limited to 45% of the
+ * shorter adjacent segment. This leaves a small safety margin below DJI's
+ * theoretical limit of half the segment length.
+ *
+ * The returned value is in centimeters, as expected by the DJI PSDK.
+ */
+uint16_t
+WaypointFlyingModule::calculate_damping_distance(
+    size_t waypoint_index,
+    double path_adherence) const
+{
+  path_adherence = std::clamp(path_adherence, 0.0, 1.0);
 
+  //
+  // First and last waypoints do not use damping.
+  //
+  if (waypoint_index == 0 ||
+      waypoint_index >= mission_.size() - 1)
+  {
+    return 0;
+  }
+
+  const double previous_segment =
+      waypoint_distance(
+          mission_[waypoint_index - 1],
+          mission_[waypoint_index]);
+
+  const double next_segment =
+      waypoint_distance(
+          mission_[waypoint_index],
+          mission_[waypoint_index + 1]);
+
+  //
+  // DJI recommends that damping does not exceed half of the shorter
+  // adjacent segment. Use 45% to leave a small safety margin.
+  //
+  const double max_damping_m =
+      0.45 * std::min(previous_segment, next_segment);
+
+  const double damping_m =
+      path_adherence * max_damping_m;
+
+  return static_cast<uint16_t>(
+      std::lround(damping_m * 100.0));
+}
 bool
 WaypointFlyingModule::init_waypoint_v2_setting(
     const psdk_interfaces::msg::WaypointV2InitSetting &settings)
@@ -690,7 +746,7 @@ WaypointFlyingModule::init_waypoint_v2_setting(
   ms_.missTotalLen = mission_.size();
   for (size_t i = 0; i < mission_.size(); ++i)
   {
-    fill_waypoint(settings.mission[i], mission_[i]);
+    fill_waypoint(i, settings.mission[i], mission_[i]);
   }
   action_list_ = {};
   action_list_.actions = nullptr;
@@ -735,8 +791,10 @@ WaypointFlyingModule::flight_path_mode_to_string(
 }
 
 void
-WaypointFlyingModule::fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
-                                    T_DjiWaypointV2 &dst)
+WaypointFlyingModule::fill_waypoint(
+    size_t waypoint_index,
+    const psdk_interfaces::msg::WaypointV2 &src,
+    T_DjiWaypointV2 &dst) const
 {
   dst = {};
 
@@ -746,27 +804,40 @@ WaypointFlyingModule::fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
   dst.relativeHeight = src.relative_height;
 
   dst.waypointType =
-      static_cast<E_DJIWaypointV2FlightPathMode>(src.waypoint_type);
+      static_cast<E_DJIWaypointV2FlightPathMode>(
+          src.waypoint_type);
 
-  dst.headingMode = static_cast<E_DJIWaypointV2HeadingMode>(src.heading_mode);
+  dst.headingMode =
+      static_cast<E_DJIWaypointV2HeadingMode>(
+          src.heading_mode);
 
-  dst.config.useLocalCruiseVel = src.config.use_local_cruise_vel;
-  dst.config.useLocalMaxVel = src.config.use_local_max_vel;
-  dst.dampingDistance = src.damping_distance;
+  dst.config.useLocalCruiseVel =
+      src.config.use_local_cruise_vel;
+
+  dst.config.useLocalMaxVel =
+      src.config.use_local_max_vel;
+
+  dst.dampingDistance =
+      calculate_damping_distance(
+          waypoint_index,
+          src.damping_distance);
+
   dst.heading = src.heading;
-  dst.turnMode = static_cast<E_DJIWaypointV2TurnMode>(src.turn_mode);
-  dst.maxFlightSpeed = src.max_flight_speed;
-  dst.autoFlightSpeed = src.auto_flight_speed;
 
-  //
-  // Only used with HEADING_TOWARDS_POINT_OF_INTEREST.
-  // Not exposed yet.
-  //
-  /*
-  dst.pointOfInterest.positionX = src.position_x;
-  dst.pointOfInterest.positionY = src.position_y;
-  dst.pointOfInterest.positionZ = src.position_z;
-  */
+  dst.turnMode =
+      static_cast<E_DJIWaypointV2TurnMode>(
+          src.turn_mode);
+
+  dst.maxFlightSpeed =
+      src.max_flight_speed;
+
+  dst.autoFlightSpeed =
+      src.auto_flight_speed;
+
+  // Currently unused.
+  // dst.pointOfInterest.positionX = src.position_x;
+  // dst.pointOfInterest.positionY = src.position_y;
+  // dst.pointOfInterest.positionZ = src.position_z;
   if (src.heading_mode ==
         DJI_WAYPOINT_V2_HEADING_TOWARDS_POINT_OF_INTEREST)
   {

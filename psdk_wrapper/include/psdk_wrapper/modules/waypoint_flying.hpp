@@ -227,19 +227,21 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
   T_DJIWaypointV2ActionList action_list_{};
   bool init_waypoint_v2_setting(
       const psdk_interfaces::msg::WaypointV2InitSetting &settings);
-  void fill_waypoint(const psdk_interfaces::msg::WaypointV2 &src,
-                     T_DjiWaypointV2 &dst);
+  void fill_waypoint(size_t waypoint_index,
+                     const psdk_interfaces::msg::WaypointV2 &src,
+                     T_DjiWaypointV2 &dst) const;
+
   void print_mission_summary() const;
   double waypoint_distance(const T_DjiWaypointV2 &a,
                            const T_DjiWaypointV2 &b) const;
   double waypoint_bearing(const T_DjiWaypointV2 &a,
                           const T_DjiWaypointV2 &b) const;
-  double waypoint_turn_angle(const T_DjiWaypointV2 &a,
-                                   const T_DjiWaypointV2 &b,
-                                   const T_DjiWaypointV2 &c) const;
+  double waypoint_turn_angle(const T_DjiWaypointV2 &a, const T_DjiWaypointV2 &b,
+                             const T_DjiWaypointV2 &c) const;
   std::string flight_path_mode_to_string(
-    E_DJIWaypointV2FlightPathMode mode) const;
-
+      E_DJIWaypointV2FlightPathMode mode) const;
+  uint16_t calculate_damping_distance(size_t waypoint_index,
+                                      double factor) const;
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 
