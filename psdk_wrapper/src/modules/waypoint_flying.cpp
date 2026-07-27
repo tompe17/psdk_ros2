@@ -852,7 +852,7 @@ WaypointFlyingModule::fill_waypoint(
   dst.config.useLocalMaxVel =
       src.config.use_local_max_vel;
 
-  dst.dampingDistance = src.damping_distance/100.0;
+  dst.dampingDistance = src.path_adherence;
       // calculate_damping_distance(
           // waypoint_index,
           // src.damping_distance/100.0);

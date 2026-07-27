@@ -203,6 +203,7 @@ class WaypointTester(Node):
 
         # wp.damping_distance = int(dumping_m*100.0)
         wp.damping_distance = int(path_adherence*100.0)
+        wp.path_adherence = path_adherence
 
         wp.config.use_local_cruise_vel = 0
         wp.config.use_local_max_vel = 0
