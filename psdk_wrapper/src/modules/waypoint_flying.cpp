@@ -746,7 +746,7 @@ WaypointFlyingModule::update_damping_distances()
   // Last waypoint.
   //
 
-  mission_.back().dampingDistance = 10;
+  mission_.back().dampingDistance = 50;
 }
 bool
 WaypointFlyingModule::init_waypoint_v2_setting(
