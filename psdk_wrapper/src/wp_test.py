@@ -453,12 +453,11 @@ def test4(node):
     lat0 = node.gps.latitude
     lon0 = node.gps.longitude
 
-    lat1, lon1 = offset_gps(lat0, lon0, 10.0, 0.0)
-    lat2, lon2 = offset_gps(lat1, lon1, -10.0, 1.0)
-    lat3, lon3 = offset_gps(lat2, lon2, 10.0, 1.0)
+    lat1, lon1 = offset_gps(lat0, lon0, 3.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, -4.0, 0.0)
+    lat3, lon3 = offset_gps(lat2, lon2, 4.0, 0.0)
 
     path_adherence = 1.0
-
 
     mission = [
         node.make_waypoint(
