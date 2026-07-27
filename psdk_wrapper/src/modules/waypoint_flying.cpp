@@ -31,6 +31,7 @@ WaypointFlyingModule::WaypointFlyingModule(const std::string &name)
                name + ":" + std::string("__node:=") + name}))
 
 {
+  minimum_damping_distance_cm_ = 20;
   RCLCPP_INFO(get_logger(), "Creating WaypointFlyingModule");
 }
 
@@ -718,7 +719,7 @@ WaypointFlyingModule::calculate_damping_distance(
 
 
   auto damping_cm = static_cast<uint16_t>(std::lround(damping_m * 100.0));
-  damping_cm = std::min(damping_cm, static_cast<uint16_t>(20));
+  damping_cm = std::min(damping_cm, static_cast<uint16_t>(minimum_damping_distance_cm_));
 
   return damping_cm;
 }
@@ -751,7 +752,7 @@ WaypointFlyingModule::update_damping_distances()
   // Last waypoint.
   //
 
-  mission_.back().dampingDistance = 20; // the last one cannot be 0
+  mission_.back().dampingDistance = minimum_damping_distance_cm_; 
 }
 bool
 WaypointFlyingModule::init_waypoint_v2_setting(

@@ -244,6 +244,8 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
                                       double factor) const;
   void update_damping_distances();
 
+  uint16_t minimum_damping_distance_cm_;
+
 };
 extern std::shared_ptr<WaypointFlyingModule> global_wp_ptr_;
 
