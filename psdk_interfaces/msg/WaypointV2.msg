@@ -28,6 +28,7 @@ uint8 waypoint_type # Waypoint flight path mode
 uint8 heading_mode # Represents current aircraft's heading mode on current waypoint.
 WaypointV2Config config # Represents current waypoint's speed config.
 uint16 damping_distance 
+float32 path_adherence # 1.0 - follow the path closely, 0.0 - cut corners as much as practical; only for coordinated turn
 float32 heading # The heading to which the aircraft will rotate by the time it reaches the
 uint8 turn_mode # Determines whether the aircraft will turn clockwise or anticlockwise when
 float32 position_x # X distance to reference point, North is positive

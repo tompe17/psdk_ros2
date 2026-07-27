@@ -401,7 +401,7 @@ def test3(node):
     lat3, lon3 = offset_gps(lat2, lon2, 10.0, -10.0)
     lat4, lon4 = offset_gps(lat3, lon3, -10.0, -10.0)
 
-    path_adherence = 0.0
+    path_adherence = 1.0
     # wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_ALONG_A_CURVE
     wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN
     alt = 5.0
@@ -443,6 +443,46 @@ def test3(node):
         node.start()
 
 
+def test4(node):
+
+    print("\n==============================")
+    print("TEST 4: sharp corners")
+    print("==============================")
+
+    lat0 = node.gps.latitude
+    lon0 = node.gps.longitude
+
+    lat1, lon1 = offset_gps(lat0, lon0, 10.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, -10.0, 1.0)
+    lat3, lon3 = offset_gps(lat2, lon2, 10.0, 1.0)
+
+    path_adherence = 1.0
+
+
+    mission = [
+        node.make_waypoint(
+            lat1,
+            lon1,
+            5.0),
+
+        node.make_waypoint(
+            lat2,
+            lon2,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
+            path_adherence=path_adherence),
+
+        node.make_waypoint(
+            lat3,
+            lon3,
+            5.0,
+            wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_COORDINATE_TURN,
+            path_adherence=path_adherence),
+    ]
+
+    if node.upload(mission):
+        node.start()
+
 ############################################################
 
 
@@ -470,6 +510,9 @@ def main():
 
     elif test == 3:
         test3(node)
+
+    elif test == 4:
+        test4(node)
 
     else:
         print("Unknown test")
