@@ -105,11 +105,6 @@ def generate_launch_description():
                 "link_config_file_path": link_config_file_path,
                 "hms_return_codes_path": hms_return_codes_path,
                 "tf_frame_prefix": LaunchConfiguration("tf_frame_prefix"),
-                # "tf_frame_prefix": PythonExpression([
-                #     "str(",
-                #     LaunchConfiguration("namespace"),
-                #     ").replace('/', '')"
-                # ]),
                 "location": LaunchConfiguration("location"),
                 "sim": LaunchConfiguration("sim"),
             },

@@ -69,7 +69,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("horbody_frame",
                     rclcpp::ParameterValue("psdk_horbody_link"));
   declare_parameter("map_frame", rclcpp::ParameterValue("psdk_map_enu"));
-  declare_parameter("home_point_frame", rclcpp::ParameterValue("psdk_home_point_link"));
+  declare_parameter("home_point_frame",
+                    rclcpp::ParameterValue("psdk_home_point_link"));
   declare_parameter("gimbal_base_frame",
                     rclcpp::ParameterValue("psdk_gimbal_base_link"));
   declare_parameter("gimbal_frame", rclcpp::ParameterValue("psdk_gimbal_link"));
@@ -83,7 +84,6 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("sim", rclcpp::ParameterValue(false));
   declare_parameter("location", "granso");
   declare_parameter("default_altitude_value", -1000.0);
-
 
   declare_parameter("data_frequency.imu", 1);
   declare_parameter("data_frequency.timestamp", 1);
@@ -125,7 +125,8 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   create_module(is_flight_control_module_mandatory_, flight_control_module_,
                 flight_control_thread_, "flight_control_node", global_fc_ptr_);
   create_module(is_waypoint_flying_module_mandatory_, waypoint_flying_module_,
-                waypoint_flying_thread_, "waypoint_flying_node", global_wp_ptr_);
+                waypoint_flying_thread_, "waypoint_flying_node",
+                global_wp_ptr_);
   create_module(is_camera_module_mandatory_, camera_module_, camera_thread_,
                 "camera_node", psdk_ros2::global_camera_ptr_);
   create_module(is_gimbal_module_mandatory_, gimbal_module_, gimbal_thread_,
@@ -222,8 +223,8 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
   gimbal_module_->reset_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
                                DJI_GIMBAL_RESET_MODE_PITCH_AND_YAW);
 
-
-  gimbal_module_->set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1, DJI_GIMBAL_MODE_YAW_FOLLOW);
+  gimbal_module_->set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+                                  DJI_GIMBAL_MODE_YAW_FOLLOW);
 
   // auto start streaming
   liveview_module_->camera_setup_streaming(true, -1, -1, true);
@@ -572,10 +573,8 @@ PSDKWrapper::load_parameters()
   }
   if (is_coord_module_mandatory_)
   {
-    get_parameter("location",
-              coord_module_->location_);
-    RCLCPP_INFO(get_logger(), "location: %s",
-            coord_module_->location_.c_str());
+    get_parameter("location", coord_module_->location_);
+    RCLCPP_INFO(get_logger(), "location: %s", coord_module_->location_.c_str());
   }
   if (is_hms_module_mandatory_)
   {
@@ -592,6 +591,20 @@ PSDKWrapper::load_parameters()
     get_non_mandatory_param("tf_frame_prefix",
                             telemetry_module_->params_.tf_frame_prefix);
 
+    if (telemetry_module_->params_.tf_frame_prefix.find('/') !=
+        std::string::npos)
+    {
+      RCLCPP_WARN(
+          get_logger(),
+          "TF frame prefix '%s' contains '/' characters. They will be removed.",
+          telemetry_module_->params_.tf_frame_prefix.c_str());
+
+      telemetry_module_->params_.tf_frame_prefix.erase(
+          std::remove(telemetry_module_->params_.tf_frame_prefix.begin(),
+                      telemetry_module_->params_.tf_frame_prefix.end(), '/'),
+          telemetry_module_->params_.tf_frame_prefix.end());
+    }
+
     RCLCPP_INFO(get_logger(), "tf prefix: %s",
                 telemetry_module_->params_.tf_frame_prefix.c_str());
 
@@ -601,7 +614,8 @@ PSDKWrapper::load_parameters()
     get_non_mandatory_param("horbody_frame",
                             telemetry_module_->params_.horbody_frame);
     get_non_mandatory_param("map_frame", telemetry_module_->params_.map_frame);
-    get_non_mandatory_param("home_point_frame", telemetry_module_->params_.home_point_frame);
+    get_non_mandatory_param("home_point_frame",
+                            telemetry_module_->params_.home_point_frame);
     get_non_mandatory_param("gimbal_frame",
                             telemetry_module_->params_.gimbal_frame);
     get_non_mandatory_param("gimbal_base_frame",
@@ -613,12 +627,10 @@ PSDKWrapper::load_parameters()
     get_parameter("publish_transforms",
                   telemetry_module_->params_.publish_transforms);
 
-    get_parameter("sim",
-                  telemetry_module_->params_.sim);
+    get_parameter("sim", telemetry_module_->params_.sim);
     RCLCPP_INFO(get_logger(), "simulation: %d", telemetry_module_->params_.sim);
     get_parameter("default_altitude_value",
-                      telemetry_module_->params_.default_altitude_value);
-
+                  telemetry_module_->params_.default_altitude_value);
 
     // Get data frequency
     get_and_validate_frequency("data_frequency.imu",
