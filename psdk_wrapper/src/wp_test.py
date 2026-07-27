@@ -100,11 +100,18 @@ class WaypointTester(Node):
         super().__init__("waypoint_test")
 
         self.gps = None
+        self.hp = None
 
         self.create_subscription(
             NavSatFix,
             "/dji5/psdk_ros2/gps_position_fused",
             self.gps_cb,
+            10)
+
+        self.create_subscription(
+            NavSatFix,
+            "/dji5/psdk_ros2/home_point",
+            self.hp_cb,
             10)
 
         self.init_cli = self.create_client(
@@ -122,6 +129,9 @@ class WaypointTester(Node):
     def gps_cb(self, msg):
         self.gps = msg
 
+    def hp_cb(self, msg):
+        self.hp = msg
+
     def wait_for_gps(self):
         self.get_logger().info("Waiting for GPS...")
 
@@ -131,6 +141,18 @@ class WaypointTester(Node):
         self.get_logger().info(
             f"GPS: {self.gps.latitude:.8f}, "
             f"{self.gps.longitude:.8f}"
+        )
+
+    def wait_for_hp(self):
+        self.get_logger().info("Waiting for home position...")
+
+        while rclpy.ok() and self.hp is None:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
+        self.get_logger().info(
+            f"Home position GPS: lat: {self.hp.latitude:.8f}, "
+            f"lon: {self.hp.longitude:.8f}, "
+            f"alt: {self.hp.altitude:.8f}"
         )
 
     def call(self, client, req, name):
@@ -496,7 +518,7 @@ def test5(node):
     lon0 = node.gps.longitude
 
     lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
-    lat2, lon2 = offset_gps(lat1, lon1, 0.0, 0.0)
+    lat2, lon2 = offset_gps(lat1, lon1, 0.0, 5.0)
 
     path_adherence = 1.0
 
@@ -509,7 +531,7 @@ def test5(node):
         node.make_waypoint(
             lat2,
             lon2,
-            6.0,
+            5.0,
             wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP,
             path_adherence=path_adherence),
 
@@ -530,6 +552,7 @@ def main():
     node = WaypointTester()
 
     node.wait_for_gps()
+    node.wait_for_hp()
 
     if len(sys.argv) != 2:
         print("Usage:")

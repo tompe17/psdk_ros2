@@ -487,7 +487,7 @@ WaypointFlyingModule::init_waypoint_v2_setting_callback(
 double
 WaypointFlyingModule::waypoint_distance(
     const T_DjiWaypointV2 &a,
-    const T_DjiWaypointV2 &b) const
+    const T_DjiWaypointV2 &b)
 {
   constexpr double kEarthRadius = 6378137.0;
 
@@ -515,7 +515,7 @@ WaypointFlyingModule::waypoint_distance(
 double
 WaypointFlyingModule::waypoint_bearing(
     const T_DjiWaypointV2 &a,
-    const T_DjiWaypointV2 &b) const
+    const T_DjiWaypointV2 &b)
 {
   const double dlon = b.longitude - a.longitude;
 

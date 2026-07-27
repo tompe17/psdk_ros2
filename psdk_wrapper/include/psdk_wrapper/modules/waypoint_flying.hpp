@@ -232,10 +232,10 @@ class WaypointFlyingModule : public rclcpp_lifecycle::LifecycleNode
                      T_DjiWaypointV2 &dst) const;
 
   void print_mission_summary() const;
-  double waypoint_distance(const T_DjiWaypointV2 &a,
-                           const T_DjiWaypointV2 &b) const;
-  double waypoint_bearing(const T_DjiWaypointV2 &a,
-                          const T_DjiWaypointV2 &b) const;
+  static double waypoint_distance(const T_DjiWaypointV2 &a,
+                           const T_DjiWaypointV2 &b) ;
+  static double waypoint_bearing(const T_DjiWaypointV2 &a,
+                          const T_DjiWaypointV2 &b) ;
   double waypoint_turn_angle(const T_DjiWaypointV2 &a, const T_DjiWaypointV2 &b,
                              const T_DjiWaypointV2 &c) const;
   std::string flight_path_mode_to_string(
