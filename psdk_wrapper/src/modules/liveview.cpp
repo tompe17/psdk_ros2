@@ -270,7 +270,7 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
       qos_profile_);
 
   camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
-      "psdk_ros2/main_camera_stream/camera_info", rclcpp::SensorDataQoS());
+      "psdk_ros2/main_camera/camera_info", rclcpp::SensorDataQoS());
 
   E_DjiCameraType camera_type =
       psdk_ros2::global_camera_ptr_->get_attached_camera_type();
