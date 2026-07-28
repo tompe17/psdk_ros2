@@ -260,7 +260,7 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
   (void)state;
   RCLCPP_INFO(get_logger(), "Configuring LiveviewModule");
   main_camera_stream_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>(
-      "psdk_ros2/main_camera_stream/compressed", rclcpp::SensorDataQoS());
+      "psdk_ros2/main_camera/image_raw/compressed", rclcpp::SensorDataQoS());
   fpv_camera_stream_pub_ = create_publisher<sensor_msgs::msg::Image>(
       "psdk_ros2/fpv_camera_stream", rclcpp::SensorDataQoS());
   camera_setup_streaming_service_ = create_service<CameraSetupStreaming>(

@@ -100,12 +100,20 @@ class WaypointTester(Node):
         super().__init__("waypoint_test")
 
         self.gps = None
+        self.gps_fused = None
+        self.init_gps = None
         self.hp = None
 
         self.create_subscription(
             NavSatFix,
-            "/dji5/psdk_ros2/gps_position_fused",
+            "/dji5/psdk_ros2/gps_position",
             self.gps_cb,
+            10)
+
+        self.create_subscription(
+            NavSatFix,
+            "/dji5/psdk_ros2/gps_position_fused",
+            self.gps_fused_cb,
             10)
 
         self.create_subscription(
@@ -127,7 +135,16 @@ class WaypointTester(Node):
             "/dji5/psdk_ros2/waypointV2_startMission")
 
     def gps_cb(self, msg):
+        if self.gps is None:
+            self.init_gps = msg
         self.gps = msg
+
+    def gps_fused_cb(self, msg):
+        if self.gps_fused is None:
+            pass
+            # self.init_gps = msg
+        self.gps_fused = msg
+        # print(self.gps)
 
     def hp_cb(self, msg):
         self.hp = msg
@@ -141,6 +158,17 @@ class WaypointTester(Node):
         self.get_logger().info(
             f"GPS: {self.gps.latitude:.8f}, "
             f"{self.gps.longitude:.8f}"
+        )
+
+    def wait_for_gps_fused(self):
+        self.get_logger().info("Waiting for GPS...")
+
+        while rclpy.ok() and self.gps_fused is None:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
+        self.get_logger().info(
+            f"GPS fused: {self.gps_fused.latitude:.8f}, "
+            f"{self.gps_fused.longitude:.8f}"
         )
 
     def wait_for_hp(self):
@@ -220,14 +248,14 @@ class WaypointTester(Node):
         # Match DJI sample
         #
 
-        wp.max_flight_speed = 10.0
-        wp.auto_flight_speed = 7.0
+        wp.max_flight_speed = 5.0
+        wp.auto_flight_speed = 15.0
 
         # wp.damping_distance = int(dumping_m*100.0)
         wp.damping_distance = int(path_adherence*100.0)
         wp.path_adherence = path_adherence
 
-        wp.config.use_local_cruise_vel = 0
+        wp.config.use_local_cruise_vel = 1
         wp.config.use_local_max_vel = 0
 
         return wp
@@ -281,8 +309,8 @@ class WaypointTester(Node):
             s.DJI_WAYPOINT_V2_MISSION_FINISHED_NO_ACTION
         )
 
-        s.max_flight_speed = 10.0
-        s.auto_flight_speed = 7.0
+        s.max_flight_speed = 15.0
+        s.auto_flight_speed = 15.0
 
         s.exit_mission_on_signal_lost = 1
 
@@ -514,11 +542,16 @@ def test5(node):
     print("TEST 5: alt")
     print("==============================")
 
-    lat0 = node.gps.latitude
-    lon0 = node.gps.longitude
+    lat0 = node.gps_fused.latitude
+    lon0 = node.gps_fused.longitude
+    # rel_alt0 = node.gps.altitude - node.init_gps.altitude
+    rel_alt0 = node.gps.altitude - node.hp.altitude
+    print(f"ALT: gps: {node.gps.altitude} home point: {node.hp.altitude}  rel_alt0 = {rel_alt0}")
 
-    lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
-    lat2, lon2 = offset_gps(lat1, lon1, 0.0, 5.0)
+    lat1, lon1 = lat0, lon0
+    # lat1, lon1 = offset_gps(lat0, lon0, 0.0, 0.0)
+
+    lat2, lon2 = offset_gps(lat1, lon1, 1.0, 0.0)
 
     path_adherence = 1.0
 
@@ -526,12 +559,12 @@ def test5(node):
         node.make_waypoint(
             lat1,
             lon1,
-            5.0),
+            rel_alt0),
 
         node.make_waypoint(
             lat2,
             lon2,
-            5.0,
+            rel_alt0+6.0,
             wp_type = WaypointV2.DJI_WAYPOINT_V2_FLIGHT_PATH_MODE_GO_TO_POINT_IN_A_STRAIGHT_LINE_AND_STOP,
             path_adherence=path_adherence),
 
@@ -552,6 +585,7 @@ def main():
     node = WaypointTester()
 
     node.wait_for_gps()
+    node.wait_for_gps_fused()
     node.wait_for_hp()
 
     if len(sys.argv) != 2:
