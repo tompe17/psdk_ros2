@@ -269,8 +269,10 @@ LiveviewModule::on_configure(const rclcpp_lifecycle::State &state)
                 std::placeholders::_1, std::placeholders::_2),
       qos_profile_);
 
+  // camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
+  // camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
   camera_info_pub_ = create_publisher<sensor_msgs::msg::CameraInfo>(
-      "psdk_ros2/main_camera/camera_info", rclcpp::SensorDataQoS());
+      camera_+"/camera_info", rclcpp::SensorDataQoS());
 
   E_DjiCameraType camera_type =
       psdk_ros2::global_camera_ptr_->get_attached_camera_type();
@@ -354,14 +356,17 @@ LiveviewModule::init()
 
   RCLCPP_INFO(get_logger(), "Initiating liveview module");
 
-  declare_parameter<int>("main_camera_width", -1);
-  get_parameter("main_camera_width", main_camera_image_width);
-  declare_parameter<int>("main_camera_height", -1);
-  get_parameter("main_camera_height", main_camera_image_height);
-  declare_parameter<int>("main_camera_jpeg_quality", 80);
-  get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
-  declare_parameter<int>("image_time_offset_ms", 0);
-  get_parameter("image_time_offset_ms", image_time_offset_ms);
+  // declare_parameter<int>("main_camera_width", -1);
+  // get_parameter("main_camera_width", main_camera_image_width);
+  // declare_parameter<int>("main_camera_height", -1);
+  // get_parameter("main_camera_height", main_camera_image_height);
+  // declare_parameter<int>("main_camera_jpeg_quality", 80);
+  // get_parameter("main_camera_jpeg_quality", main_camera_jpeg_quality);
+  // declare_parameter<int>("image_time_offset_ms", 0);
+  // get_parameter("image_time_offset_ms", image_time_offset_ms);
+  //
+  // declare_parameter<std::string>("camera", "psdk_ros2/main_camera");
+  // get_parameter("camera", camera);
 
   parameter_callback_handle_ = add_on_set_parameters_callback(std::bind(
       &LiveviewModule::parametersCallback, this, std::placeholders::_1));
@@ -415,10 +420,10 @@ LiveviewModule::parametersCallback(
     {
       int quality = parameter.as_int();
 
-      image_time_offset_ms = quality;
+      image_time_offset_ms_ = quality;
 
       RCLCPP_INFO(get_logger(), "Image time offset set to %d",
-                  image_time_offset_ms);
+                  image_time_offset_ms_);
     }
   }
 
@@ -560,16 +565,16 @@ LiveviewModule::is_streaming() const
 int
 LiveviewModule::get_main_camera_jpeg_quality() const
 {
-  return main_camera_jpeg_quality;
+  return main_camera_jpeg_quality_;
 }
 
 void
 LiveviewModule::set_main_camera_jpeg_quality(const int &jpeg_quality)
 {
   RCLCPP_INFO(get_logger(), "Main camera JPEG quality changed to %d",
-              main_camera_jpeg_quality);
+              main_camera_jpeg_quality_);
 
-  main_camera_jpeg_quality = jpeg_quality;
+  main_camera_jpeg_quality_ = jpeg_quality;
 }
 
 std::string
@@ -759,10 +764,10 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   int cols = img.cols;
   int rows = img.rows;
 
-  if ((main_camera_image_width > 0) && (main_camera_image_height > 0))
+  if ((main_camera_image_width_ > 0) && (main_camera_image_height_ > 0))
   {
-    cols = main_camera_image_width;
-    rows = main_camera_image_height;
+    cols = main_camera_image_width_;
+    rows = main_camera_image_height_;
   }
 
   cv::Mat img_bgr;
@@ -774,12 +779,12 @@ LiveviewModule::publish_main_camera_images(CameraRGBImage rgb_img,
   // ---- Compress with lower JPEG quality ----
   std::vector<uchar> buffer;
   std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY,
-                             main_camera_jpeg_quality};
+                             main_camera_jpeg_quality_};
 
   cv::imencode(".jpg", outimg, buffer, params);
 
   rclcpp::Duration offset =
-      rclcpp::Duration::from_nanoseconds(image_time_offset_ms * 1e6);
+      rclcpp::Duration::from_nanoseconds(image_time_offset_ms_ * 1e6);
 
 
 

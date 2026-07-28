@@ -147,6 +147,13 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
     return a + t * (b - a);
   }
 
+  int main_camera_image_width_;
+  int main_camera_image_height_;
+  int main_camera_jpeg_quality_;
+  long image_time_offset_ms_ = 0;
+  std::string camera_;
+
+
  private:
   friend void c_publish_main_streaming_callback(CameraRGBImage img,
                                                 void* user_data);
@@ -252,10 +259,6 @@ class LiveviewModule : public rclcpp_lifecycle::LifecycleNode
   bool decode_stream_{true};
   bool is_module_initialized_{false};
 
-  int main_camera_image_width;
-  int main_camera_image_height;
-  int main_camera_jpeg_quality;
-  long image_time_offset_ms = 0;
 
   StreamState stream_state_;
 

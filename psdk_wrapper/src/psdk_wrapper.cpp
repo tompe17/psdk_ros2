@@ -105,6 +105,13 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("data_frequency.esc_data_frequency", 1);
   declare_parameter("num_of_initialization_retries", 1);
 
+  declare_parameter("main_camera_width", -1);
+  declare_parameter("main_camera_height", -1);
+  declare_parameter("main_camera_jpeg_quality", 80);
+  declare_parameter("image_time_offset_ms", 0);
+  declare_parameter("camera", "psdk_ros2/main_camera");
+
+
   get_parameter("mandatory_modules.telemetry", is_telemetry_module_mandatory_);
   get_parameter("mandatory_modules.flight_control",
                 is_flight_control_module_mandatory_);
@@ -585,7 +592,20 @@ PSDKWrapper::load_parameters()
   {
     get_non_mandatory_param("file_path",
                             camera_module_->default_path_to_download_media_);
+    get_parameter("camera", liveview_module_->camera_);
+
   }
+
+  if (is_liveview_module_mandatory_)
+  {
+    get_parameter("main_camera_width", liveview_module_->main_camera_image_width_);
+    get_parameter("main_camera_height", liveview_module_->main_camera_image_height_);
+    get_parameter("main_camera_jpeg_quality", liveview_module_->main_camera_jpeg_quality_);
+    get_parameter("image_time_offset_ms", liveview_module_->image_time_offset_ms_);
+    get_parameter("camera", liveview_module_->camera_);
+
+  }
+
   if (is_telemetry_module_mandatory_)
   {
     get_non_mandatory_param("tf_frame_prefix",

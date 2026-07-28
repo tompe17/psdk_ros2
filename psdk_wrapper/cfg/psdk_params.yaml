@@ -9,7 +9,8 @@
 
       num_of_initialization_retries: 10
 
-      tf_frame_prefix: ""
+
+      tf_frame_prefix: "dji_psdk"
       imu_frame: "psdk_imu_link"
       body_frame: "psdk_body_link"
       home_point_frame: "psdk_home_point_link"
@@ -23,6 +24,8 @@
       perception_camera_frame: "psdk_perception_camera_link"
 
       publish_transforms: true
+
+      camera: "psdk_ros2/main_camera"
       main_camera_width: 1080
       main_camera_height: 600
       main_camera_jpeg_quality: 70

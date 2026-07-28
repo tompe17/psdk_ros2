@@ -166,7 +166,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   {
     return attached_camera_type_;
   }
-
+  std::string camera_;
   std::string default_path_to_download_media_{"/logs/media"};
 
   bool camera_set_optical_zoom(int payload_index, float zoom_factor);
@@ -179,6 +179,8 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
                                      T_DjiCameraManagerLaserRangingInfo &laser_info);
 
   float get_zoom_factor();
+
+
 
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(

@@ -195,7 +195,10 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
 
 
   camera_info_pub_ = create_publisher<std_msgs::msg::String>(
-      "psdk_ros2/main_camera/camera_status", 10);
+      camera_+"/camera_status", 10);
+
+  // camera_info_pub_ = create_publisher<std_msgs::msg::String>(
+      // "psdk_ros2/main_camera/camera_status", 10);
 
   camera_info_timer_ = create_wall_timer(
       std::chrono::milliseconds(100),
