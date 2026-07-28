@@ -592,7 +592,7 @@ PSDKWrapper::load_parameters()
   {
     get_non_mandatory_param("file_path",
                             camera_module_->default_path_to_download_media_);
-    get_parameter("camera", liveview_module_->camera_);
+    get_parameter("camera", camera_module_->camera_);
 
   }
 
