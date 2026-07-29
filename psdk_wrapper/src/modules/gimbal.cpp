@@ -295,7 +295,8 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
           t->body_yaw_raw_at_reset_rad_ - t->get_body_yaw_raw_rad();
       rotation_deg.yaw += psdk_utils::rad_to_deg(offset_due_to_yaw);
 
-      z -= offset_due_to_yaw;
+      // z -= offset_due_to_yaw;
+      z -= global_telemetry_ptr_->offset_due_to_yaw;
     }
     rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
                        t->body_gimbal_offset_raw_deg_;
