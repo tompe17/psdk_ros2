@@ -282,7 +282,7 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   else
   {
     //original
-    rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
+    //rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
 
 
     // it's the inverse of calculating angles telemetry
