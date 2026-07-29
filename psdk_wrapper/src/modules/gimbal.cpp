@@ -283,9 +283,9 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
     {
     // if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     // {
-    // auto offset_due_to_yaw = t->body_yaw_raw_at_reset_rad_ - t->get_body_yaw_raw_rad();
+    auto offset_due_to_yaw = t->body_yaw_raw_at_reset_rad_ - t->get_body_yaw_raw_rad();
     // }
-    // rotation_deg.yaw += psdk_utils::rad_to_deg(offset_due_to_yaw);
+     rotation_deg.yaw += psdk_utils::rad_to_deg(offset_due_to_yaw);
     // pioru: test if needed
        rotation_deg.yaw += global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
     }
