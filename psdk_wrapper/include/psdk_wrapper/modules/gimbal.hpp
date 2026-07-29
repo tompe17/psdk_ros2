@@ -96,7 +96,7 @@ class GimbalModule : public rclcpp_lifecycle::LifecycleNode
   bool deinit();
 
   bool reset_gimbal(E_DjiMountPosition index, E_DjiGimbalResetMode reset_mode);
-  E_DjiGimbalMode gimbal_mode_ = DJI_GIMBAL_MODE_YAW_FOLLOW;
+  E_DjiGimbalMode gimbal_mode_ = DJI_GIMBAL_MODE_FREE;
   bool set_gimbal_mode(E_DjiMountPosition index, E_DjiGimbalMode gimbal_mode);
 
   bool gimbal_mode_is_follow() const{return gimbal_mode_==DJI_GIMBAL_MODE_YAW_FOLLOW;}
