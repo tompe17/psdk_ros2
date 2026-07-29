@@ -1598,7 +1598,7 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
       // global_gimbal_ptr_->rotate_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
                                         // DJI_GIMBAL_ROTATION_MODE_ABSOLUTE_ANGLE,
                                         // 0, 0, -offset_due_to_yaw, 0.0);
-      std::cout << "setting gimbal done" << std::endl;
+      // std::cout << "setting gimbal done" << std::endl;
     }
     gimbal_angles_msg.vector.z += offset_due_to_yaw;
   }
