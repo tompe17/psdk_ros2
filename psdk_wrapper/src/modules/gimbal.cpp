@@ -282,9 +282,9 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
       // z -= offset_due_to_yaw;
     // }
 
-    double original_gimbal_z =
-        psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
-        body_gimbal_offset_raw_deg_;
+    // double original_gimbal_z =
+        // psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
+        // body_gimbal_offset_raw_deg_;
 
 
 
