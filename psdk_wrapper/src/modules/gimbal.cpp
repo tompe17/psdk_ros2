@@ -276,8 +276,8 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   else
   {
     // rotation_deg.yaw = psdk_utils::rad_to_deg(yaw);
-    rotation_deg.yaw = psdk_utils::rad_to_deg(-yaw);
-    // rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
+    // rotation_deg.yaw = psdk_utils::rad_to_deg(-yaw);
+    rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
 
     auto t = global_telemetry_ptr_;
     if (t->params_.sim)
