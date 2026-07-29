@@ -227,7 +227,7 @@ PSDKWrapper::on_activate(const rclcpp_lifecycle::State &state)
   }
 
   gimbal_module_->set_gimbal_mode(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
-                                DJI_GIMBAL_MODE_YAW_FOLLOW);
+                                DJI_GIMBAL_MODE_FREE);
 
   // auto reset gimbal to get the offset
   gimbal_module_->reset_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
