@@ -275,17 +275,12 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   }
   else
   {
-    double z = yaw;
-
-    // if (params_.sim){
-    // z -= offset_due_to_yaw;
-    // }
-
-    // double original_gimbal_z =
-    // psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
-    // body_gimbal_offset_raw_deg_;
-
+    //original
     rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
+
+
+    // it's the inverse of calculating angles telemetry
+    double z = yaw;
 
     auto t = global_telemetry_ptr_;
     if (t->params_.sim && global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
@@ -296,9 +291,6 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
 
       z -= offset_due_to_yaw;
     }
-    // pioru: test if needed
-    // rotation_deg.yaw -= global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
-
     rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
                        t->body_gimbal_offset_raw_deg_;
   }
