@@ -1592,8 +1592,8 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     // get_body_yaw_raw_rad(false);
     if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     {
-      // offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
-      offset_due_to_yaw = 0.0;
+      offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+      // offset_due_to_yaw = 0.0;
       std::cout << "setting gimbal" << std::endl;
       global_gimbal_ptr_->rotate_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
                                         DJI_GIMBAL_ROTATION_MODE_ABSOLUTE_ANGLE,
