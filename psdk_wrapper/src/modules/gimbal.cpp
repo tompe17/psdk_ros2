@@ -261,6 +261,12 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
                             E_DjiGimbalRotationMode rotation_mode, double roll,
                             double pitch, double yaw, double time)
 {
+  if (!is_module_initialized_)
+  {
+    return false;
+  }
+
+
   T_DjiGimbalManagerRotation rotation_deg;
 
   rotation_deg.rotationMode = rotation_mode;
