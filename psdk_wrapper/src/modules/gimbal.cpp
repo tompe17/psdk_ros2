@@ -305,10 +305,10 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
 
   rotation_deg.time = time;
 
-  if (!set_gimbal_mode(index, DJI_GIMBAL_MODE_FREE))
-  {
-    return false;
-  }
+  // if (!set_gimbal_mode(index, DJI_GIMBAL_MODE_FREE))
+  // {
+  //   return false;
+  // }
 
   T_DjiReturnCode return_code = DjiGimbalManager_Rotate(index, rotation_deg);
 
