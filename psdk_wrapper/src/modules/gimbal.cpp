@@ -275,19 +275,36 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   }
   else
   {
-    // rotation_deg.yaw = psdk_utils::rad_to_deg(yaw);
-    // rotation_deg.yaw = psdk_utils::rad_to_deg(-yaw);
+
+    double z = yaw;
+
+    // if (params_.sim){
+      // z -= offset_due_to_yaw;
+    // }
+
+    double original_gimbal_z =
+        psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
+        body_gimbal_offset_raw_deg_;
+
+
+
     rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
 
     auto t = global_telemetry_ptr_;
     if (t->params_.sim)
     {
+
       auto offset_due_to_yaw =
           t->body_yaw_raw_at_reset_rad_ - t->get_body_yaw_raw_rad();
       rotation_deg.yaw += psdk_utils::rad_to_deg(offset_due_to_yaw);
+      z -= offset_due_to_yaw;
+
     }
     // pioru: test if needed
-    rotation_deg.yaw -= global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
+    // rotation_deg.yaw -= global_telemetry_ptr_->body_gimbal_offset_raw_deg_;
+
+    rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
+        t->body_gimbal_offset_raw_deg_;
   }
 
   rotation_deg.time = time;
