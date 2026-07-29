@@ -1592,7 +1592,11 @@ TelemetryModule::gimbal_angles_callback(const uint8_t *data, uint16_t data_size,
     // get_body_yaw_raw_rad(false);
     if (global_gimbal_ptr_->gimbal_mode_ == DJI_GIMBAL_MODE_YAW_FOLLOW)
     {
-      offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+      // offset_due_to_yaw = body_yaw_raw_at_reset_rad_ - get_body_yaw_raw_rad();
+      offset_due_to_yaw = 0.0;
+      global_gimbal_ptr_->rotate_gimbal(DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1,
+                                        DJI_GIMBAL_ROTATION_MODE_ABSOLUTE_ANGLE,
+                                        0, 0, -offset_due_to_yaw, 0.0);
     }
     // else
     // {
@@ -1723,7 +1727,8 @@ TelemetryModule::flight_status_callback(const uint8_t *data, uint16_t data_size,
 
   // maybe the flight control module should publish it itself
   std_msgs::msg::String flight_control_status_msg;
-  flight_control_status_msg.data = global_fc_ptr_->get_flight_control_mode_status_str();
+  flight_control_status_msg.data =
+      global_fc_ptr_->get_flight_control_mode_status_str();
   flight_control_status_pub_->publish(flight_control_status_msg);
 
   {
@@ -1891,8 +1896,8 @@ TelemetryModule::handle_home_point_update(const double &longitude,
   // the node for the first time
 
   // RCLCPP_INFO(get_logger(), "HP valid: %d changed:%d",
-    // current_state_.home_point_status.data,
-    // home_point_changed(longitude, latitude));
+  // current_state_.home_point_status.data,
+  // home_point_changed(longitude, latitude));
 
   if (current_state_.home_point_status.data &&
       home_point_changed(longitude, latitude))
@@ -1919,7 +1924,9 @@ TelemetryModule::handle_home_point_update(const double &longitude,
       }
       else
       {
-        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "In the air and no valid cached home altitude found.");
+        RCLCPP_WARN_THROTTLE(
+            get_logger(), *get_clock(), 1000,
+            "In the air and no valid cached home altitude found.");
         return false;
       }
     }
@@ -1988,7 +1995,6 @@ TelemetryModule::home_point_callback(const uint8_t *data, uint16_t data_size,
     std::unique_lock<std::shared_mutex> lock(current_state_mutex_);
     current_state_.home_point_position = home_point_msg;
     publish_static_home_point_transform();
-
   }
   return DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS;
 }
@@ -3026,7 +3032,8 @@ TelemetryModule::set_local_position_ref_cb(
 void
 TelemetryModule::publish_static_home_point_transform()
 {
-  tf_static_broadcaster_->sendTransform(get_home_point_transform(this->get_clock()->now()));
+  tf_static_broadcaster_->sendTransform(
+      get_home_point_transform(this->get_clock()->now()));
 }
 
 geometry_msgs::msg::TransformStamped
@@ -3040,7 +3047,8 @@ TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
   double cx, cy, cz;
   double alt = current_state_.home_point_position.altitude;
   double lat = current_state_.home_point_position.latitude;
-  double lon = current_state_.home_point_position.longitude;;
+  double lon = current_state_.home_point_position.longitude;
+  ;
   global_coord_ptr_->wgs84_to_world(lon, lat, alt, cx, cy, cz);
   tf_home_point.transform.translation.x = cx;
   tf_home_point.transform.translation.y = cy;
@@ -3052,14 +3060,15 @@ TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
   return tf_home_point;
 }
 
-double TelemetryModule::get_current_world_alt() const
+double
+TelemetryModule::get_current_world_alt() const
 {
   const double height_above_takeoff = current_state_.altitude_sl_fused.data -
                                       current_state_.home_point_altitude.data;
 
-  double alt = height_above_takeoff + global_coord_ptr_->get_world_origin_elevation();
+  double alt =
+      height_above_takeoff + global_coord_ptr_->get_world_origin_elevation();
   return alt;
-
 }
 
 geometry_msgs::msg::TransformStamped
@@ -3077,10 +3086,10 @@ geometry_msgs::msg::TransformStamped
 TelemetryModule::get_body_transform(const rclcpp::Time &stamp) const
 {
   // std::shared_ptr<psdk_ros2::CoordModule> coord =
-      // psdk_ros2::global_coord_ptr_;
+  // psdk_ros2::global_coord_ptr_;
 
   // const double height_above_takeoff = current_state_.altitude_sl_fused.data -
-                                      // current_state_.home_point_altitude.data;
+  // current_state_.home_point_altitude.data;
 
   double cx, cy, cz;
   double alt = get_current_world_alt();
@@ -3092,7 +3101,8 @@ TelemetryModule::get_body_transform(const rclcpp::Time &stamp) const
 
   geometry_msgs::msg::TransformStamped t;
   // body
-  t.header.stamp = stamp; ;
+  t.header.stamp = stamp;
+  ;
   t.header.frame_id = params_.map_frame;
   t.child_frame_id = params_.body_frame;
 
@@ -3102,7 +3112,6 @@ TelemetryModule::get_body_transform(const rclcpp::Time &stamp) const
   t.transform.rotation = tf2::toMsg(current_state_.attitude);
   return t;
 }
-
 
 /*@todo Generalize the functions related to TFs for different copter, gimbal
  * and payload types and move it to a separate dedicated file
@@ -3315,10 +3324,12 @@ TelemetryModule::publish_dynamic_body_transforms() const
     auto tf_body = get_body_transform(current_state_.gps_fused.header.stamp);
     tf_broadcaster_->sendTransform(tf_body);
 
-    auto tf_horbody = get_horbody_transform(current_state_.gps_fused.header.stamp);
+    auto tf_horbody =
+        get_horbody_transform(current_state_.gps_fused.header.stamp);
     tf_broadcaster_->sendTransform(tf_horbody);
 
-    tf_broadcaster_->sendTransform(get_home_point_transform(current_state_.gps_fused.header.stamp));
+    tf_broadcaster_->sendTransform(
+        get_home_point_transform(current_state_.gps_fused.header.stamp));
 
     geographic_msgs::msg::GeoPose gp;
     gp.position.latitude = current_state_.gps_fused.latitude;
