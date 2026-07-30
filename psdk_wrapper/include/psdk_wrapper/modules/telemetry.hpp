@@ -324,7 +324,10 @@ class TelemetryModule : public rclcpp_lifecycle::LifecycleNode
    */
   bool deinit();
 
-  FcClockSynchronizer clock_sync_ = FcClockSynchronizer(false);
+  // pioru - returning always ros time for testing
+  // tf flickering issue
+  bool ros_time_only = true;
+  FcClockSynchronizer clock_sync_ = FcClockSynchronizer(ros_time_only);
   rclcpp::Time get_measurement_time(const T_DjiDataTimestamp* fc_timestamp);
 
   static inline uint64_t
