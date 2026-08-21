@@ -237,7 +237,9 @@ TelemetryModule::on_configure(const rclcpp_lifecycle::State &state)
   pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>(
       "psdk_ros2/pose", 10);
   geo_pose_pub = this->create_publisher<geographic_msgs::msg::GeoPose>(
-      "psdk_ros2/geopose", rclcpp::SensorDataQoS());
+      "psdk_ros2/geopose", 10);
+
+  // best effort rclcpp::SensorDataQoS()
 
   // Create TF broadcasters
   tf_static_broadcaster_ =
