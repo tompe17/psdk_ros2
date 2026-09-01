@@ -266,7 +266,6 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
     return false;
   }
 
-
   T_DjiGimbalManagerRotation rotation_deg;
 
   rotation_deg.rotationMode = rotation_mode;
@@ -275,15 +274,15 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   rotation_deg.pitch = psdk_utils::rad_to_deg(-pitch);
   rotation_deg.roll = psdk_utils::rad_to_deg(roll);
 
-  if (rotation_mode == DJI_GIMBAL_ROTATION_MODE_RELATIVE_ANGLE)
+  if (rotation_mode == DJI_GIMBAL_ROTATION_MODE_RELATIVE_ANGLE ||
+      rotation_mode == DJI_GIMBAL_ROTATION_MODE_SPEED)
   {
     rotation_deg.yaw = psdk_utils::rad_to_deg(-yaw);
   }
   else
   {
-    //original
-    //rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
-
+    // original
+    // rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - yaw);
 
     // it's the inverse of calculating angles telemetry
     double z = yaw;
@@ -298,6 +297,7 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
       z -= offset_due_to_yaw;
       // z -= global_telemetry_ptr_->offset_due_to_yaw;
     }
+
     rotation_deg.yaw = psdk_utils::rad_to_deg(psdk_utils::SHIFT_N2E - z) +
                        t->body_gimbal_offset_raw_deg_;
   }
@@ -308,11 +308,10 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   // {
   //   return false;
   // }
-  RCLCPP_INFO(
-      get_logger(),
-      "rotate_gimbal RPY = (%.1f, %.1f, %.1f) mode= %d",
-      rotation_deg.roll, rotation_deg.pitch, rotation_deg.yaw, rotation_mode);
 
+  RCLCPP_INFO(get_logger(), "rotate_gimbal RPY = (%.1f, %.1f, %.1f) mode= %d",
+              rotation_deg.roll, rotation_deg.pitch, rotation_deg.yaw,
+              rotation_mode);
 
   T_DjiReturnCode return_code = DjiGimbalManager_Rotate(index, rotation_deg);
 
