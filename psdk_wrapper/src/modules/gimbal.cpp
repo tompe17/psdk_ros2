@@ -308,6 +308,11 @@ GimbalModule::rotate_gimbal(E_DjiMountPosition index,
   // {
   //   return false;
   // }
+  RCLCPP_INFO(
+      get_logger(),
+      "rotate_gimbal RPY = (%.1f, %.1f, %.1f) mode= %d",
+      rotation_deg.roll, rotation_deg.pitch, rotation_deg.yaw, rotation_mode);
+
 
   T_DjiReturnCode return_code = DjiGimbalManager_Rotate(index, rotation_deg);
 
