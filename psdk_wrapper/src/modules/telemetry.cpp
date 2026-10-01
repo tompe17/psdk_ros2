@@ -3045,7 +3045,7 @@ TelemetryModule::get_home_point_transform(const rclcpp::Time &stamp) const
   double alt = current_state_.home_point_position.altitude;
   double lat = current_state_.home_point_position.latitude;
   double lon = current_state_.home_point_position.longitude;
-  ;
+
   global_coord_ptr_->wgs84_to_world(lon, lat, alt, cx, cy, cz);
   tf_home_point.transform.translation.x = cx;
   tf_home_point.transform.translation.y = cy;

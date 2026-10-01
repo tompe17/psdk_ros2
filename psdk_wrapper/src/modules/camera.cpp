@@ -20,7 +20,7 @@
  */
 
 #include "psdk_wrapper/modules/camera.hpp"
-
+#include "psdk_wrapper/modules/coord.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
 #include "psdk_wrapper/modules/telemetry.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
@@ -450,6 +450,9 @@ CameraModule::camera_get_laser_ranging_info(
 uint32_t CameraModule::convert_laser_exception(
     uint8_t dji_exception)
 {
+
+  // DJI does not specify the meanings
+
   switch (dji_exception)
   {
     case 0:
@@ -502,6 +505,15 @@ CameraModule::publish_camera_ranging_information()
 
     camera_ranging_info.header.stamp = timestamp;
     camera_ranging_info.header.frame_id = global_telemetry_ptr_->params_.camera_frame;
+
+    double cx, cy, cz;
+    double alt = camera_ranging_info.altitude;
+    double lat = camera_ranging_info.latitude;
+    double lon = camera_ranging_info.longitude;
+    global_coord_ptr_->wgs84_to_world(lon, lat, alt, cx, cy, cz);
+    // tf_home_point.transform.translation.x = cx;
+    // tf_home_point.transform.translation.y = cy;
+    // tf_home_point.transform.translation.z = cz;
 
     camera_ranging_info_pub_->publish(camera_ranging_info);
   }
