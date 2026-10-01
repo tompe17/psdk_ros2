@@ -31,6 +31,7 @@
 #include <std_msgs/msg/string.hpp>
 #include <string>
 
+#include "lrs_msgs_common/msg/camera_laser_ranging_info.hpp"
 #include "psdk_interfaces/action/camera_delete_file_by_index.hpp"
 #include "psdk_interfaces/action/camera_download_file_by_index.hpp"
 #include "psdk_interfaces/msg/file_attributes.hpp"
@@ -63,12 +64,8 @@
 #include "psdk_interfaces/srv/camera_stop_shoot_photo.hpp"
 #include "psdk_wrapper/utils/action_server.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
-
-
 namespace psdk_ros2
 {
-
-
 
 class CameraModule : public rclcpp_lifecycle::LifecycleNode
 {
@@ -175,12 +172,10 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   bool camera_get_video_resolution_frame_rate(
       uint8_t payload_index, T_DjiCameraManagerVideoFormat& video_format);
 
-  bool camera_get_laser_ranging_info(uint8_t payload_index,
-                                     T_DjiCameraManagerLaserRangingInfo &laser_info);
+  bool camera_get_laser_ranging_info(
+      uint8_t payload_index, T_DjiCameraManagerLaserRangingInfo& laser_info);
 
   float get_zoom_factor();
-
-
 
  private:
   friend T_DjiReturnCode c_camera_manager_download_file_data_callback(
@@ -596,9 +591,13 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   void publish_camera_information();
   bool query_zoom();
 
+  void publish_camera_ranging_information();
 
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr camera_info_pub_;
+  rclcpp::Publisher<lrs_msgs_common::msg::CameraLaserRangingInfo>::SharedPtr
+      camera_ranging_info_pub_;
   rclcpp::TimerBase::SharedPtr camera_info_timer_;
+  rclcpp::TimerBase::SharedPtr camera_ranging_info_timer_;
 
   std::atomic<float> zoom_factor_{1.0f};
   std::atomic<float> max_zoom_factor_{1.0f};

@@ -33,6 +33,7 @@
   <depend>camera_info_manager</depend>
   <depend>lrs_common</depend>
   <depend>lrs_common_msgs</depend>
+  <depend>lrs_msgs_common</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -21,8 +21,8 @@
 
 #include "psdk_wrapper/modules/camera.hpp"
 
-#include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 #include "psdk_wrapper/modules/liveview.hpp"
+#include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
 namespace psdk_ros2
 {
@@ -178,7 +178,6 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
                 std::placeholders::_1, std::placeholders::_2),
       qos_profile_);
 
-
   // Camera action servers
   camera_download_file_by_index_server_ =
       std::make_unique<utils::ActionServer<CameraDownloadFileByIndex>>(
@@ -193,16 +192,20 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
           "psdk_ros2/camera_delete_file_by_index",
           std::bind(&CameraModule::execute_delete_file_by_index, this));
 
+  camera_info_pub_ =
+      create_publisher<std_msgs::msg::String>(camera_ + "/camera_status", 10);
 
-  camera_info_pub_ = create_publisher<std_msgs::msg::String>(
-      camera_+"/camera_status", 10);
-
-  // camera_info_pub_ = create_publisher<std_msgs::msg::String>(
-      // "psdk_ros2/main_camera/camera_status", 10);
+  camera_ranging_info_pub_ =
+      create_publisher<lrs_msgs_common::msg::CameraLaserRangingInfo>(
+          camera_ + "/laser_ranging_info", 10);
 
   camera_info_timer_ = create_wall_timer(
       std::chrono::milliseconds(100),
       std::bind(&CameraModule::publish_camera_information, this));
+
+  camera_ranging_info_timer_ = create_wall_timer(
+      std::chrono::milliseconds(200),
+      std::bind(&CameraModule::publish_camera_ranging_information, this));
 
   return CallbackReturn::SUCCESS;
 }
@@ -351,7 +354,8 @@ CameraModule::deinit()
 bool
 CameraModule::query_zoom()
 {
-  if (attached_camera_type_ != DJI_CAMERA_TYPE_H20T){
+  if (attached_camera_type_ != DJI_CAMERA_TYPE_H20T)
+  {
     return false;
   }
 
@@ -386,9 +390,9 @@ CameraModule::publish_camera_information()
   query_zoom();
 
   std_msgs::msg::String msg;
-  auto lens=psdk_ros2::global_liveview_ptr_->get_camera_lens_name();
-  auto streaming=psdk_ros2::global_liveview_ptr_->is_streaming();
-  auto jpeg= psdk_ros2::global_liveview_ptr_->get_main_camera_jpeg_quality();
+  auto lens = psdk_ros2::global_liveview_ptr_->get_camera_lens_name();
+  auto streaming = psdk_ros2::global_liveview_ptr_->is_streaming();
+  auto jpeg = psdk_ros2::global_liveview_ptr_->get_main_camera_jpeg_quality();
 
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(2);
@@ -406,7 +410,70 @@ CameraModule::publish_camera_information()
   camera_info_pub_->publish(msg);
 }
 
-float CameraModule::get_zoom_factor()
+bool
+CameraModule::camera_get_laser_ranging_info(
+    uint8_t payload_index, T_DjiCameraManagerLaserRangingInfo &laser_info)
+{
+  auto dji_payload_index = static_cast<E_DjiMountPosition>(payload_index);
+
+  T_DjiReturnCode return_code;
+
+  return_code =
+      DjiCameraManager_GetLaserRangingInfo(dji_payload_index, &laser_info);
+
+  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
+  {
+    RCLCPP_ERROR(get_logger(),
+                 "Get mounted position %d camera laser ranging info failed, "
+                 "error code: 0x%016llX.",
+                 payload_index, static_cast<unsigned long long>(return_code));
+
+    return false;
+  }
+
+  RCLCPP_INFO(get_logger(),
+              "Laser distance: %.2f m, longitude: %.8f, latitude: %.8f, "
+              "altitude: %.2f m screen: (%.02f, %.02f)",
+              laser_info.distance / 10.0, laser_info.longitude,
+              laser_info.latitude, laser_info.altitude / 10.0,
+              laser_info.screenX / 10.0, laser_info.screenY / 10.0);
+
+  return true;
+}
+
+void
+CameraModule::publish_camera_ranging_information()
+{
+  int payload_index = DJI_MOUNT_POSITION_PAYLOAD_PORT_NO1;
+
+  T_DjiCameraManagerLaserRangingInfo laser_info{};
+  if (camera_get_laser_ranging_info(payload_index, laser_info))
+  {
+    lrs_msgs_common::msg::CameraLaserRangingInfo camera_ranging_info;
+    camera_ranging_info.altitude =
+        static_cast<float>(laser_info.altitude) / 10.0;
+
+    camera_ranging_info.distance =
+        static_cast<float>(laser_info.distance) / 10.0;
+
+    camera_ranging_info.longitude = laser_info.longitude;
+    camera_ranging_info.latitude = laser_info.latitude;
+
+    camera_ranging_info.enable_lidar = laser_info.enable_lidar;
+    camera_ranging_info.exception = laser_info.exception;
+
+    camera_ranging_info.screen_x =
+        static_cast<float>(laser_info.screenX) / 10.0;
+
+    camera_ranging_info.screen_y =
+        static_cast<float>(laser_info.screenY) / 10.0;
+
+    camera_ranging_info_pub_->publish(camera_ranging_info);
+  }
+}
+
+float
+CameraModule::get_zoom_factor()
 {
   return zoom_factor_.load();
 }
@@ -415,7 +482,7 @@ bool
 CameraModule::get_camera_type(std::string &camera_type,
                               const E_DjiMountPosition index)
 {
-//  RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
+  //  RCLCPP_ERROR(get_logger(), "get_camera_type: %d", index);
   T_DjiReturnCode return_code =
       DjiCameraManager_GetCameraType(index, &attached_camera_type_);
   if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
@@ -428,8 +495,8 @@ CameraModule::get_camera_type(std::string &camera_type,
   }
   else
   {
-//    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d",
-//                 attached_camera_type_);
+    //    RCLCPP_ERROR(get_logger(), "get_camera_type returned: %d",
+    //                 attached_camera_type_);
 
     for (auto &it : psdk_utils::camera_type_str)
     {
@@ -437,8 +504,8 @@ CameraModule::get_camera_type(std::string &camera_type,
       {
         std::string camera_type_copy = it.second;
         camera_type = camera_type_copy;
-//        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s",
-//                     camera_type.c_str());
+        //        RCLCPP_ERROR(get_logger(), "get_camera_type returned: %s",
+        //                     camera_type.c_str());
 
         return true;
       }
@@ -1438,7 +1505,7 @@ CameraModule::camera_get_laser_ranging_info_cb(
         " error code :%ld",
         index, return_code);
     response->success = false;
-    return;
+    // return;
   }
   else
   {
@@ -1455,7 +1522,7 @@ CameraModule::camera_get_laser_ranging_info_cb(
     response->enable_lidar = laser_ranging_info.enable_lidar;
     response->exception = laser_ranging_info.exception;
     response->success = true;
-    return;
+    // return;
   }
 }
 
@@ -1890,7 +1957,6 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-
     RCLCPP_ERROR(get_logger(),
                  "Failed to %s synchronized split screen zoom for camera %d, "
                  "error code: %lx.",
@@ -1905,73 +1971,26 @@ CameraModule::camera_set_synchronized_split_screen_zoom(uint8_t payload_index,
   return true;
 }
 
-
-bool CameraModule::camera_get_video_resolution_frame_rate(
-    uint8_t payload_index,
-    T_DjiCameraManagerVideoFormat &video_format)
+bool
+CameraModule::camera_get_video_resolution_frame_rate(
+    uint8_t payload_index, T_DjiCameraManagerVideoFormat &video_format)
 {
+  auto dji_payload_index = static_cast<E_DjiMountPosition>(payload_index);
 
-  auto dji_payload_index =
-      static_cast<E_DjiMountPosition>(payload_index);
-
-  T_DjiReturnCode rc =
-      DjiCameraManager_GetVideoResolutionFrameRate(dji_payload_index, &video_format);
+  T_DjiReturnCode rc = DjiCameraManager_GetVideoResolutionFrameRate(
+      dji_payload_index, &video_format);
 
   if (rc != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
   {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Get camera %d video format failed, error code: 0x%016llX.",
-        payload_index,
-        static_cast<unsigned long long>(rc));
+    RCLCPP_ERROR(get_logger(),
+                 "Get camera %d video format failed, error code: 0x%016llX.",
+                 payload_index, static_cast<unsigned long long>(rc));
     return false;
   }
 
   RCLCPP_INFO(
-      get_logger(),
-      "Camera %d video format: resolution=%d frame_rate=%d",
-      payload_index,
-      video_format.videoResolution,
-      video_format.videoFrameRate);
-
-  return true;
-}
-
-bool CameraModule::camera_get_laser_ranging_info(
-    uint8_t payload_index,
-    T_DjiCameraManagerLaserRangingInfo &laser_info)
-{
-
-  auto dji_payload_index =
-      static_cast<E_DjiMountPosition>(payload_index);
-
-  T_DjiReturnCode return_code;
-
-  return_code =
-      DjiCameraManager_GetLaserRangingInfo(dji_payload_index, &laser_info);
-
-  if (return_code != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS)
-  {
-    RCLCPP_ERROR(
-        get_logger(),
-        "Get mounted position %d camera laser ranging info failed, "
-        "error code: 0x%016llX.",
-        payload_index,
-        static_cast<unsigned long long>(return_code));
-
-    return false;
-  }
-
-  RCLCPP_INFO(
-      get_logger(),
-      "Laser distance: %.2f m, longitude: %.8f, latitude: %.8f, "
-      "altitude: %.2f m screen: (%.02f, %.02f)",
-      laser_info.distance/10.0,
-      laser_info.longitude,
-      laser_info.latitude,
-      laser_info.altitude/10.0,
-      laser_info.screenX/10.0,
-      laser_info.screenY/10.0);
+      get_logger(), "Camera %d video format: resolution=%d frame_rate=%d",
+      payload_index, video_format.videoResolution, video_format.videoFrameRate);
 
   return true;
 }
