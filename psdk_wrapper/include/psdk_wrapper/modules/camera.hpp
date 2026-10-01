@@ -592,7 +592,7 @@ class CameraModule : public rclcpp_lifecycle::LifecycleNode
   bool query_zoom();
 
   void publish_camera_ranging_information();
-
+  static uint32_t convert_laser_exception(uint8_t dji_exception) ;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr camera_info_pub_;
   rclcpp::Publisher<lrs_msgs_common::msg::CameraLaserRangingInfo>::SharedPtr
       camera_ranging_info_pub_;

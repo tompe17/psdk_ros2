@@ -22,6 +22,7 @@
 #include "psdk_wrapper/modules/camera.hpp"
 
 #include "psdk_wrapper/modules/liveview.hpp"
+#include "psdk_wrapper/modules/telemetry.hpp"
 #include "psdk_wrapper/utils/psdk_wrapper_utils.hpp"
 
 namespace psdk_ros2
@@ -195,17 +196,22 @@ CameraModule::on_configure(const rclcpp_lifecycle::State &state)
   camera_info_pub_ =
       create_publisher<std_msgs::msg::String>(camera_ + "/camera_status", 10);
 
-  camera_ranging_info_pub_ =
-      create_publisher<lrs_msgs_common::msg::CameraLaserRangingInfo>(
-          camera_ + "/laser_ranging_info", 10);
 
   camera_info_timer_ = create_wall_timer(
       std::chrono::milliseconds(100),
       std::bind(&CameraModule::publish_camera_information, this));
 
-  camera_ranging_info_timer_ = create_wall_timer(
-      std::chrono::milliseconds(200),
-      std::bind(&CameraModule::publish_camera_ranging_information, this));
+
+  if (global_telemetry_ptr_->params_.publish_camera_ranging_info)
+  {
+    camera_ranging_info_pub_ =
+        create_publisher<lrs_msgs_common::msg::CameraLaserRangingInfo>(
+            camera_ + "/laser_ranging_info", 10);
+
+    camera_ranging_info_timer_ = create_wall_timer(
+        std::chrono::milliseconds(200),
+        std::bind(&CameraModule::publish_camera_ranging_information, this));
+  }
 
   return CallbackReturn::SUCCESS;
 }
@@ -441,6 +447,28 @@ CameraModule::camera_get_laser_ranging_info(
   return true;
 }
 
+uint32_t CameraModule::convert_laser_exception(
+    uint8_t dji_exception)
+{
+  switch (dji_exception)
+  {
+    case 0:
+      return lrs_msgs_common::msg::CameraLaserRangingInfo::NORMAL;
+
+    case 1:
+      return lrs_msgs_common::msg::CameraLaserRangingInfo::TOO_CLOSE;
+
+    case 2:
+      return lrs_msgs_common::msg::CameraLaserRangingInfo::TOO_FAR;
+
+    case 3:
+      return lrs_msgs_common::msg::CameraLaserRangingInfo::NO_SIGNAL;
+
+    default:
+      return lrs_msgs_common::msg::CameraLaserRangingInfo::UNKNOWN;
+  }
+}
+
 void
 CameraModule::publish_camera_ranging_information()
 {
@@ -449,6 +477,10 @@ CameraModule::publish_camera_ranging_information()
   T_DjiCameraManagerLaserRangingInfo laser_info{};
   if (camera_get_laser_ranging_info(payload_index, laser_info))
   {
+
+    // the laser info does not seem to give any timestamp
+    const auto timestamp = this->get_clock()->now();
+
     lrs_msgs_common::msg::CameraLaserRangingInfo camera_ranging_info;
     camera_ranging_info.altitude =
         static_cast<float>(laser_info.altitude) / 10.0;
@@ -460,13 +492,16 @@ CameraModule::publish_camera_ranging_information()
     camera_ranging_info.latitude = laser_info.latitude;
 
     camera_ranging_info.enable_lidar = laser_info.enable_lidar;
-    camera_ranging_info.exception = laser_info.exception;
+    camera_ranging_info.exception = convert_laser_exception(laser_info.exception);
 
     camera_ranging_info.screen_x =
         static_cast<float>(laser_info.screenX) / 10.0;
 
     camera_ranging_info.screen_y =
         static_cast<float>(laser_info.screenY) / 10.0;
+
+    camera_ranging_info.header.stamp = timestamp;
+    camera_ranging_info.header.frame_id = global_telemetry_ptr_->params_.camera_frame;
 
     camera_ranging_info_pub_->publish(camera_ranging_info);
   }

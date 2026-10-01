@@ -25,6 +25,8 @@
 
       publish_transforms: true
 
+      publish_camera_ranging_info: false
+
       camera: "psdk_ros2/main_camera"
       main_camera_width: 1080
       main_camera_height: 600
