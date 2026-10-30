@@ -61,6 +61,24 @@ endif()
 # Set the path to the fetched content
 set(PSDK_PATH ${payload_sdk_SOURCE_DIR})
 
+# DJI's liveview sample decoder uses the FFmpeg 4.x API (Ubuntu 22.04 / Humble) and does not
+# compile against FFmpeg 5+ (Ubuntu 24.04 / Jazzy ships 6.1). jazzy/ holds a ported copy of the
+# two files. With libavcodec >= 59 (FFmpeg 5+) they overwrite the fetched ones at configure
+# time (replaces the former manual jazzy/copy.sh step); with FFmpeg 4.x DJI's originals are kept.
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+  pkg_check_modules(AVCODEC QUIET libavcodec)
+endif()
+if(AVCODEC_FOUND AND AVCODEC_VERSION VERSION_GREATER_EQUAL 59)
+  file(COPY
+    ${CMAKE_CURRENT_SOURCE_DIR}/jazzy/dji_camera_stream_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/jazzy/dji_camera_stream_decoder.hpp
+    DESTINATION ${PSDK_PATH}/samples/sample_c++/module_sample/liveview)
+  message(STATUS "libavcodec ${AVCODEC_VERSION}: applied the FFmpeg 5+ port of dji_camera_stream_decoder from psdk_wrapper/jazzy")
+else()
+  message(STATUS "libavcodec ${AVCODEC_VERSION}: using DJI's original dji_camera_stream_decoder (FFmpeg 4.x API)")
+endif()
+
 message(STATUS "PSDK_PATH: ${PSDK_PATH}")
 
 # Add path to FindFFMPEG.cmake and FindLIBUSB.cmake files

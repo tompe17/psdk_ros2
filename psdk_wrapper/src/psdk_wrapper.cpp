@@ -18,6 +18,7 @@
  */
 
 #include "psdk_wrapper/psdk_wrapper.hpp"
+#include "declare_location.h"
 
 std::shared_ptr<psdk_ros2::TelemetryModule> psdk_ros2::global_telemetry_ptr_;
 std::shared_ptr<psdk_ros2::CameraModule> psdk_ros2::global_camera_ptr_;
@@ -83,7 +84,7 @@ PSDKWrapper::PSDKWrapper(const std::string &node_name)
   declare_parameter("hms_return_codes_path", rclcpp::ParameterValue(""));
   declare_parameter("file_path", rclcpp::ParameterValue("/logs/media/"));
   declare_parameter("sim", rclcpp::ParameterValue(false));
-  declare_parameter("location", "granso");
+  declare_location(this);
   declare_parameter("default_altitude_value", -1000.0);
 
   declare_parameter("data_frequency.imu", 1);
